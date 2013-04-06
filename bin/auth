@@ -1,0 +1,206 @@
+#!/usr/bin/env php
+<?php
+
+define('PRODUCTION_URL', 'https://foundation.iplantcollaborative.org/auth-v1/');
+define('DEVEL_URL', 'http://localhost/iplant-auth/');
+$username = "dooley";
+$pass = "iplant4d**ley";
+
+$args = arguments($argv);
+
+$VERBOSE = in_array('v', $args['flags']);
+$DEVEL = in_array('d', $args['flags']);
+	
+$form = '';
+
+if (isset($args['options']['username'])) {
+	$api_username = $args['options']['username'];
+} else {
+	$api_username = "dooley";
+}
+$form["username"] = $api_username;
+
+if (isset($args['options']['internal_username'])) {
+	$internal_username = $args['options']['internal_username'];
+	$form['internal_username'] = $args['options']['internal_username'];
+}
+
+if (isset($args['options']['lifetime'])) {
+	$lifetime = $args['options']['lifetime'];
+	$form['lifetime'] = $args['options']['lifetime'];
+}
+
+if (isset($args['options']['max_uses'])) {
+	$max_uses = $args['options']['max_uses'];
+	$form['max_uses'] = $args['options']['max_uses'];
+}
+
+$url = PRODUCTION_URL;
+
+if ($DEVEL) {
+	echo "Invoking development service at: " . DEVEL_URL . "\n";
+	print_r($form);
+	$url = DEVEL_URL;
+}
+
+$response = authenticated_post($url, $username, $pass, $form);
+
+if (empty($response))
+{
+	echo "Failed to communicate with server.\n";
+}
+if ($response['status'] == 'success') 
+{
+	if ($VERBOSE) {
+		print_r($response['result']);
+	} else {
+		echo $response['result']['token'] . "\n";
+	}
+}
+else
+{
+	echo $response['result']['message'] . "\n";
+}
+
+die();
+
+//curl -d "username=$1" -sku "dooley:iplant4d**ley" https://foundation.iplantcollaborative.org/auth-v1/ | //python -mjson.tool
+
+function arguments ( $args )
+{
+  array_shift( $args );
+  $endofoptions = false;
+
+  $ret = array
+    (
+    'commands' => array(),
+    'options' => array(),
+    'flags'    => array(),
+    'arguments' => array(),
+    );
+
+  while ( $arg = array_shift($args) )
+  {
+
+    // if we have reached end of options,
+    //we cast all remaining argvs as arguments
+    if ($endofoptions)
+    {
+      $ret['arguments'][] = $arg;
+      continue;
+    }
+
+    // Is it a command? (prefixed with --)
+    if ( substr( $arg, 0, 2 ) === '--' )
+    {
+
+      // is it the end of options flag?
+      if (!isset ($arg[3]))
+      {
+        $endofoptions = true;; // end of options;
+        continue;
+      }
+
+      $value = "";
+      $com   = substr( $arg, 2 );
+
+      // is it the syntax '--option=argument'?
+      if (strpos($com,'='))
+        list($com,$value) = split("=",$com,2);
+
+      // is the option not followed by another option but by arguments
+      elseif (strpos($args[0],'-') !== 0)
+      {
+        while (strpos($args[0],'-') !== 0)
+          $value .= array_shift($args).' ';
+        $value = rtrim($value,' ');
+      }
+
+      $ret['options'][$com] = !empty($value) ? $value : true;
+      continue;
+
+    }
+
+    // Is it a flag or a serial of flags? (prefixed with -)
+    if ( substr( $arg, 0, 1 ) === '-' )
+    {
+      for ($i = 1; isset($arg[$i]) ; $i++)
+        $ret['flags'][] = $arg[$i];
+      continue;
+    }
+
+    // finally, it is not option, nor flag, nor argument
+    $ret['commands'][] = $arg;
+    continue;
+  }
+
+  if (!count($ret['options']) && !count($ret['flags']))
+  {
+    $ret['arguments'] = array_merge($ret['commands'], $ret['arguments']);
+    $ret['commands'] = array();
+  }
+return $ret;
+}
+
+/**
+ * Perform an http get using basic auth on the endpoint
+ */
+function authenticated_get($url, $uname, $pass) 
+{
+	$ch = curl_init();                                                                         
+	
+	$request = curl_init();
+	curl_setopt( $request, CURLOPT_URL, $url);
+	curl_setopt( $request, CURLOPT_RETURNTRANSFER, 1);  // RETURN CONTENTS OF CALL
+	curl_setopt( $request, CURLOPT_HEADER, 0 );  // DO NOT RETURN HTTP HEADERS
+	curl_setopt( $request, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+	curl_setopt( $request, CURLOPT_USERPWD, $uname.":".$pass);
+	curl_setopt( $request, CURLOPT_SSL_VERIFYPEER, FALSE);
+	curl_setopt( $request, CURLOPT_SSL_VERIFYHOST, FALSE);
+	curl_setopt( $request, CURLOPT_FOLLOWLOCATION, 1);
+	curl_setopt( $request, CURLOPT_FORBID_REUSE, 1);
+	$response = curl_exec( $request );
+	curl_close($request);
+	
+	return json_decode($response, true);
+}
+
+/**
+ * Perform an http post using basic auth on the endpoint
+ */
+function authenticated_post($url, $uname, $pass, $form_vars=array()) 
+{
+	
+	$post_data = serialize_form_data($form_vars);
+	error_log("invoking post on $url with $post_data");
+	
+	$curl = curl_init(); 
+	curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC ) ; 
+	curl_setopt($curl, CURLOPT_USERPWD, $uname.":".$pass); 
+	curl_setopt($curl, CURLOPT_SSLVERSION,3); 
+	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE); 
+	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 1);
+	curl_setopt($curl, CURLOPT_HEADER, false); 
+	curl_setopt($curl, CURLOPT_POST, true); 
+	curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data ); 
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true); 
+	curl_setopt($curl, CURLOPT_URL, $url); 
+	
+	$response = curl_exec($curl);  
+	error_log($response);
+	curl_close($curl);
+	
+	return json_decode($response, true);
+}
+
+function serialize_form_data($form_vars)
+{
+	$post_data = '';
+	foreach($form_vars as $key=>$value) 
+	{ 
+		$post_data .= $key.'='.$value.'&'; 
+	}
+	$post_data = rtrim($post_data,'&');
+	
+	return $post_data;
+}
