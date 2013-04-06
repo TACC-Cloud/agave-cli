@@ -7,13 +7,19 @@ This project contains a set of Bash Shell scripts to interact with the iPlant Fo
 Requirements
 =================
 
-Currently only Bash and curl are required to use the Foundation API cli tools. However, in the future, the following may be required.
+The following technologies are required to use the Foundation API cli tools. 
 
+	* bash
+	* curl
 	* Perl
-	* PHP 5.3+
 	* Python (including json.tool)
-	* Java 6+
 
+In the future, the following may be required, though we will avoid this if at all possible.
+
+	* Java 6+
+	* PHP 5.3+
+	
+	
 Installation
 =================
 
