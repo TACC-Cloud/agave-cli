@@ -10,8 +10,8 @@
 # 4. prompt
 
 API_BASE_URL=https://foundation.iplantcollaborative.org
-API_USERNAME=
-API_PASSWORD=
+API_USERNAME=dooley
+API_PASSWORD=iplant4d**ley
 API_TOKEN=
 #API_KEY=
 #API_SECRET=
