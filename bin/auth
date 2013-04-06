@@ -3,8 +3,8 @@
 
 define('PRODUCTION_URL', 'https://foundation.iplantcollaborative.org/auth-v1/');
 define('DEVEL_URL', 'http://localhost/iplant-auth/');
-$username = "dooley";
-$pass = "iplant4d**ley";
+$username = "";
+$pass = "";
 
 $args = arguments($argv);
 
