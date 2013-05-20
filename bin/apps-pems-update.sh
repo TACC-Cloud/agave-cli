@@ -1,12 +1,11 @@
 #!/bin/bash
 # 
-# apps-delete
+# apps-share
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It deletes a registered applications. User must have admin privileges
-# on the app to perform this operation.
+# It provides a mechanism for managing share permissions on an application.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -14,13 +13,13 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "$DIR/common.sh"
 
 hosturl="$baseurl/apps/"
-storetoken=0
+
 
 # Script logic -- TOUCH THIS {{{
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(apisecret apikey username permission)
 
 # Print usage
 usage() {
@@ -32,7 +31,9 @@ Description of this script.
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
-  -H, --hosturl     URL of the service
+  -u, --username	The user whose permissions should be set
+  -p, --permission	The permission to set
+  -h, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
   -i, --interactive Prompt for values
@@ -53,35 +54,30 @@ main() {
 	#echo -n
 	#set -x
 	
-	if [ -z "$args" ]; then
-		err "Please specify a valid app id to delete"
+	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"permission=$permission\" $hosturl$args/pems/$username"
+
+	log "Calling $cmd"
+	
+	response=`curl -sku "$apisecret:$apikey" -X POST -d "permission=$permission" "$hosturl$args/pems/$username"`
+		
+	jsonval response_status "$response" "status"
+	
+	if [ "$response_status" = "success" ]; then
+		format_api_json "$response"
 	else
+		jsonval response_message "$response" "message" 
+		err "$response_message"
+	fi
 	
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE $hosturl/$args"
-
-		log "Calling $cmd"
 	
-		response=`curl -sku "$apisecret:$apikey" -X DELETE "$hosturl$args"`
-
-		jsonval response_status "$response" "status"
-
-		if [ "$response_status" = "success" ]; then
-			format_api_json "$response"
-		else
-			jsonval response_message "$response" "message" 
-			err "$response_message"
-		fi
-	fi	
 }
 
 format_api_json() {
-
-	jsonval storedtoken "${tokenstore}" "apikey" 
 	
 	if ((verbose)); then
 		echo "$1" | python -mjson.tool
 	else
-		success "Successfully deleted app $arg"
+		success "Successfully updated permission for $username"
 	fi
 }
 
@@ -142,7 +138,7 @@ safe_exit() {
 # Main loop {{{
 
 # Print help if no arguments were passed.
-[[ $# -eq 0 ]] && set -- "-i"
+#[[ $# -eq 0 ]] && set -- "--help"
 
 # Read the options and set stuff
 while [[ $1 = -?* ]]; do
@@ -151,6 +147,8 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
+    -u|--username) shift; username=$1 ;;
+    -p|--permission) shift; permission=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
@@ -172,14 +170,12 @@ args+=("$@")
 # Uncomment this line if the script requires root privileges.
 # [[ $UID -ne 0 ]] && die "You need to be root to run this script"
 
-if ((!local)); then 
-	if [ -z "$apikey" ]; then
-		interactive=1
-	fi
+if [ -z "$apikey" ]; then
+	interactive=1
+fi
 
-	if [ -z "$apisecret" ]; then
-		interactive=1
-	fi
+if [ -z "$apisecret" ]; then
+	interactive=1
 fi
 
 if ((interactive)); then
