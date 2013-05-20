@@ -15,7 +15,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "$DIR/common.sh"
 
 hosturl="$baseurl/profiles/"
-storetoken=0
 
 # Script logic -- TOUCH THIS {{{
 

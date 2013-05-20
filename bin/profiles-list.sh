@@ -55,6 +55,7 @@ main() {
 	#echo -n
 	#set -x
 	
+	profileurl="$hosturl/$apisecret"
 	if [ -n "$username" ]; then
 		profileurl="$hosturl/search/username/$username"
 	else
@@ -80,8 +81,6 @@ main() {
 		jsonval response_message "$response" "message" 
 		err "$response_message"
 	fi
-	
-	
 }
 
 format_api_json() {
@@ -89,7 +88,8 @@ format_api_json() {
 	if ((verbose)); then
 		echo "$1" | python -mjson.tool
 	else
-		echo "$1" | grep '^            "email"' | perl -pe "s/\"email\"://; s/\"//g; s/,/\n/; s/\s//g; print \"\n\";" | success
+		result=`echo "$1"  | python -mjson.tool | grep '^            "email"' | perl -pe "s/\"email\"://; s/\"//g; s/,/\n/; s/ //g; "`
+		success "${result}"
 	fi
 }
 

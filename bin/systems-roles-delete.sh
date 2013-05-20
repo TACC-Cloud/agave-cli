@@ -55,7 +55,7 @@ main() {
 	#set -x
 	
 	if [ -z "$args" ]; then
-		err "Please specify a valid system id for which to retrieve permissions"
+		err "Please specify a valid system id for which to retrieve the user roles"
 	else
 		cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE $hosturl$args/roles/$username"
 

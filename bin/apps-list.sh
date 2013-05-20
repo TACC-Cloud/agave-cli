@@ -31,6 +31,9 @@ Description of this script.
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
+  -n, --name		Search for app by name
+  -t, --tag			Search for app by tag
+  -o, --ontology    Search for app by ontology
   -h, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -51,6 +54,19 @@ Description of this script.
 main() {
 	#echo -n
 	#set -x
+	
+	profileurl="$hosturl/$apisecret"
+	if [ -n "$username" ]; then
+		profileurl="$hosturl/search/username/$username"
+	else
+		if [ -n "$email" ]; then
+			profileurl="$hosturl/search/email/$email"
+		else
+			if [ -n "$name" ]; then
+				profileurl="$hosturl/search/name/$name"
+			fi
+		fi
+	fi
 	
 	cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$args"
 
@@ -75,7 +91,8 @@ format_api_json() {
 	if ((verbose)); then
 		echo "$1" | python -mjson.tool
 	else
-		echo "$1" | grep '^            "id"' | perl -pe "s/\"id\"://; s/\"//g; s/,/\n/; s/\s//g; print \"\n\";" | success
+		result=`echo "$1" | python -mjson.tool | grep '^            "id"' | perl -pe "s/\"id\"://; s/\"//g; s/,/\n/; s/\s//g; print \"\n\";"`
+		success "${result}"
 	fi
 }
 

@@ -77,11 +77,12 @@ main() {
 
 format_api_json() {
 	
+	
 	if ((verbose)); then
 		echo "$1" | python -mjson.tool
 	else
-		jsonval app_pem "$1" "permission"
-		success "$app_pem"
+		result=`echo "$1"  | python -mjson.tool | grep '^            "username"' | perl -pe "s/\"username\"://; s/\"//g; s/,/\n/; s/ //g; "`
+		success "${result}"
 	fi
 }
 

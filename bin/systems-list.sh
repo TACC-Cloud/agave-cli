@@ -75,7 +75,8 @@ format_api_json() {
 	if ((verbose)); then
 		echo "$1" | python -mjson.tool
 	else
-		echo "$1" | grep '^            "id"' | perl -pe "s/\"id\"://; s/\"//g; s/,/\n/; s/\s//g; print \"\n\";" | success
+		result=`echo "$1" | python -mjson.tool | grep '^            "id"' | perl -pe "s/\"id\"://; s/\"//g; s/,/\n/; s/\s//g; print \"\n\";"`
+		success "${result}"
 	fi
 }
 

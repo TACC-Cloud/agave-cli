@@ -80,8 +80,8 @@ format_api_json() {
 	if ((verbose)); then
 		echo "$1" | python -mjson.tool
 	else
-		jsonval system_role "$1" "role"
-		success "$system_role"
+		result=`echo "$1"  | python -mjson.tool | grep '^            "internalUsername"' | perl -pe "s/\"internalUsername\"://; s/\"//g; s/,/\n/; s/ //g; "`
+		success "${result}"
 	fi
 }
 
