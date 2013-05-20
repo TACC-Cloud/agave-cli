@@ -1,18 +1,20 @@
 #!/bin/bash
 # 
-# auth-token-renew.sh
+# auth-token-get.sh
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It renews an existing token. A token cannot be used to renew itself.
+# It retrieves an authentication token from the auth service that
+# can be used to authenticate to the rest of the api. A valid API 
+# secret and key must be used to obtain a token.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
 
-hosturl="$baseurl/auth/tokens/"
+hosturl="$baseurl/auth/"
 storetoken=0
 apikey=
 apisecret=
@@ -25,7 +27,7 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [TOKEN]
+  echo -n "$(basename $0) [OPTION]...
 
 Description of this script.
 
@@ -33,6 +35,13 @@ Description of this script.
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
+  -l, --lifetime    Lifetime of the returned token in seconds
+  -m, --maxUses     Maximum number of times the returned token can be used
+  -u, --internalUsername  Internal user to attach to this token
+  -x, --apiusername API username for whom the returned token should apply, 
+                    requires admin permissions
+  -S, --storetoken  Store the token for later use. This prevents you from 
+                    reauthenticating with every command.
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -54,34 +63,55 @@ main() {
 	#echo -n
 	#set -x
 	
-	if [ -z "$args" ]; then
-		err "Please specify a valid token to renew"
-	else
+	local post_options='';
 	
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"$post_options\" $hosturl/$args"
+	if [ -n "$internalUsername" ]; then
+		post_options="internalUsername=$internalUsername"
+	fi
+	
+	if [ -n "$apiusername" ]; then
+		post_options="username=$apiusername&$post_options"
+	fi
+	
+	if [ -n "$maxUses" ]; then
+		post_options="maxUses=$maxUses&$post_options"
+	fi
+	
+	if [ -n "$lifetime" ]; then
+		post_options="lifetime=$lifetime&$post_options"
+	fi
+	
+	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"$post_options\" $hosturl"
 
-		log "Calling $cmd"
+	log "Calling $cmd"
 		
-		response=`curl -sku "$apisecret:$apikey" -X PUT "$hosturl$args"`
+	response=`curl -sku "$apisecret:$apikey" -X POST -d "$post_options" "$hosturl"`
 	
-		jsonval response_status "$response" "status"
+	jsonval response_status "$response" "status"
 	
-		if [ "$response_status" = "success" ]; then
-			format_api_json "$response"
-		else
-			jsonval response_message "$response" "message" 
-			err "$response_message"
-		fi
-	fi	
+	if [ "$response_status" = "success" ]; then
+		format_api_json "$response"
+	else
+		jsonval response_message "$response" "message" 
+		err "$response_message"
+	fi
+	
 	
 }
 
 format_api_json() {
 	
+	if ((storetoken)); then
+		jsonval response_token "$1" "token" 
+		echo "{\"apisecret\":\"$apisecret\",\"apikey\":\"$response_token\"}" > ~/.agave
+		echo "Token successfully stored";
+	fi	
+		
 	if ((verbose)); then
 		echo "$1" | python -mjson.tool
 	else
-		success "Successfully updated token $arg"
+		jsonval response_token "$1" "token" 
+		success "$response_token"
 	fi
 }
 
@@ -151,7 +181,12 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
-    -H|--hosturl) shift; hosturl=$1;;
+    -l|--lifetime) shift; lifetime=$1 ;;
+  	-m|--maxUses) shift; maxuses=$1 ;;
+  	-u|--internalUsername) shift; internalusername=$1 ;;
+	-x|--apiusername) shift; apiusername=$1;;
+	-S|--storetoken) storetoken=1 ;;
+	-H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
     -q|--quiet) quiet=1 ;;

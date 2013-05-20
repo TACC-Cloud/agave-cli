@@ -1,23 +1,19 @@
 #!/bin/bash
 # 
-# auth-token-get.sh
+# auth-token-delete.sh
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It retrieves an authentication token from the auth service that
-# can be used to authenticate to the rest of the api. A valid API 
-# secret and key must be used to obtain a token.
+# It deletes an existing token.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
 
-hosturl="$baseurl/auth/"
+hosturl="$baseurl/apps/"
 storetoken=0
-apikey=
-apisecret=
 
 # Script logic -- TOUCH THIS {{{
 
@@ -27,7 +23,7 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]...
+  echo -n "$(basename $0) [OPTION]... [TOKEN]
 
 Description of this script.
 
@@ -35,14 +31,7 @@ Description of this script.
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
-  -l, --lifetime    Lifetime of the returned token in seconds
-  -m, --maxUses     Maximum number of times the returned token can be used
-  -u, --internalUsername  Internal user to attach to this token
-  -x, --apiusername API username for whom the returned token should apply, 
-                    requires admin permissions
-  -S, --storetoken  Store the token for later use. This prevents you from 
-                    reauthenticating with every command.
-  -h, --hosturl     URL of the service
+  -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
   -i, --interactive Prompt for values
@@ -63,55 +52,39 @@ main() {
 	#echo -n
 	#set -x
 	
-	local post_options='';
-	
-	if [ -n "$internalUsername" ]; then
-		post_options="internalUsername=$internalUsername"
-	fi
-	
-	if [ -n "$apiusername" ]; then
-		post_options="username=$apiusername&$post_options"
-	fi
-	
-	if [ -n "$maxUses" ]; then
-		post_options="maxUses=$maxUses&$post_options"
-	fi
-	
-	if [ -n "$lifetime" ]; then
-		post_options="lifetime=$lifetime&$post_options"
-	fi
-	
-	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"$post_options\" $hosturl"
-
-	log "Calling $cmd"
-		
-	response=`curl -sku "$apisecret:$apikey" -X POST -d "$post_options" "$hosturl"`
-	
-	jsonval response_status "$response" "status"
-	
-	if [ "$response_status" = "success" ]; then
-		format_api_json "$response"
+	if ((local)); then
+		clear_local_token_cache
 	else
-		jsonval response_message "$response" "message" 
-		err "$response_message"
-	fi
+		if [ -z "$args" ]; then
+			err "Please specify a valid app id to delete"
+		else
+		
+			cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE $hosturl/$args"
+
+			log "Calling $cmd"
+		
+			response=`curl -sku "$apisecret:$apikey" -X DELETE "$hosturl$args"`
 	
+			jsonval response_status "$response" "status"
 	
+			if [ "$response_status" = "success" ]; then
+				format_api_json "$response"
+			else
+				jsonval response_message "$response" "message" 
+				err "$response_message"
+			fi
+		fi	
+	fi	
 }
 
 format_api_json() {
+
+	jsonval storedtoken "${tokenstore}" "apikey" 
 	
-	if ((storetoken)); then
-		jsonval response_token "$1" "token" 
-		echo "{\"apisecret\":\"$apisecret\",\"apikey\":\"$response_token\"}" > ~/.agave
-		echo "Token successfully stored";
-	fi	
-		
 	if ((verbose)); then
 		echo "$1" | python -mjson.tool
 	else
-		jsonval response_token "$1" "token" 
-		success "$response_token"
+		success "Successfully deleted app $arg"
 	fi
 }
 
@@ -181,12 +154,7 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
-    -l|--lifetime) shift; lifetime=$1 ;;
-  	-m|--maxUses) shift; maxuses=$1 ;;
-  	-u|--internalUsername) shift; internalusername=$1 ;;
-	-x|--apiusername) shift; apiusername=$1;;
-	-S|--storetoken) storetoken=1 ;;
-	-h|--hosturl) shift; hosturl=$1;;
+    -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
     -q|--quiet) quiet=1 ;;
@@ -207,12 +175,14 @@ args+=("$@")
 # Uncomment this line if the script requires root privileges.
 # [[ $UID -ne 0 ]] && die "You need to be root to run this script"
 
-if [ -z "$apikey" ]; then
-	interactive=1
-fi
+if ((!local)); then 
+	if [ -z "$apikey" ]; then
+		interactive=1
+	fi
 
-if [ -z "$apisecret" ]; then
-	interactive=1
+	if [ -z "$apisecret" ]; then
+		interactive=1
+	fi
 fi
 
 if ((interactive)); then

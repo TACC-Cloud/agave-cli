@@ -36,7 +36,7 @@ Description of this script.
                     this through the interactive option
   -l, --local       Deletes the local token store forcing a reauthentication
   					on the next call to the api.
-  -h, --hosturl     URL of the service
+  -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
   -i, --interactive Prompt for values
@@ -64,7 +64,7 @@ main() {
 			err "Please specify a valid token to delete"
 		else
 		
-			cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"$post_options\" $hosturl/$args"
+			cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE $hosturl/$args"
 
 			log "Calling $cmd"
 		
@@ -170,7 +170,7 @@ while [[ $1 = -?* ]]; do
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
     -l|--local) shift; local=1 ;;
-    -h|--hosturl) shift; hosturl=$1;;
+    -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
     -q|--quiet) quiet=1 ;;

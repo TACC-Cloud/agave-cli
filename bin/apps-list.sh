@@ -1,21 +1,19 @@
 #!/bin/bash
 # 
-# auth-token-renew.sh
+# apps-list
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It renews an existing token. A token cannot be used to renew itself.
+# It retrieves a list of one or more registered applications from the api
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
 
-hosturl="$baseurl/auth/tokens/"
-storetoken=0
-apikey=
-apisecret=
+hosturl="$baseurl/apps/"
+
 
 # Script logic -- TOUCH THIS {{{
 
@@ -25,7 +23,7 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [TOKEN]
+  echo -n "$(basename $0) [OPTION]... [APP_ID]
 
 Description of this script.
 
@@ -33,7 +31,7 @@ Description of this script.
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
-  -H, --hosturl     URL of the service
+  -h, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
   -i, --interactive Prompt for values
@@ -54,25 +52,21 @@ main() {
 	#echo -n
 	#set -x
 	
-	if [ -z "$args" ]; then
-		err "Please specify a valid token to renew"
-	else
-	
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"$post_options\" $hosturl/$args"
+	cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$args"
 
-		log "Calling $cmd"
+	log "Calling $cmd"
 		
-		response=`curl -sku "$apisecret:$apikey" -X PUT "$hosturl$args"`
+	response=`curl -sku "$apisecret:$apikey" "$hosturl$args"`
 	
-		jsonval response_status "$response" "status"
+	jsonval response_status "$response" "status"
 	
-		if [ "$response_status" = "success" ]; then
-			format_api_json "$response"
-		else
-			jsonval response_message "$response" "message" 
-			err "$response_message"
-		fi
-	fi	
+	if [ "$response_status" = "success" ]; then
+		format_api_json "$response"
+	else
+		jsonval response_message "$response" "message" 
+		err "$response_message"
+	fi
+	
 	
 }
 
@@ -81,7 +75,7 @@ format_api_json() {
 	if ((verbose)); then
 		echo "$1" | python -mjson.tool
 	else
-		success "Successfully updated token $arg"
+		echo "$1" | grep '^            "id"' | perl -pe "s/\"id\"://; s/\"//g; s/,/\n/; s/\s//g; print \"\n\";" | success
 	fi
 }
 
@@ -142,7 +136,7 @@ safe_exit() {
 # Main loop {{{
 
 # Print help if no arguments were passed.
-[[ $# -eq 0 ]] && set -- "-i"
+#[[ $# -eq 0 ]] && set -- "--help"
 
 # Read the options and set stuff
 while [[ $1 = -?* ]]; do

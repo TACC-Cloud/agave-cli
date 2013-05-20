@@ -1,27 +1,25 @@
 #!/bin/bash
 # 
-# auth-token-renew.sh
+# auth-token-delete.sh
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It renews an existing token. A token cannot be used to renew itself.
+# It deletes an existing token.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
 
-hosturl="$baseurl/auth/tokens/"
+hosturl="$baseurl/apps/"
 storetoken=0
-apikey=
-apisecret=
 
 # Script logic -- TOUCH THIS {{{
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(apisecret apikey filetoupload)
 
 # Print usage
 usage() {
@@ -33,6 +31,7 @@ Description of this script.
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
+  -F, --filetoupload The file containing the json app description to submit
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -54,34 +53,33 @@ main() {
 	#echo -n
 	#set -x
 	
-	if [ -z "$args" ]; then
-		err "Please specify a valid token to renew"
-	else
-	
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"$post_options\" $hosturl/$args"
+	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl/$args"
 
-		log "Calling $cmd"
-		
-		response=`curl -sku "$apisecret:$apikey" -X PUT "$hosturl$args"`
-	
-		jsonval response_status "$response" "status"
-	
-		if [ "$response_status" = "success" ]; then
-			format_api_json "$response"
-		else
-			jsonval response_message "$response" "message" 
-			err "$response_message"
-		fi
-	fi	
-	
+	log "Calling $cmd"
+
+	response=`curl -sku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" "$hosturl$args"`
+
+	jsonval response_status "$response" "status"
+
+	if [ "$response_status" = "success" ]; then
+		format_api_json "$response"
+	else
+		jsonval response_message "$response" "message" 
+		err "$response_message"
+	fi
 }
 
 format_api_json() {
-	
+
 	if ((verbose)); then
 		echo "$1" | python -mjson.tool
 	else
-		success "Successfully updated token $arg"
+		if [ -z "$args" ]; then
+			jsonval app_id "$i" "id"
+			err "Successfully added app $app_id"
+		else
+			success "Successfully updated app $arg"
+		fi
 	fi
 }
 
@@ -151,6 +149,7 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
+    -F|--filetoupload) shift; filetoupload=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
@@ -172,12 +171,14 @@ args+=("$@")
 # Uncomment this line if the script requires root privileges.
 # [[ $UID -ne 0 ]] && die "You need to be root to run this script"
 
-if [ -z "$apikey" ]; then
-	interactive=1
-fi
+if ((!local)); then 
+	if [ -z "$apikey" ]; then
+		interactive=1
+	fi
 
-if [ -z "$apisecret" ]; then
-	interactive=1
+	if [ -z "$apisecret" ]; then
+		interactive=1
+	fi
 fi
 
 if ((interactive)); then
