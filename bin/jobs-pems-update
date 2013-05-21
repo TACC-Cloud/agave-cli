@@ -1,29 +1,29 @@
 #!/bin/bash
 # 
-# apps-share
+# jobs-pems-update
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It provides a mechanism for discovering share permissions on an application.
+# It provides a mechanism for managing user permissions on a job.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
 
-hosturl="$baseurl/apps/"
+hosturl="$baseurl/jobs/"
 
 
 # Script logic -- TOUCH THIS {{{
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(apisecret apikey username permission)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [APP_ID]
+  echo -n "$(basename $0) [OPTION]... [JOB_ID]
 
 Description of this script.
 
@@ -31,7 +31,8 @@ Description of this script.
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
-  -u, --username	The user whose permissions should be listed
+  -u, --username	The user whose permissions should be set
+  -p, --permission	The permission to set
   -h, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -54,15 +55,14 @@ main() {
 	#set -x
 	
 	if [ -z "$args" ]; then
-		err "Please specify a valid app id for which to retrieve permissions"
+		err "Please specify a job for which to set the permissions"
 	else
-	
-		cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$args/pems/$username"
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"permission=$permission\" $hosturl$args/pems/$username"
 
 		log "Calling $cmd"
-		
-		response=`curl -sku "$apisecret:$apikey" "$hosturl$args/pems/$username"`
 	
+		response=`curl -sku "$apisecret:$apikey" -X POST -d "permission=$permission" "$hosturl$args/pems/$username"`
+		
 		jsonval response_status "$response" "status"
 	
 		if [ "$response_status" = "success" ]; then
@@ -71,18 +71,15 @@ main() {
 			jsonval response_message "$response" "message" 
 			err "$response_message"
 		fi
-	fi	
-	
+	fi
 }
 
 format_api_json() {
 	
-	
 	if ((verbose)); then
 		echo "$1" | python -mjson.tool
 	else
-		result=`echo "$1"  | python -mjson.tool | grep '^            "username"' | perl -pe "s/\"username\"://; s/\"//g; s/,/\n/; s/ //g; "`
-		success "${result}"
+		success "Successfully updated permission for $username"
 	fi
 }
 
@@ -152,7 +149,8 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
-    -u, --username) shift; username=$1 ;;
+    -u|--username) shift; username=$1 ;;
+    -p|--permission) shift; permission=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

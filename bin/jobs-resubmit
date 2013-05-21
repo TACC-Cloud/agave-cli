@@ -1,20 +1,19 @@
 #!/bin/bash
 # 
-# apps-delete
+# jobs-resubmit
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It deletes a registered applications. User must have admin privileges
-# on the app to perform this operation.
+# It resubmits a job for execution by the API. All the original
+# inputs and parameters are recycled.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
 
-hosturl="$baseurl/apps/"
-storetoken=0
+hosturl="$baseurl/jobs/"
 
 # Script logic -- TOUCH THIS {{{
 
@@ -24,7 +23,7 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [APP_ID]
+  echo -n "$(basename $0) [OPTION]... [JOB_ID]
 
 Description of this script.
 
@@ -53,15 +52,14 @@ main() {
 	#echo -n
 	#set -x
 	
-	if [ -z "$args" ]; then
-		err "Please specify a valid app id to delete"
+	if [ -Z "$args" ]; then 
+		err "Please specify a job id to resubmit"
 	else
-	
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE $hosturl/$args"
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"action=resubmit\" $hosturl$args"
 
 		log "Calling $cmd"
-	
-		response=`curl -sku "$apisecret:$apikey" -X DELETE "$hosturl$args"`
+
+		response=`curl -sku "$apisecret:$apikey" -X POST -d "action=resubmit" "$hosturl$args"`
 
 		jsonval response_status "$response" "status"
 
@@ -71,17 +69,16 @@ main() {
 			jsonval response_message "$response" "message" 
 			err "$response_message"
 		fi
-	fi	
+	fi
 }
 
 format_api_json() {
 
-	jsonval storedtoken "${tokenstore}" "apikey" 
-	
 	if ((verbose)); then
 		echo "$1" | python -mjson.tool
 	else
-		success "Successfully deleted app $arg"
+		jsonval job_id "$i" "id"
+		success "Successfully resubmitted job $args as $job_id"
 	fi
 }
 
