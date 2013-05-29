@@ -17,7 +17,7 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey action)
+interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
