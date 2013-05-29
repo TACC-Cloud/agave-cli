@@ -1,5 +1,10 @@
 #!/bin/bash
+# 
+# auth-token-delete.sh
+# 
+# author: dooley@tacc.utexas.edu
 #
+# Common helper functions and global variables for all cli scripts.
 # A lot of this is based on options.bash by Daniel Mills.
 # @see https://github.com/e36freak/tools/blob/master/options.bash
 
@@ -25,6 +30,8 @@ verbose=0
 interactive=0
 development=0
 baseurl="https://iplant-dev.tacc.utexas.edu/v2"
+devurl="http://localhost:8080"
+disable_cache=0 # set to 1 to prevent using auth cache.
 args=()
 
 # }}}
@@ -81,13 +88,6 @@ function jsonval {
 
 # Boilerplate {{{
 
-# Cached auth token
-if [ -f "$HOME/.agave" ]; then
-	tokenstore=`cat $HOME/.agave`
-	jsonval apisecret "${tokenstore}" "apisecret" 
-	jsonval apikey "${tokenstore}" "apikey" 
-fi
-
 # Prompt the user to interactively enter desired variable values. 
 prompt_options() {
   local desc=
@@ -137,6 +137,13 @@ prompt_options() {
       eval "read $val"
     fi
   done
+}
+
+check_response_status() {
+	local __response_status=`echo "$1" | python -mjson.tool | grep '^    "status": "success"'`
+	if [[ -n $__response_status ]]; then
+		eval response_status="success"
+	fi
 }
 
 # }}}

@@ -1,13 +1,12 @@
 #!/bin/bash
 # 
-# auth-token-get.sh
+# systems-clone
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It retrieves an authentication token from the auth service that
-# can be used to authenticate to the rest of the api. A valid API 
-# secret and key must be used to obtain a token.
+# It creates a copy of an existing system private to the authenticated user.
+# Authentication settings, apps, and roles are not transferred.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -18,18 +17,20 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(apisecret apikey action)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [TOKEN]
+  echo -n "$(basename $0) [OPTION]... [APP_ID]
 
-List all currently active tokens.
+Creates a copy of an existing system private to the authenticated user.
+Authentication settings, apps, and roles are not transferred.
 
  Options:
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
+  -I, --id          System id of new system
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -47,33 +48,44 @@ List all currently active tokens.
 ##################################################################
 ##################################################################
 
-source "$DIR/auth-common.sh"
+source "$DIR/systems-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl/tokens/$args"
-
-	log "Calling $cmd"
-		
-	response=`curl -sku "$apisecret:$apikey" "$hosturl/tokens/$args"`
-	
-	check_response_status "$response"
-	
-	if [ "$response_status" = "success" ]; then
-		format_api_json "$response"
+	if [ -z "$args" ]; then
+		err "Please specify a valid system id to clone"
 	else
-		jsonval response_message "$response" "message" 
-		err "$response_message"
-	fi
+		
+		if [ -n "$id" ]; then
+			new_system_id="&id=$id"
+		fi
+		
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=clone$new_system_id\" $hosturl$args"
+
+		log "Calling $cmd"
 	
+		response=`curl -sku "$apisecret:$apikey" -X PUT -d "action=$action$new_system_id" "$hosturl$args"`
+
+		check_response_status "$response"
 	
+		if [ "$response_status" = "success" ]; then
+			format_api_json "$response"
+		else
+			jsonval response_message "$response" "message" 
+			err "$response_message"
+		fi
+	fi	
 }
 
 format_api_json() {
-	
-	echo "$1" | python -mjson.tool
+	if ((verbose)); then
+		echo "$1" | python -mjson.tool
+	else
+		jsonval system_id "$1" "id" 
+		success "Successfully cloned app $args to $system_id"
+	fi
 }
 
 ##################################################################
@@ -88,10 +100,8 @@ format_api_json() {
 source "$DIR/options.sh"
 
 
-# Main loop {{{
-
 # Print help if no arguments were passed.
-#[[ $# -eq 0 ]] && set -- "--help"
+[[ $# -eq 0 ]] && set -- "-i"
 
 # Read the options and set stuff
 while [[ $1 = -?* ]]; do
@@ -100,6 +110,7 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
+    -I|--id) shift; id=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
@@ -119,4 +130,3 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
-

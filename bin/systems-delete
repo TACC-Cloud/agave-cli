@@ -15,9 +15,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
 
-hosturl="$baseurl/systems/"
-storetoken=0
-
 # Script logic -- TOUCH THIS {{{
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
@@ -28,7 +25,11 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
 
-Description of this script.
+Deletes a registered system. Deleting a system automatically disables all 
+applications registered with the given system as either a storage or 
+execution host. Actively running jobs may fail to archive their data if
+the archive system is deleted. File transfers may also fail if the transfer
+had not yet started when the system was deleted.
 
  Options:
   -s, --apisecret   API secret for authenticating
@@ -51,6 +52,8 @@ Description of this script.
 ##################################################################
 ##################################################################
 
+source "$DIR/systems-common.sh"
+
 main() {
 	#echo -n
 	#set -x
@@ -59,13 +62,13 @@ main() {
 		err "Please specify a valid system id to delete"
 	else
 	
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE $hosturl/$args"
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE $hosturl$args"
 
 		log "Calling $cmd"
 	
 		response=`curl -sku "$apisecret:$apikey" -X DELETE "$hosturl$args"`
 
-		jsonval response_status "$response" "status"
+		check_response_status "$response"
 
 		if [ "$response_status" = "success" ]; then
 			format_api_json "$response"
@@ -94,53 +97,11 @@ format_api_json() {
 ##################################################################
 
 # }}}
-# Boilerplate {{{
 
-# Iterate over options breaking -ab into -a -b when needed and --foo=bar into
-# --foo bar
-optstring=h
-unset options
-while (($#)); do
-  case $1 in
-  	# If option is of type -ab
-    -[!-]?*)
-      # Loop over each character starting with the second
-      for ((i=1; i < ${#1}; i++)); do
-      	c=${1:i:1}
-		
-        # Add current char to options
-        options+=("-$c")
+# Parse command line options
+source "$DIR/options.sh"
 
-        # If option takes a required argument, and it's not the last char make
-        # the rest of the string its argument
-        if [[ $optstring = *"$c:"* && ${1:i+1} ]]; then
-          options+=("${1:i+1}")
-          break
-        fi
-      done
-      ;;
-    # If option is of type --foo=bar
-    --?*=*) options+=("${1%%=*}" "${1#*=}") ;;
-    # add --endopts for --
-    --) options+=(--endopts) ;;
-    # Otherwise, nothing special
-    *) options+=("$1") ;;
-  esac
-  shift
-done
-set -- "${options[@]}"
-unset options
 
-# Set our rollback function for unexpected exits.
-trap rollback INT TERM EXIT
-
-# A non-destructive exit for when the script exits naturally.
-safe_exit() {
-  trap - INT TERM EXIT
-  exit
-}
-
-# }}}
 # Main loop {{{
 
 # Print help if no arguments were passed.
@@ -169,29 +130,6 @@ done
 args+=("$@")
 
 # }}}
-# Run it {{{
 
-# Uncomment this line if the script requires root privileges.
-# [[ $UID -ne 0 ]] && die "You need to be root to run this script"
-
-if ((!local)); then 
-	if [ -z "$apikey" ]; then
-		interactive=1
-	fi
-
-	if [ -z "$apisecret" ]; then
-		interactive=1
-	fi
-fi
-
-if ((interactive)); then
-  prompt_options
-fi
-
-# You should delegate your logic from the `main` function
-main
-
-# This has to be run last not to rollback changes we've made.
-safe_exit
-
-# }}}
+# Run the script logic
+source "$DIR/runner.sh"

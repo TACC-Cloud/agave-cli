@@ -1,13 +1,11 @@
 #!/bin/bash
 # 
-# auth-token-get.sh
+# systems-roles-addupdate
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It retrieves an authentication token from the auth service that
-# can be used to authenticate to the rest of the api. A valid API 
-# secret and key must be used to obtain a token.
+# Provides a mechanism for adding and updating user roles on a system.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -18,19 +16,23 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(apisecret apikey username role)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [TOKEN]
+  echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
 
-List all currently active tokens.
+Provides a mechanism for adding and updating user roles on a system. 
+Setting a role to empty or NONE deletes the user's rold on the system.
 
  Options:
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
-  -H, --hosturl     URL of the service
+  -u, --username	The user whose permissions should be set
+  -r, --role	    The role to set for the user. Valid roles are USER, 
+                    PUBLISHER, ADMIN, and OWNER
+  -h, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
   -i, --interactive Prompt for values
@@ -47,33 +49,43 @@ List all currently active tokens.
 ##################################################################
 ##################################################################
 
-source "$DIR/auth-common.sh"
+source "$DIR/systems-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl/tokens/$args"
-
-	log "Calling $cmd"
-		
-	response=`curl -sku "$apisecret:$apikey" "$hosturl/tokens/$args"`
-	
-	check_response_status "$response"
-	
-	if [ "$response_status" = "success" ]; then
-		format_api_json "$response"
+	if [ -z "$args" ]; then
+		err "Please specify a valid system id for which to retrieve the user roles"
 	else
-		jsonval response_message "$response" "message" 
-		err "$response_message"
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE $hosturl$args/roles/$username"
+
+		log "Calling $cmd"
+	
+		response=`curl -sku "$apisecret:$apikey" -X DELETE "$hosturl$args/roles/$username"`
+		
+		check_response_status "$response"
+	
+		if [ "$response_status" = "success" ]; then
+			format_api_json "$response"
+		else
+			jsonval response_message "$response" "message" 
+			err "$response_message"
+		fi
 	fi
-	
-	
 }
 
 format_api_json() {
 	
-	echo "$1" | python -mjson.tool
+	if ((verbose)); then
+		echo "$1" | python -mjson.tool
+	else
+		if [ -n "$username" ]; then
+			success "Successfully deleted roles for user $username"
+		else
+			success "Successfully deleted all user roles for $args"
+		fi
+	fi
 }
 
 ##################################################################
@@ -100,6 +112,8 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
+    -u|--username) shift; username=$1 ;;
+    -p|--permission) shift; permission=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

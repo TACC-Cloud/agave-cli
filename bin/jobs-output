@@ -16,9 +16,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
 
-hosturl="$baseurl/jobs/"
-
-
 # Script logic -- TOUCH THIS {{{
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
@@ -29,7 +26,7 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [JOB_ID] [PATH]
 
-Description of this script.
+List or download job output.
 
  Options:
   -s, --apisecret   API secret for authenticating
@@ -52,6 +49,8 @@ Description of this script.
 #						Begin Script Logic						 #
 ##################################################################
 ##################################################################
+
+source "$DIR/jobs-common.sh"
 
 main() {
 	#echo -n
@@ -85,8 +84,9 @@ main() {
 	
 			response=`curl -sku "$apisecret:$apikey" "$hosturl$jobid/output/listings/$outputpath"`
 
-			response_status=`echo "$response" | python -mjson.tool | grep '"status": "success"'`
-	
+			#response_status=`echo "$response" | python -mjson.tool | grep '"status": "success"'`
+			check_response_status "$response"
+
 			if [ -n "$response_status" ]; then
 				format_api_json "$response"
 			else
@@ -115,53 +115,11 @@ format_api_json() {
 ##################################################################
 
 # }}}
-# Boilerplate {{{
 
-# Iterate over options breaking -ab into -a -b when needed and --foo=bar into
-# --foo bar
-optstring=h
-unset options
-while (($#)); do
-  case $1 in
-  	# If option is of type -ab
-    -[!-]?*)
-      # Loop over each character starting with the second
-      for ((i=1; i < ${#1}; i++)); do
-      	c=${1:i:1}
-		
-        # Add current char to options
-        options+=("-$c")
+# Parse command line options
+source "$DIR/options.sh"
 
-        # If option takes a required argument, and it's not the last char make
-        # the rest of the string its argument
-        if [[ $optstring = *"$c:"* && ${1:i+1} ]]; then
-          options+=("${1:i+1}")
-          break
-        fi
-      done
-      ;;
-    # If option is of type --foo=bar
-    --?*=*) options+=("${1%%=*}" "${1#*=}") ;;
-    # add --endopts for --
-    --) options+=(--endopts) ;;
-    # Otherwise, nothing special
-    *) options+=("$1") ;;
-  esac
-  shift
-done
-set -- "${options[@]}"
-unset options
 
-# Set our rollback function for unexpected exits.
-trap rollback INT TERM EXIT
-
-# A non-destructive exit for when the script exits naturally.
-safe_exit() {
-  trap - INT TERM EXIT
-  exit
-}
-
-# }}}
 # Main loop {{{
 
 # Print help if no arguments were passed.
@@ -191,27 +149,7 @@ done
 args+=("$@")
 
 # }}}
-# Run it {{{
 
-# Uncomment this line if the script requires root privileges.
-# [[ $UID -ne 0 ]] && die "You need to be root to run this script"
+# Run the script logic
+source "$DIR/runner.sh"
 
-if [ -z "$apikey" ]; then
-	interactive=1
-fi
-
-if [ -z "$apisecret" ]; then
-	interactive=1
-fi
-
-if ((interactive)); then
-  prompt_options
-fi
-
-# You should delegate your logic from the `main` function
-main
-
-# This has to be run last not to rollback changes we've made.
-safe_exit
-
-# }}}

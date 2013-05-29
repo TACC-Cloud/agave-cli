@@ -14,9 +14,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
 
-hosturl="$baseurl/apps/"
-storetoken=0
-
 # Script logic -- TOUCH THIS {{{
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
@@ -27,7 +24,9 @@ interactive_opts=(apisecret apikey filetoupload)
 usage() {
   echo -n "$(basename $0) [OPTION]... [APP_ID]
 
-Description of this script.
+Registers or updates an existing registered application. If registering a 
+new application, no application id should be provided. If updating an 
+existing application, an application id must be provided.
 
  Options:
   -s, --apisecret   API secret for authenticating
@@ -51,19 +50,21 @@ Description of this script.
 ##################################################################
 ##################################################################
 
+source "$DIR/apps-common.sh"
+
 main() {
 	#echo -n
 	#set -x
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl/$args"
+	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl$args"
 
 	log "Calling $cmd"
 
 	response=`curl -sku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" "$hosturl$args"`
 
-	jsonval response_status "$response" "status"
-
-	if [ "$response_status" = "success" ]; then
+	check_response_status "$response"
+	
+		if [ "$response_status" = "success" ]; then
 		format_api_json "$response"
 	else
 		jsonval response_message "$response" "message" 
@@ -92,53 +93,11 @@ format_api_json() {
 ##################################################################
 
 # }}}
-# Boilerplate {{{
 
-# Iterate over options breaking -ab into -a -b when needed and --foo=bar into
-# --foo bar
-optstring=h
-unset options
-while (($#)); do
-  case $1 in
-  	# If option is of type -ab
-    -[!-]?*)
-      # Loop over each character starting with the second
-      for ((i=1; i < ${#1}; i++)); do
-      	c=${1:i:1}
-		
-        # Add current char to options
-        options+=("-$c")
+# Parse command line options
+source "$DIR/options.sh"
 
-        # If option takes a required argument, and it's not the last char make
-        # the rest of the string its argument
-        if [[ $optstring = *"$c:"* && ${1:i+1} ]]; then
-          options+=("${1:i+1}")
-          break
-        fi
-      done
-      ;;
-    # If option is of type --foo=bar
-    --?*=*) options+=("${1%%=*}" "${1#*=}") ;;
-    # add --endopts for --
-    --) options+=(--endopts) ;;
-    # Otherwise, nothing special
-    *) options+=("$1") ;;
-  esac
-  shift
-done
-set -- "${options[@]}"
-unset options
 
-# Set our rollback function for unexpected exits.
-trap rollback INT TERM EXIT
-
-# A non-destructive exit for when the script exits naturally.
-safe_exit() {
-  trap - INT TERM EXIT
-  exit
-}
-
-# }}}
 # Main loop {{{
 
 # Print help if no arguments were passed.
@@ -168,29 +127,6 @@ done
 args+=("$@")
 
 # }}}
-# Run it {{{
 
-# Uncomment this line if the script requires root privileges.
-# [[ $UID -ne 0 ]] && die "You need to be root to run this script"
-
-if ((!local)); then 
-	if [ -z "$apikey" ]; then
-		interactive=1
-	fi
-
-	if [ -z "$apisecret" ]; then
-		interactive=1
-	fi
-fi
-
-if ((interactive)); then
-  prompt_options
-fi
-
-# You should delegate your logic from the `main` function
-main
-
-# This has to be run last not to rollback changes we've made.
-safe_exit
-
-# }}}
+# Run the script logic
+source "$DIR/runner.sh"
