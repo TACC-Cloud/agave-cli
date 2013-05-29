@@ -1,6 +1,6 @@
 #!/bin/bash
 # 
-# auth-token-delete.sh
+# common.sh
 # 
 # author: dooley@tacc.utexas.edu
 #

@@ -1,4 +1,8 @@
 #!/bin/bash
+# 
+# runner.sh
+# 
+# author: dooley@tacc.utexas.edu
 #
 # Main processing logic for the scripts
 

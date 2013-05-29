@@ -1,4 +1,8 @@
 #!/bin/bash
+# 
+# common.sh
+# 
+# author: dooley@tacc.utexas.edu
 #
 # Parses the command line options
 
