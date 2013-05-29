@@ -20,8 +20,8 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
-
+  echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... [SYSTEM_ID]
 List all systems available to the authenticated user.
 
  Options:

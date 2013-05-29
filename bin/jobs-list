@@ -21,8 +21,8 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [JOB_ID]
-
+  echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... [JOB_ID]
 List past, current, or a specific job. Results may be filtered by name,
 tag, or start date.
 

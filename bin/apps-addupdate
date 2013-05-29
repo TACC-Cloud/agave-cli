@@ -22,7 +22,8 @@ interactive_opts=(apisecret apikey filetoupload)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [APP_ID]
+  echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... [APP_ID]
 
 Registers or updates an existing registered application. If registering a 
 new application, no application id should be provided. If updating an 

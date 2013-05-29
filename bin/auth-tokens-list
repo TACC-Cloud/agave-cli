@@ -22,7 +22,8 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [TOKEN]
+  echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... [TOKEN]
 
 List all currently active tokens.
 

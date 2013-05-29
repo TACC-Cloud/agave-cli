@@ -21,7 +21,7 @@ interactive_opts=(apisecret apikey action)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [APP_ID]
+  echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
 
 Publishes a system for public use. Global admin privileges are 
 required to publish a system.

@@ -23,6 +23,7 @@ interactive_opts=(apisecret apikey filetoupload)
 # Print usage
 usage() {
   echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... [INTERNAL_USERNAME]
 
 Create or update an internal user. Internal users are associated with an API
 user and cannot be utilized by other API users. Each internal user may have 

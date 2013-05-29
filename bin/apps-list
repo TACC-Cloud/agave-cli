@@ -23,7 +23,8 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [APP_ID]
+  echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... [APP_ID]
 
 List all applications available to the user. Results can be filtered by 
 partial name, tag, or ontology term.
