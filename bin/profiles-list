@@ -55,15 +55,15 @@ main() {
 	#echo -n
 	#set -x
 	
-	profileurl="$hosturl$apisecret"
+	profileurl="$hosturl"
 	if [ -n "$username" ]; then
-		profileurl="$hosturl/search/username/$username"
+		profileurl="${hosturl}search/username/$username"
 	else
 		if [ -n "$email" ]; then
-			profileurl="$hosturl/search/email/$email"
+			profileurl="${hosturl}search/email/$email"
 		else
 			if [ -n "$name" ]; then
-				profileurl="$hosturl/search/name/$name"
+				profileurl="${hosturl}search/name/$name"
 			fi
 		fi
 	fi

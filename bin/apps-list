@@ -12,9 +12,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
 
-hosturl="$baseurl/apps/"
-
-
 # Script logic -- TOUCH THIS {{{
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
@@ -67,6 +64,8 @@ main() {
 		hosturl="$hosturl/tag/$tag"
 	elif [ -n "$ontology" ]; then
 		hosturl="$hosturl/ontology/$ontology"
+	else 
+		hosturl="$hosturl/"
 	fi
 	
 	cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl"

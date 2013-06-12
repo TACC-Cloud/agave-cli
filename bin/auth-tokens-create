@@ -110,6 +110,9 @@ main() {
 format_api_json() {
 	
 	if ((storetoken)); then
+		if [ -n "$apiusername" ]; then
+			$apisecret=$apiusername;
+		fi
 		jsonval response_token "$1" "token" 
 		echo "{\"apisecret\":\"$apisecret\",\"apikey\":\"$response_token\"}" > ~/.agave
 		echo "Token successfully stored";

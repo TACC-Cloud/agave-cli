@@ -62,7 +62,7 @@ main() {
 	log "Calling $cmd"
 
 	response=`curl -sku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" "$hosturl$args"`
-
+	echo "$response"
 	check_response_status "$response"
 	
 		if [ "$response_status" = "success" ]; then
