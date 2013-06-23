@@ -140,9 +140,15 @@ prompt_options() {
 }
 
 check_response_status() {
-	local __response_status=`echo "$1" | python -mjson.tool | grep '^    "status": "success"'`
+	
+	local __response_status=`echo "$1" | grep '^  "status" : "success"'`
 	if [[ -n $__response_status ]]; then
 		eval response_status="success"
+	else 
+		local __response_status=`echo "$1" | python -mjson.tool | grep '^    "status": "success"'`
+		if [[ -n $__response_status ]]; then
+			eval response_status="success"
+		fi
 	fi
 }
 
