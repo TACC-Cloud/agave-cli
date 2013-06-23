@@ -1,0 +1,130 @@
+#!/bin/bash
+# 
+# systems-default
+# 
+# author: dooley@tacc.utexas.edu
+#
+# This script is part of the Agave API command line interface (CLI).
+# Sets the given system as the user's default system of that type
+#
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "$DIR/common.sh"
+
+# Script logic -- TOUCH THIS {{{
+
+# A list of all variables to prompt in interactive mode. These variables HAVE
+# to be named exactly as the longname option definition in usage().
+interactive_opts=(apisecret apikey)
+
+# Print usage
+usage() {
+  echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
+
+Sets the given system as the user's default system of that type
+
+ Options:
+  -s, --apisecret   API secret for authenticating
+  -k, --apikey      API key for authenticating, its recommended to insert
+                    this through the interactive option
+  -H, --hosturl     URL of the service
+  -d, --development Run in dev mode using default dev server
+  -f, --force       Skip all user interaction
+  -i, --interactive Prompt for values
+  -q, --quiet       Quiet (no output)
+  -v, --verbose     Output more
+  -h, --help        Display this help and exit
+      --version     Output version information and exit
+"
+}
+
+##################################################################
+##################################################################
+#						Begin Script Logic						 #
+##################################################################
+##################################################################
+
+source "$DIR/systems-common.sh"
+
+main() {
+	#echo -n
+	#set -x
+	
+	if [ -z "$args" ]; then
+		err "Please specify a valid system id to publish"
+	else
+		
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=default\" $hosturl$args"
+
+		log "Calling $cmd"
+	
+		response=`curl -sku "$apisecret:$apikey" -X PUT -d "action=default" "$hosturl$args"`
+
+		check_response_status "$response"
+
+		if [ "$response_status" = "success" ]; then
+			format_api_json "$response"
+		else
+			jsonval response_message "$response" "message" 
+			err "$response_message"
+		fi
+	fi	
+}
+
+format_api_json() {
+
+	if ((verbose)); then
+		echo "$1" | python -mjson.tool
+	else
+		jsonval system_id "$1" "id" 
+		jsonval system_type "$1" "type" 
+		system_type=`echo "$system_type" | tr '[A-Z]' '[a-z]'`
+		success "Successfully set $args as the default $system_type system for $apisecret"
+	fi
+}
+
+##################################################################
+##################################################################
+#						End Script Logic						 #
+##################################################################
+##################################################################
+
+# }}}
+
+# Parse command line options
+source "$DIR/options.sh"
+
+
+# Main loop {{{
+
+# Print help if no arguments were passed.
+[[ $# -eq 0 ]] && set -- "-i"
+
+# Read the options and set stuff
+while [[ $1 = -?* ]]; do
+  case $1 in
+    -h|--help) usage >&2; safe_exit ;;
+    --version) out "$(basename $0) $version"; safe_exit ;;
+    -s|--apisecret) shift; apisecret=$1 ;;
+    -k|--apikey) shift; apikey=$1 ;;
+    -a|--action) shift; action=$1 ;;
+    -H|--hosturl) shift; hosturl=$1;;
+  	-d|--development) development=1 ;;
+    -v|--verbose) verbose=1 ;;
+    -q|--quiet) quiet=1 ;;
+    -i|--interactive) interactive=1 ;;
+    -f|--force) force=1 ;;
+    --endopts) shift; break ;;
+    *) die "invalid option: $1" ;;
+  esac
+  shift
+done
+
+# Store the remaining part as arguments.
+args+=("$@")
+
+# }}}
+
+# Run the script logic
+source "$DIR/runner.sh"
