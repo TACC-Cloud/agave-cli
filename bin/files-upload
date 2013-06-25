@@ -1,0 +1,171 @@
+#!/bin/bash
+# 
+# files-upload
+# 
+# author: dooley@tacc.utexas.edu
+#
+# This script is part of the Agave API command line interface (CLI).
+# Upload a file and apply trivial metadata
+#
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "$DIR/common.sh"
+
+# Script logic -- TOUCH THIS {{{
+
+# A list of all variables to prompt in interactive mode. These variables HAVE
+# to be named exactly as the longname option definition in usage().
+interactive_opts=(apisecret apikey filetoupload)
+
+# Print usage
+usage() {
+  echo -n "$(basename $0) [OPTION]... [PATH]
+$(basename $0) [OPTION]... [APP_ID]
+
+Uploads a local file or folder to a remote storage system. The upload will occur
+via HTTP. The subsequent staging will be done via the native data protocol for 
+the destination system. If the given file type requires import filtering, it will
+be applied prior to the callback being sent. If not system id is specified, the
+user's default storage system will be used.
+
+ Options:
+  -s, --apisecret   API secret for authenticating
+  -k, --apikey      API key for authenticating, its recommended to insert
+                    this through the interactive option
+  -F, --filetoupload The file containing the json app description to submit
+  -C, --callbackurl	The email address or webhook to notify upon completion of all 
+  					import filtering
+  -T, --filetype	The filetype associated with this file. See transforms-list
+  					for a full list of supported file types. Defaults to 'raw'
+  -N, --filename	The name of the file once uploaded
+  -S, --systemid	The system to which the file or folder will be uploaded
+  -H, --hosturl     URL of the service
+  -d, --development Run in dev mode using default dev server
+  -f, --force       Skip all user interaction
+  -i, --interactive Prompt for values
+  -q, --quiet       Quiet (no output)
+  -v, --verbose     Output more
+  -h, --help        Display this help and exit
+      --version     Output version information and exit
+"
+}
+
+##################################################################
+##################################################################
+#						Begin Script Logic						 #
+##################################################################
+##################################################################
+
+source "$DIR/files-common.sh"
+
+main() {
+	#echo -n
+	#set -x
+	
+	local post_options='';
+	
+	if [ -n "$callbackurl" ]; then
+		post_options="callbackURL=${callbackurl}"
+	fi
+	
+	if [ -n "$filetype" ]; then
+		post_options="fileType=${filetype}&${post_options}"
+	fi
+	
+	if [ -n "$filename" ]; then
+		post_options="fileName=${filename}&${post_options}"
+	fi
+	
+	if [ -n "$systemid" ]; then
+		$hosturl="${hosturl}media/system/${systemid}/"
+	else
+		$hosturl="${hosturl}media/"
+	fi
+	
+	if [ -n "$post_options" ]; then
+	
+		cmd="curl -ku \"$apisecret:XXXXXX\" -X POST -F \"fileToUpload=@$filetoupload\" -d \"${post_options}\" $hosturl$args?pretty=true"
+
+		log "Calling $cmd"
+	
+		response=`curl -ku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" -d "${post_options}" "$hosturl$args?pretty=true"`
+	else
+		
+		cmd="curl -ku \"$apisecret:$apikey\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl$args?pretty=true"
+
+		log "Calling $cmd"
+	
+		response=`curl -ku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" "$hosturl$args?pretty=true"`
+		
+	fi
+	
+	check_response_status "$response"
+	
+	if [ "$response_status" = "success" ]; then
+		format_api_json "$response"
+	else
+		jsonval response_message "$response" "message" 
+		err "$response_message"
+	fi
+}
+
+format_api_json() {
+
+	if ((verbose)); then
+		echo "$1"
+	else
+		local fn=`basename $filetoupload`
+		
+		success "Successfully uploaded ${fn}"
+	fi
+}
+
+##################################################################
+##################################################################
+#						End Script Logic						 #
+##################################################################
+##################################################################
+
+# }}}
+
+# Parse command line options
+source "$DIR/options.sh"
+
+
+# Main loop {{{
+
+# Print help if no arguments were passed.
+[[ $# -eq 0 ]] && set -- "-i"
+
+# Read the options and set stuff
+while [[ $1 = -?* ]]; do
+  case $1 in
+    -h|--help) usage >&2; safe_exit ;;
+    --version) out "$(basename $0) $version"; safe_exit ;;
+    -s|--apisecret) shift; apisecret=$1 ;;
+    -k|--apikey) shift; apikey=$1 ;;
+    -F|--filetoupload) shift; filetoupload=$1 ;;
+    -C|--callbackurl) shift; callbackurl=$1 ;;
+    -T|--filetype) shift; filetype=$1 ;;
+    -N|--filename) shift; filename=$1 ;;
+    -S|--systemid) shift; systemid=$1 ;;
+    -H|--hosturl) shift; hosturl=$1;;
+  	-d|--development) development=1 ;;
+    -v|--verbose) verbose=1 ;;
+    -q|--quiet) quiet=1 ;;
+    -i|--interactive) interactive=1 ;;
+    -f|--force) force=1 ;;
+    --endopts) shift; break ;;
+    *) die "invalid option: $1" ;;
+  esac
+  shift
+done
+
+# Store the remaining part as arguments.
+args+=("$@")
+
+# }}}
+
+# Run the script logic
+source "$DIR/runner.sh"

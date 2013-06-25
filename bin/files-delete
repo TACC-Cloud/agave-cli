@@ -64,7 +64,7 @@ main() {
 		if [ -n "$systemId" ]; then
 			filesurl="${hosturl}media/system/${systemId}/${args}?pretty=true"
 		else
-			filesurl="${hosturl}media/${args}pretty=true"
+			filesurl="${hosturl}media/${args}?pretty=true"
 		fi
 	
 		cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE ${filesurl}"

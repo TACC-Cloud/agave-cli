@@ -58,11 +58,11 @@ main() {
 	if [ -z "$args" ]; then
 		err "Please specify a valid system id for which to retrieve the user roles"
 	else
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE $hosturl$args/roles/$username"
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"role=$role\" $hosturl$args/roles/$username"
 
 		log "Calling $cmd"
 	
-		response=`curl -sku "$apisecret:$apikey" -X DELETE "$hosturl$args/roles/$username"`
+		response=`curl -sku "$apisecret:$apikey" -X POST -d "role=$role" "$hosturl$args/roles/$username"`
 		
 		check_response_status "$response"
 	
@@ -81,9 +81,9 @@ format_api_json() {
 		echo "$1" | python -mjson.tool
 	else
 		if [ -n "$username" ]; then
-			success "Successfully deleted roles for user $username"
+			success "Successfully updated roles for user $username on $args"
 		else
-			success "Successfully deleted all user roles for $args"
+			success "Successfully updated all user roles for $args"
 		fi
 	fi
 }
@@ -113,7 +113,7 @@ while [[ $1 = -?* ]]; do
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
     -u|--username) shift; username=$1 ;;
-    -p|--permission) shift; permission=$1 ;;
+    -r|--role) shift; role=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

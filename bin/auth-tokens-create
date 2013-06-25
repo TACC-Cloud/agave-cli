@@ -74,19 +74,19 @@ main() {
 	local post_options='';
 	
 	if [ -n "$internalUsername" ]; then
-		post_options="internalUsername=$internalUsername"
+		post_options="internalUsername=${internalUsername}"
 	fi
 	
 	if [ -n "$apiusername" ]; then
-		post_options="username=$apiusername&$post_options"
+		post_options="username=${apiusername}&${post_options}"
 	fi
 	
 	if [ -n "$maxUses" ]; then
-		post_options="maxUses=$maxUses&$post_options"
+		post_options="maxUses=${maxUses}&${post_options}"
 	fi
 	
 	if [ -n "$lifetime" ]; then
-		post_options="lifetime=$lifetime&$post_options"
+		post_options="lifetime=${lifetime}&${post_options}"
 	fi
 	
 	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"$post_options\" $hosturl/"
@@ -152,7 +152,7 @@ while [[ $1 = -?* ]]; do
     -k|--apikey) shift; apikey=$1 ;;
     -l|--lifetime) shift; lifetime=$1 ;;
   	-m|--maxUses) shift; maxuses=$1 ;;
-  	-u|--internalUsername) shift; internalusername=$1 ;;
+  	-u|--internalUsername) shift; internalUsername=$1 ;;
 	-x|--apiusername) shift; apiusername=$1;;
 	-S|--storetoken) storetoken=1 ;;
 	-H|--hosturl) shift; hosturl=$1;;
