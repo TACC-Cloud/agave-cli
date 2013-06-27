@@ -78,9 +78,9 @@ main() {
 	fi
 	
 	if [ -n "$systemid" ]; then
-		$hosturl="${hosturl}media/system/${systemid}/"
+		hosturl="${hosturl}media/system/${systemid}/"
 	else
-		$hosturl="${hosturl}media/"
+		hosturl="${hosturl}media/"
 	fi
 	
 	if [ -n "$post_options" ]; then

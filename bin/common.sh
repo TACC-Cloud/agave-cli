@@ -51,7 +51,14 @@ out() {
   printf '%b\n' "$message";
 }
 die() { out "$@"; exit 1; } >&2
-err() { out " \033[1;31m✖\033[0m  $@"; } >&2
+err() { 
+	if (($verbose)); then 
+		out " \033[1;31m✖\033[0m  $response"
+	else
+		out " \033[1;31m✖\033[0m  $@"; 
+	fi
+} >&2
+	
 success() { out " \033[1;32m✔\033[0m  $@"; }
 
 # Verbose logging

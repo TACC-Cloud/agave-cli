@@ -55,7 +55,7 @@ main() {
 
 	log "Calling $cmd"
 		
-	response=`curl -sku "$apisecret:$apikey" "$hosturl$args"`
+	response=`curl -sku "$apisecret:$apikey" "$hosturl$args?pretty=true"`
 	
 	check_response_status "$response"
 	
@@ -70,7 +70,7 @@ main() {
 format_api_json() {
 	
 	if ((verbose)); then
-		echo "$1" | python -mjson.tool
+		echo "$1"
 	else
 		result=`echo "$1" | python -mjson.tool | grep '^            "id"' | perl -pe "s/\"id\"://; s/\"//g; s/,/\n/; s/\s//g; print \"\n\";"`
 		success "${result}"

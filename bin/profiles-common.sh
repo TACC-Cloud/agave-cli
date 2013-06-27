@@ -10,7 +10,7 @@
 filter_service_url() {
 	if [[ -z $hosturl ]]; then
 		if ((development)); then 
-			hosturl="$devurl/profiles-v1/"
+			hosturl="$devurl/profile-v1/"
 		else
 			hosturl="$baseurl/profiles/"
 		fi

@@ -72,7 +72,7 @@ main() {
 			clone_version="&version=$appversion"
 		fi
 		
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=$action$clone_name$clone_version\" $hosturl$args"
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=${action}$clone_name$clone_version\" $hosturl$args"
 
 		log "Calling $cmd"
 	
@@ -123,8 +123,8 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
-    -N|--appname) shift; action=$1 ;;
-    -V|--appversion) shift; action=$1 ;;
+    -N|--appname) shift; appname=$1 ;;
+    -V|--appversion) shift; appversion=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

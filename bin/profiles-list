@@ -67,11 +67,11 @@ main() {
 			fi
 		fi
 	fi
-	cmd="curl -sku \"$apisecret:XXXXXX\" $profileurl"
+	cmd="curl -sku \"$apisecret:XXXXXX\" $profileurl?pretty=true"
 
 	log "Calling $cmd"
 		
-	response=`curl -sku "$apisecret:$apikey" $profileurl`
+	response=`curl -sku "$apisecret:$apikey" "${profileurl}?pretty=true"`
 	
 	check_response_status "$response"
 	
@@ -86,7 +86,7 @@ main() {
 format_api_json() {
 	
 	if ((verbose)); then
-		echo "$1" | python -mjson.tool
+		echo "$1" 
 	else
 		result=`echo "$1"  | python -mjson.tool | grep '^            "email"' | perl -pe "s/\"email\"://; s/\"//g; s/,/\n/; s/ //g; "`
 		success "${result}"
