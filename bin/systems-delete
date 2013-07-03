@@ -62,11 +62,11 @@ main() {
 		err "Please specify a valid system id to delete"
 	else
 	
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE $hosturl$args"
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE $hosturl$args?pretty=true"
 
 		log "Calling $cmd"
 	
-		response=`curl -sku "$apisecret:$apikey" -X DELETE "$hosturl$args"`
+		response=`curl -sku "$apisecret:$apikey" -X DELETE "$hosturl$args?pretty=true"`
 
 		check_response_status "$response"
 
@@ -84,7 +84,7 @@ format_api_json() {
 	jsonval storedtoken "${tokenstore}" "apikey" 
 	
 	if ((verbose)); then
-		echo "$1" | python -mjson.tool
+		echo "$1" 
 	else
 		success "Successfully deleted system $arg"
 	fi

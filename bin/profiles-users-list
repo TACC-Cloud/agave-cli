@@ -54,11 +54,11 @@ main() {
 	#echo -n
 	#set -x
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$apisecret/users/$internalUsername"
+	cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$apisecret/users/$internalUsername?pretty=true"
 
 	log "Calling $cmd"
 		
-	response=`curl -sku "$apisecret:$apikey" $hosturl$apisecret/users/$internalUsername`
+	response=`curl -sku "$apisecret:$apikey" $hosturl$apisecret/users/$internalUsername?pretty=true`
 	
 	check_response_status "$response"
 	
@@ -73,7 +73,7 @@ main() {
 format_api_json() {
 	
 	if ((verbose)); then
-		echo "$1" | python -mjson.tool
+		echo "$1" 
 	else
 		result=`echo "$1" | python -mjson.tool | grep '^            "username"' | perl -pe "s/\"username\"://; s/\"//g; s/,/\n/; s/ //g;"`
 		success "${result}"

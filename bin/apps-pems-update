@@ -61,11 +61,11 @@ main() {
 	if [ -z "$args" ]; then
 		err "Please specify an app id for which to set the permissions"
 	else
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"permission=$permission\" $hosturl$args/pems/$username"
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"permission=$permission\" $hosturl$args/pems/$username?pretty=true"
 
 		log "Calling $cmd"
 	
-		response=`curl -sku "$apisecret:$apikey" -X POST -d "permission=$permission" "$hosturl$args/pems/$username"`
+		response=`curl -sku "$apisecret:$apikey" -X POST -d "permission=$permission" "$hosturl$args/pems/$username?pretty=true"`
 		
 		check_response_status "$response"
 	
@@ -81,7 +81,7 @@ main() {
 format_api_json() {
 	
 	if ((verbose)); then
-		echo "$1" | python -mjson.tool
+		echo "$1"
 	else
 		success "Successfully updated permission for $username"
 	fi

@@ -57,11 +57,11 @@ main() {
 		err "Please specify a valid system id to publish"
 	else
 		
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=publish\" $hosturl$args"
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=publish\" $hosturl$args?pretty=true"
 
 		log "Calling $cmd"
 	
-		response=`curl -sku "$apisecret:$apikey" -X PUT -d "action=publish" "$hosturl$args"`
+		response=`curl -sku "$apisecret:$apikey" -X PUT -d "action=publish" "$hosturl$args?pretty=true"`
 
 		check_response_status "$response"
 
@@ -77,7 +77,7 @@ main() {
 format_api_json() {
 
 	if ((verbose)); then
-		echo "$1" | python -mjson.tool
+		echo "$1" 
 	else
 		jsonval system_id "$1" "id" 
 		success "Successfully published system $args as $system_id"

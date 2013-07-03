@@ -51,7 +51,7 @@ main() {
 	#echo -n
 	#set -x
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$args"
+	cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$args?pretty=true"
 
 	log "Calling $cmd"
 		
@@ -72,7 +72,7 @@ format_api_json() {
 	if ((verbose)); then
 		echo "$1"
 	else
-		result=`echo "$1" | python -mjson.tool | grep '^            "id"' | perl -pe "s/\"id\"://; s/\"//g; s/,/\n/; s/\s//g; print \"\n\";"`
+		result=`echo "$1" | grep '^    "id"' | perl -pe "s/\"id\" ://; s/\"//g; s/,/\n/; s/\s//g; print \"\n\";"`
 		success "${result}"
 	fi
 }

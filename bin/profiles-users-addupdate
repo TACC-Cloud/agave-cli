@@ -59,11 +59,11 @@ main() {
 	#echo -n
 	#set -x
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl$apisecret/users/$args"
+	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl$apisecret/users/$args?pretty=true"
 
 	log "Calling $cmd"
 
-	response=`curl -sku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" "$hosturl$apisecret/users/$args"`
+	response=`curl -sku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" "$hosturl$apisecret/users/$args?pretty=true"`
 
 	check_response_status "$response"
 	
@@ -78,7 +78,7 @@ main() {
 format_api_json() {
 
 	if ((verbose)); then
-		echo "$1" | python -mjson.tool
+		echo "$1"
 	else
 		if [ -z "$args" ]; then
 			jsonval internal_username "$i" "username"

@@ -58,7 +58,9 @@ main() {
 	#set -x
 	
 	hosturl=${hosturl%/}
-	if [ -n "$name" ]; then
+	if [ -n "$args" ]; then
+		hosturl="$hosturl/$args"
+	elif [ -n "$name" ]; then
 		hosturl="$hosturl/name/$name"
 	elif [ -n "$tag" ]; then
 		hosturl="$hosturl/tag/$tag"
@@ -68,11 +70,11 @@ main() {
 		hosturl="$hosturl/"
 	fi
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl"
+	cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl?pretty=true"
 
 	log "Calling $cmd"
 		
-	response=`curl -sku "$apisecret:$apikey" "$hosturl"`
+	response=`curl -sku "$apisecret:$apikey" "$hosturl?pretty=true"`
 	
 	check_response_status "$response"
 	
@@ -89,7 +91,7 @@ main() {
 format_api_json() {
 	
 	if ((verbose)); then
-		echo "$1" | python -mjson.tool
+		echo "$1"
 	else
 		result=`echo "$1" | python -mjson.tool | grep '^            "id"' | perl -pe "s/\"id\"://; s/\"//g; s/,/\n/; s/\s//g; print \"\n\";"`
 		success "${result}"

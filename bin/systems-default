@@ -55,11 +55,11 @@ main() {
 		err "Please specify a valid system id to publish"
 	else
 		
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=default\" $hosturl$args"
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=default\" $hosturl$args?pretty=true"
 
 		log "Calling $cmd"
 	
-		response=`curl -sku "$apisecret:$apikey" -X PUT -d "action=default" "$hosturl$args"`
+		response=`curl -sku "$apisecret:$apikey" -X PUT -d "action=default" "$hosturl$args?pretty=true"`
 
 		check_response_status "$response"
 
@@ -80,7 +80,7 @@ format_api_json() {
 		jsonval system_id "$1" "id" 
 		jsonval system_type "$1" "type" 
 		system_type=`echo "$system_type" | tr '[A-Z]' '[a-z]'`
-		success "Successfully set $args as the default $system_type system for $apisecret"
+		success "Successfully set $args as the default system for $apisecret"
 	fi
 }
 

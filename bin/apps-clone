@@ -72,11 +72,11 @@ main() {
 			clone_version="&version=$appversion"
 		fi
 		
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=clone$clone_name$clone_version\" $hosturl$args"
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=clone$clone_name$clone_version\" $hosturl$args?pretty=true"
 
 		log "Calling $cmd"
 	
-		response=`curl -sku "$apisecret:$apikey" -X PUT -d "action=clone$clone_name$clone_version" "$hosturl$args"`
+		response=`curl -sku "$apisecret:$apikey" -X PUT -d "action=clone$clone_name$clone_version" "$hosturl$args?pretty=true"`
 		
 		check_response_status "$response"
 	

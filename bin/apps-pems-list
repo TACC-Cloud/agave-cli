@@ -57,11 +57,11 @@ main() {
 		err "Please specify a valid app id for which to retrieve permissions"
 	else
 	
-		cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$args/pems/$username"
+		cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$args/pems/$username?pretty=true"
 
 		log "Calling $cmd"
 		
-		response=`curl -sku "$apisecret:$apikey" "$hosturl$args/pems/$username"`
+		response=`curl -sku "$apisecret:$apikey" "$hosturl$args/pems/$username?pretty=true"`
 	
 		check_response_status "$response"
 	
@@ -78,7 +78,7 @@ main() {
 format_api_json() {
 	
 	if ((verbose)); then
-		echo "$1" | python -mjson.tool
+		echo "$1"
 	else
 		result=`echo "$1"  | python -mjson.tool | grep '^            "username"' | perl -pe "s/\"username\"://; s/\"//g; s/,/\n/; s/ //g; "`
 		success "${result}"

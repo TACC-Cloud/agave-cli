@@ -56,11 +56,11 @@ main() {
 		err "Please specify a valid system id for which to retrieve permissions"
 	else
 	
-		cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$args/roles/$username"
+		cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$args/roles/$username?pretty=true"
 
 		log "Calling $cmd"
 		
-		response=`curl -sku "$apisecret:$apikey" "$hosturl$args/roles/$username"`
+		response=`curl -sku "$apisecret:$apikey" "$hosturl$args/roles/$username?pretty=true"`
 	
 		check_response_status "$response"
 	
@@ -77,7 +77,7 @@ main() {
 format_api_json() {
 	
 	if ((verbose)); then
-		echo "$1" | python -mjson.tool
+		echo "$1" 
 	else
 		result=`echo "$1"  | python -mjson.tool | grep '^            "internalUsername"' | perl -pe "s/\"internalUsername\"://; s/\"//g; s/,/\n/; s/ //g; "`
 		success "${result}"
