@@ -62,7 +62,7 @@ main() {
 	log "Calling $cmd"
 
 	response=`curl -sku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" "$hosturl$args?pretty=true"`
-	echo "$response"
+	
 	check_response_status "$response"
 	
 		if [ "$response_status" = "success" ]; then
@@ -76,7 +76,7 @@ main() {
 format_api_json() {
 
 	if ((verbose)); then
-		echo "$1" | python -mjson.tool
+		echo "$1"
 	else
 		if [ -z "$args" ]; then
 			jsonval app_id "$i" "id"

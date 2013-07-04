@@ -58,22 +58,22 @@ main() {
 	
 	hosturl=${hosturl%/}
 	if [ -n "$args" ]; then
-		profileurl="$hosturl/$args"
+		jobsurl="$hosturl/$args"
 	elif [ -n "$name" ]; then
-		profileurl="$hosturl/name/$name"
+		jobsurl="$hosturl/name/$name"
 	elif [ -n "$tag" ]; then
-		profileurl="$hosturl/tag/$tag"
+		jobsurl="$hosturl/tag/$tag"
 	elif [ -n "$startdate" ]; then
-		profileurl="$hosturl/startDate/$startdate"
+		jobsurl="$hosturl/startDate/$startdate"
 	else
-		profileurl="$hosturl"
+		jobsurl="$hosturl"
 	fi
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" $profileurl"
+	cmd="curl -sku \"$apisecret:XXXXXX\" $jobsurl?pretty=true"
 
 	log "Calling $cmd"
 	
-	response=`curl -sku "$apisecret:$apikey" "$profileurl"`
+	response=`curl -sku "$apisecret:$apikey" "$jobsurl?pretty=true"`
 
 	#response_status=`echo "$response" | python -mjson.tool | grep '"status": "success"'`
 	check_response_status "$response"
@@ -91,7 +91,7 @@ main() {
 format_api_json() {
 	
 	if ((verbose)); then
-		echo "$1" | python -mjson.tool
+		echo "$1"
 	else
 		result=`echo "$1" | python -mjson.tool | grep -E '^ +"id"' | perl -pe "s/\"id\"://; s/\"//g; s/,/\n/; s/ //g;"`
 		success "${result}"

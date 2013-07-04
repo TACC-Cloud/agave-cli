@@ -109,7 +109,7 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
-    -u, --username) shift; username=$1 ;;
+    -u|--username) shift; username=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
