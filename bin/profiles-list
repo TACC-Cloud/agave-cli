@@ -29,9 +29,9 @@ email, or username using the appropriate options.
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
-  -n, --name        Search for profiles by first and/or last name
-  -e, --email       Search by email address
-  -u, --username       Search by email address
+  -N, --name        Search for profiles by first and/or last name
+  -E, --email       Search by email address
+  -U, --username       Search by email address
   -h, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -117,9 +117,9 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
-    -n|--name) shift; name=$1 ;;
-    -e|--email) shift; email=$1 ;;
-    -u|--username) shift; username=$1 ;;
+    -N|--name) shift; name=$1 ;;
+    -E|--email) shift; email=$1 ;;
+    -U|--username) shift; username=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

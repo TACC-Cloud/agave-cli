@@ -29,7 +29,7 @@ Once deleted, the username cannot be reused.
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
-  -u, --internalusername Internal user to delete
+  -U, --username 	Username of internal user to delete
   -h, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -106,8 +106,8 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
-    -u|--internalusername) shift; internalusername=$1 ;;
-    -H|--hosturl) shift; hosturl=$1;;
+    -U|--username) shift; internalusername=$1 ;;
+    -h|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
     -q|--quiet) quiet=1 ;;
