@@ -16,7 +16,7 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(apisecret apikey internalusername)
 
 # Print usage
 usage() {
@@ -53,11 +53,11 @@ main() {
 	#echo -n
 	#set -x
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE $hosturl$apisecret/users/$internalUsername?pretty=true"
+	cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE $hosturl$apisecret/users/$internalusername?pretty=true"
 	
 	log "Calling $cmd"
 		
-	response=`curl -sku "$apisecret:$apikey" -X DELETE $hosturl$apisecret/users/$internalUsername?pretty=true`
+	response=`curl -sku "$apisecret:$apikey" -X DELETE $hosturl$apisecret/users/$internalusername?pretty=true`
 	
 	check_response_status "$response"
 	

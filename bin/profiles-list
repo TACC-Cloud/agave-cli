@@ -29,7 +29,7 @@ email, or username using the appropriate options.
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
-  -n, --name        Search for profiles by 
+  -n, --name        Search for profiles by first and/or last name
   -e, --email       Search by email address
   -u, --username       Search by email address
   -h, --hosturl     URL of the service

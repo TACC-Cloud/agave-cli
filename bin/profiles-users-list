@@ -23,14 +23,17 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]...
 
-Lists all internal users created by this account. Specifying the -u flag
-will restrict results to only the named internal user.
+Lists all internal users created by this account. Specifying the -u, -e, -n flag
+will restrict results to only internal users partially matching the given username, 
+email address, or first and/or last name respectively.
 
  Options:
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
-  -u, --internalUsername Username of internal user
+  -n, --name        Search for internal user by first and/or last name
+  -e, --email       Search by internal user email address
+  -u, --username	Search by internal user username
   -h, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -54,11 +57,24 @@ main() {
 	#echo -n
 	#set -x
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$apisecret/users/$internalUsername?pretty=true"
+	profileurl="${hosturl}$apisecret/users/"
+	if [ -n "$username" ]; then
+		profileurl="${hosturl}$apisecret/users/search/username/$username"
+	else
+		if [ -n "$email" ]; then
+			profileurl="${hosturl}$apisecret/users/search/email/$email"
+		else
+			if [ -n "$name" ]; then
+				profileurl="${hosturl}$apisecret/users/search/name/$name"
+			fi
+		fi
+	fi
+	
+	cmd="curl -sku \"$apisecret:XXXXXX\" $profileurl?pretty=true"
 
 	log "Calling $cmd"
 		
-	response=`curl -sku "$apisecret:$apikey" $hosturl$apisecret/users/$internalUsername?pretty=true`
+	response=`curl -sku "$apisecret:$apikey" $profileurl?pretty=true`
 	
 	check_response_status "$response"
 	
