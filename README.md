@@ -30,10 +30,10 @@ Contents
 		- auth*			authenticate
 		- apps*			query and register applications
 		- jobs*			submit and manage jobs
-		- postit*		create preauthenticated, disposable urls
+		- postits*		create preauthenticated, disposable urls
 		- profiles*		query and register users
 		- systems*		query, monitor, and manage systems
-		- (files*)		manage remote files and folders, upload data
+		- files*		manage remote files and folders, upload data
 		- (transfers*)	move data from one location to another
 		- (transforms*)	move data from one location to another
 		- (meta*)			create and manage metadata

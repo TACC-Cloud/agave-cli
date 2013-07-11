@@ -66,7 +66,7 @@ main() {
 	elif [ -n "$startdate" ]; then
 		jobsurl="$hosturl/startDate/$startdate"
 	else
-		jobsurl="$hosturl"
+		jobsurl="$hosturl/"
 	fi
 	
 	cmd="curl -sku \"$apisecret:XXXXXX\" $jobsurl?pretty=true"
