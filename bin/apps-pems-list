@@ -80,7 +80,7 @@ format_api_json() {
 	if ((verbose)); then
 		echo "$1"
 	else
-		result=`echo "$1"  | python -mjson.tool | grep '^            "username"' | perl -pe "s/\"username\"://; s/\"//g; s/,/\n/; s/ //g; "`
+		result=`echo "$1"  | grep '^      "username"' | perl -pe "s/\"username\"\s://; s/\"//g; s/,/\n/; s/ //g; "`
 		success "${result}"
 	fi
 }
