@@ -5,15 +5,13 @@
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It creates a pre-authenticated shortened URL which can be used 
-# in leu of the original endpoint to share with others.
+# Lists all active PostIts for the authenticated user.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
 
-hosturl="$baseurl/postit/"
 # set to 1 to prevent using cache. token creation requires a valid key
 disable_cache=1
 noauth=0
@@ -22,33 +20,18 @@ noauth=0
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey url method)
+interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]...
+  echo -n "$(basename $0) [OPTIONS]... [POSTIT]
 
-Generate a preauthenticated URI for an API endpoint. PostIt URI can be limited
-to the number of uses and/or timeframe during which they are valid. When 
-calling a PostIt URI, the registered URI will be called with the authenication 
-and method specified when created. Any other data such as URL or form parameters
-will be passed on to the original URL. Results will be proxied back to the 
-caller.
+Lists all active PostIts for the authenticated user.
 
  Options:
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
-  -l, --lifetime    Lifetime of the returned token in seconds
-  -m, --maxUses     Maximum number of times the returned token can be used
-  -u, --internalUsername  Internal user to attach to this token
-  -x, --apiusername API username for whom the returned token should apply, 
-                    requires admin permissions
-  -U, --url         Target URL to which the postit points
-  -M, --method      HTTP method the postit should perform: GET, POST, PUT, DELETE
-  -N, --noauth      Should the postit be preauthenticated?
-  -S, --storetoken  Store the token for later use. This prevents you from 
-                    reauthenticating with every command.
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -69,9 +52,9 @@ caller.
 filter_service_url() {
 	if [[ -z $hosturl ]]; then
 		if ((development)); then 
-			hosturl="$devurl/postit-v1/"
+			hosturl="http://localhost/postit-v2"
 		else
-			hosturl="$baseurl/postit/"
+			hosturl="$baseurl/postits"
 		fi
 	fi
 }
@@ -82,45 +65,15 @@ main() {
 	
 	local post_options='';
 	
-	if [ -n "$url" ]; then
-		post_options="url=$url"
-	else
-		err "A valid url must be specified"
-		die
+	if [ -n "$args" ]; then
+		hosturl="${hosturl}/${args}"
 	fi
 	
-	if [ -n "$internalUsername" ]; then
-		post_options="internalUsername=$internalUsername&$post_options"
-	fi
-	
-	if [ -n "$apiusername" ]; then
-		post_options="username=$apiusername&$post_options"
-	fi
-	
-	if [ -n "$maxUses" ]; then
-		post_options="maxUses=$maxUses&$post_options"
-	fi
-	
-	if [ -n "$lifetime" ]; then
-		post_options="lifetime=$lifetime&$post_options"
-	fi
-	
-	if echo "$method" | grep -E "[GET|get|PUT|put|POST|post|DELETE|delete]" >/dev/null ; then
-		post_options="method=$method&$post_options"
-	else
-		err "Method parameter must be one of GET, PUT, POST, DELETE"
-		die
-	fi
-	
-	if [ -n "$noauth" ]; then
-		post_options="noauth=$noauth&$post_options"
-	fi
-	
-	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"$post_options\" $hosturl"
+	cmd="curl -sku \"$apisecret:XXXXXX\" ${hosturl}?pretty=true"
 
 	log "Calling $cmd"
 
-	response=`curl -sku "$apisecret:$apikey" -X POST -d "$post_options" "$hosturl"`
+	response=`curl -sku "$apisecret:$apikey" "${hosturl}?pretty=true"`
 	
 	check_response_status "$response"
 	
@@ -135,10 +88,10 @@ main() {
 format_api_json() {
 	
 	if ((verbose)); then
-		echo "$1" | python -mjson.tool
+		echo "$1"
 	else
-		jsonval postit_url "$1" "postit" 
-		success "https:$postit_url"
+		result=`echo "$1" | python -mjson.tool | grep -E '^ +"postit"' | perl -pe "s/\"postit\": \"/${hosturl}/; s/\"//g; s/,/\n/; s/ //g;"`
+   		success "${result}"
 	fi
 }
 
@@ -166,15 +119,7 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
-    -l|--lifetime) shift; lifetime=$1 ;;
-  	-m|--maxUses) shift; maxuses=$1 ;;
-  	-u|--internalUsername) shift; internalusername=$1 ;;
-	-U|--url) shift; url=$1;;
-    -M|--method) shift; method=$1;;
-    -N|--noauth) shift; noauth=1;;
-    -x|--apiusername) shift; apiusername=$1;;
-	-S|--storetoken) storetoken=1 ;;
-	-H|--hosturl) shift; hosturl=$1;;
+    -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
     -q|--quiet) quiet=1 ;;

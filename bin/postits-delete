@@ -1,16 +1,21 @@
 #!/bin/bash
 # 
-# apps-list
+# postit-create
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It retrieves a list of one or more registered applications from the api
+# It creates a pre-authenticated shortened URL which can be used 
+# in leu of the original endpoint to share with others.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
+
+# set to 1 to prevent using cache. token creation requires a valid key
+disable_cache=1
+noauth=0
 
 # Script logic -- TOUCH THIS {{{
 
@@ -20,21 +25,14 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]...
-$(basename $0) [OPTION]... [APP_ID]
+  echo -n "$(basename $0) [OPTION]... [POSTIT_NONCE]
 
-List all applications available to the user. Results can be filtered by 
-partial name, tag, or ontology term.
-
+Immediately expires an existing PostIt.
 
  Options:
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
-  -n, --name		Search for app by name
-  -t, --tag			Search for app by tag
-  -o, --ontology    Search for app by ontology
-  -S, --system    	Search for app by system id
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -52,32 +50,32 @@ partial name, tag, or ontology term.
 ##################################################################
 ##################################################################
 
-source "$DIR/apps-common.sh"
+filter_service_url() {
+	if [[ -z $hosturl ]]; then
+		if ((development)); then 
+			hosturl="http://localhost/postit-v2/"
+		else
+			hosturl="$baseurl/postits/"
+		fi
+	fi
+}
 
 main() {
 	#echo -n
 	#set -x
 	
-	hosturl=${hosturl%/}
-	if [ -n "$args" ]; then
-		hosturl="$hosturl/$args"
-	elif [ -n "$name" ]; then
-		hosturl="$hosturl/name/$name"
-	elif [ -n "$tag" ]; then
-		hosturl="$hosturl/tag/$tag"
-	elif [ -n "$ontology" ]; then
-		hosturl="$hosturl/ontology/$ontology"
-	elif [ -n "$system" ]; then
-		hosturl="$hosturl/system/$system"
-	else 
-		hosturl="$hosturl/"
+	local post_options='';
+	
+	if [ -z "$args" ]; then
+		err "A valid postit nonce must be specified"
+		die
 	fi
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl?pretty=true"
+	cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE ${hosturl}${args}?pretty=true"
 
 	log "Calling $cmd"
-		
-	response=`curl -sku "$apisecret:$apikey" "$hosturl?pretty=true"`
+
+	response=`curl -sku "$apisecret:$apikey" -X DELETE "${hosturl}${args}?pretty=true"`
 	
 	check_response_status "$response"
 	
@@ -86,9 +84,7 @@ main() {
 	else
 		jsonval response_message "$response" "message" 
 		err "$response_message"
-	fi
-	
-	
+	fi	
 }
 
 format_api_json() {
@@ -96,8 +92,7 @@ format_api_json() {
 	if ((verbose)); then
 		echo "$1"
 	else
-		result=`echo "$1" | python -mjson.tool | grep '^            "id"' | perl -pe "s/\"id\"://; s/\"//g; s/,/\n/; s/\s//g; print \"\n\";"`
-		success "${result}"
+		success "Successfully deleted postit ${args}"
 	fi
 }
 
@@ -116,7 +111,7 @@ source "$DIR/options.sh"
 # Main loop {{{
 
 # Print help if no arguments were passed.
-#[[ $# -eq 0 ]] && set -- "--help"
+[[ $# -eq 0 ]] && set -- "-i"
 
 # Read the options and set stuff
 while [[ $1 = -?* ]]; do
@@ -125,10 +120,6 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
-    -n|--name) shift; name=$1 ;;
-    -t|--tag) shift; tag=$1 ;;
-    -o|--ontology) shift; ontology=$1 ;;
-    -S|--system) shift; system=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

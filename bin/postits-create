@@ -1,0 +1,192 @@
+#!/bin/bash
+# 
+# postit-create
+# 
+# author: dooley@tacc.utexas.edu
+#
+# This script is part of the Agave API command line interface (CLI).
+# It creates a pre-authenticated shortened URL which can be used 
+# in leu of the original endpoint to share with others.
+#
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "$DIR/common.sh"
+
+# set to 1 to prevent using cache. token creation requires a valid key
+disable_cache=1
+noauth=0
+
+# Script logic -- TOUCH THIS {{{
+
+# A list of all variables to prompt in interactive mode. These variables HAVE
+# to be named exactly as the longname option definition in usage().
+interactive_opts=(apisecret apikey)
+
+# Print usage
+usage() {
+  echo -n "$(basename $0) [OPTIONS]... [URL]
+
+Generate a preauthenticated URI for an API endpoint. PostIt URI can be limited
+to the number of uses and/or timeframe during which they are valid. When 
+calling a PostIt URI, the registered URI will be called with the authenication 
+and method specified when created. Any other data such as URL or form parameters
+will be passed on to the original URL. Results will be proxied back to the 
+caller.
+
+ Options:
+  -s, --apisecret   API secret for authenticating
+  -k, --apikey      API key for authenticating, its recommended to insert
+                    this through the interactive option
+  -l, --lifetime    Lifetime of the returned token in seconds
+  -m, --maxUses     Maximum number of times the returned token can be used
+  -u, --internalUsername  Internal user to attach to this token
+  -x, --apiusername API username for whom the returned token should apply, 
+                    requires admin permissions
+  -M, --method      HTTP method the postit should perform: GET, POST, PUT, DELETE.
+  					Defaults to GET
+  -N, --noauth      Generate a postit, but do not pre-authenticate the URL
+  -H, --hosturl     URL of the service
+  -d, --development Run in dev mode using default dev server
+  -f, --force       Skip all user interaction
+  -i, --interactive Prompt for values
+  -q, --quiet       Quiet (no output)
+  -v, --verbose     Output more
+  -h, --help        Display this help and exit
+      --version     Output version information and exit
+"
+}
+
+##################################################################
+##################################################################
+#						Begin Script Logic						 #
+##################################################################
+##################################################################
+
+filter_service_url() {
+	if [[ -z $hosturl ]]; then
+		if ((development)); then 
+			hosturl="http://localhost/postit-v2/"
+		else
+			hosturl="$baseurl/postits/"
+		fi
+	fi
+}
+
+main() {
+	#echo -n
+	#set -x
+	
+	local post_options='';
+	
+	if [ -z "$args" ]; then
+		err "A valid url must be specified"
+		die
+	fi
+	
+	if [ -z "$method"]; then
+		post_options="method=GET"
+	elif echo "$method" | grep -E "[GET|get|PUT|put|POST|post|DELETE|delete]" >/dev/null ; then
+		post_options="method=${method}"
+	else
+		err "Method parameter must be one of GET, PUT, POST, DELETE"
+		die
+	fi
+	
+	if [ -n "$internalUsername" ]; then
+		post_options="internalUsername=$internalUsername&${post_options}"
+	fi
+	
+	if [ -n "$apiusername" ]; then
+		post_options="username=$apiusername&${post_options}"
+	fi
+	
+	if [ -n "$maxUses" ]; then
+		post_options="maxUses=$maxUses&${post_options}"
+	fi
+	
+	if [ -n "$lifetime" ]; then
+		post_options="lifetime=$lifetime&${post_options}"
+	fi
+	
+	if [ -n "$noauth" ]; then
+		post_options="noauth=$noauth&$post_options"
+	fi
+	
+	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"$post_options\" -d \"url=${args}\" $hosturl"
+
+	log "Calling $cmd"
+
+	response=`curl -sku "$apisecret:$apikey" -X POST -d "${post_options}" -d "url=${args}" "$hosturl"`
+	
+	check_response_status "$response"
+	
+	if [ "$response_status" = "success" ]; then
+		format_api_json "$response"
+	else
+		jsonval response_message "$response" "message" 
+		err "$response_message"
+	fi	
+}
+
+format_api_json() {
+	
+	if ((verbose)); then
+		echo "$1" | python -mjson.tool
+	else
+		jsonval postit_key "$1" "postit" 
+		success "${hosturl}${postit_key}"
+	fi
+}
+
+##################################################################
+##################################################################
+#						End Script Logic						 #
+##################################################################
+##################################################################
+
+# }}}
+
+# Parse command line options
+source "$DIR/options.sh"
+
+
+# Main loop {{{
+
+# Print help if no arguments were passed.
+[[ $# -eq 0 ]] && set -- "-i"
+
+# Read the options and set stuff
+while [[ $1 = -?* ]]; do
+  case $1 in
+    -h|--help) usage >&2; safe_exit ;;
+    --version) out "$(basename $0) $version"; safe_exit ;;
+    -s|--apisecret) shift; apisecret=$1 ;;
+    -k|--apikey) shift; apikey=$1 ;;
+    -l|--lifetime) shift; lifetime=$1 ;;
+  	-m|--maxUses) shift; maxuses=$1 ;;
+  	-u|--internalUsername) shift; internalUsername=$1 ;;
+	-U|--url) shift; url=$1;;
+    -M|--method) shift; method=$1;;
+    -N|--noauth) noauth=1;;
+    -x|--apiusername) shift; apiusername=$1;;
+	-H|--hosturl) shift; hosturl=$1;;
+  	-d|--development) development=1 ;;
+    -v|--verbose) verbose=1 ;;
+    -q|--quiet) quiet=1 ;;
+    -i|--interactive) interactive=1 ;;
+    -f|--force) force=1 ;;
+    --endopts) shift; break ;;
+    *) die "invalid option: $1" ;;
+  esac
+  shift
+done
+
+# Store the remaining part as arguments.
+args+=("$@")
+
+# }}}
+
+# Run the script logic
+source "$DIR/runner.sh"
+

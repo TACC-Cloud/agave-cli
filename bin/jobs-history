@@ -1,11 +1,11 @@
 #!/bin/bash
 # 
-# apps-list
+# jobs-list
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It retrieves a list of one or more registered applications from the api
+# It retrieves the history of a named job
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -20,21 +20,16 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]...
-$(basename $0) [OPTION]... [APP_ID]
+  echo -n "$(basename $0) [OPTION]... [JOB_ID]
 
-List all applications available to the user. Results can be filtered by 
-partial name, tag, or ontology term.
-
+List the history of events for a specific job. This will give more descriptive
+information related to number of retries, reasons for failure, and other hiccups
+that occurred in the submission process.
 
  Options:
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
-  -n, --name		Search for app by name
-  -t, --tag			Search for app by tag
-  -o, --ontology    Search for app by ontology
-  -S, --system    	Search for app by system id
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -52,42 +47,31 @@ partial name, tag, or ontology term.
 ##################################################################
 ##################################################################
 
-source "$DIR/apps-common.sh"
+source "$DIR/jobs-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 	
-	hosturl=${hosturl%/}
-	if [ -n "$args" ]; then
-		hosturl="$hosturl/$args"
-	elif [ -n "$name" ]; then
-		hosturl="$hosturl/name/$name"
-	elif [ -n "$tag" ]; then
-		hosturl="$hosturl/tag/$tag"
-	elif [ -n "$ontology" ]; then
-		hosturl="$hosturl/ontology/$ontology"
-	elif [ -n "$system" ]; then
-		hosturl="$hosturl/system/$system"
-	else 
-		hosturl="$hosturl/"
-	fi
-	
-	cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl?pretty=true"
-
-	log "Calling $cmd"
-		
-	response=`curl -sku "$apisecret:$apikey" "$hosturl?pretty=true"`
-	
-	check_response_status "$response"
-	
-	if [ "$response_status" = "success" ]; then
-		format_api_json "$response"
+	if [ -z "$args" ]; then
+		err "Please specify a job for which to set the permissions"
 	else
-		jsonval response_message "$response" "message" 
-		err "$response_message"
-	fi
+		cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$args/history?pretty=true"
+		
+		log "Calling $cmd"
 	
+		response=`curl -sku "$apisecret:$apikey" "${hosturl}${args}/history?pretty=true"`
+
+		#response_status=`echo "$response" | python -mjson.tool | grep '"status": "success"'`
+		check_response_status "$response"
+
+		if [ -n "$response_status" ]; then
+			format_api_json "$response"
+		else
+			jsonval response_message "$response" "message" 
+			err "$response_message"
+		fi
+	fi
 	
 }
 
@@ -96,7 +80,7 @@ format_api_json() {
 	if ((verbose)); then
 		echo "$1"
 	else
-		result=`echo "$1" | python -mjson.tool | grep '^            "id"' | perl -pe "s/\"id\"://; s/\"//g; s/,/\n/; s/\s//g; print \"\n\";"`
+		result=`echo "$1" | python -mjson.tool | grep -E '^ +"description"' | perl -pe "s/\"description\"://; s/\"//g; s/,/\n/; s/^\s+//;"`
 		success "${result}"
 	fi
 }
@@ -112,7 +96,6 @@ format_api_json() {
 # Parse command line options
 source "$DIR/options.sh"
 
-
 # Main loop {{{
 
 # Print help if no arguments were passed.
@@ -125,10 +108,6 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
-    -n|--name) shift; name=$1 ;;
-    -t|--tag) shift; tag=$1 ;;
-    -o|--ontology) shift; ontology=$1 ;;
-    -S|--system) shift; system=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
