@@ -1,12 +1,12 @@
 #!/bin/bash
 # 
-# files-list
+# metadata-list
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It retrieves a file listing on a remote system. If no  jobs. Optionally, one can search by name, tag,
-# ontology, or start date
+# It retrieves a list of metadata. Optionally, one can search by 
+# a custom search term using json dot notation
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -21,17 +21,19 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [PATH]
+  echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... [METADATA_ID]
 
-List files on a remote system. If no system is specified, your default storage
-system will be used. By specifying a system, the path given will be resolved
-on that remote system. Note that the system id, not hostname must be given.
+List metadata objects. Results may be filtered by object id, parent id, or
+a custom query string following MongoDB conventions.
 
  Options:
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
-  -S, --systemId	Specify the system id
+  -Q, --query		Search for metadata by custom query
+  -P, --parentid	Search for metadata associated with the given parent 
+  					object id
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -49,25 +51,29 @@ on that remote system. Note that the system id, not hostname must be given.
 ##################################################################
 ##################################################################
 
-source "$DIR/files-common.sh"
+source "$DIR/metadata-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 	
-	if [ -n "$systemId" ]; then
-		filesurl="${hosturl}listings/system/${systemId}/${args}?pretty=true"
+	hosturl=${hosturl%/}
+	if [ -n "$args" ]; then
+		metaurl="$hosturl/data/${args}?pretty=true"
+	elif [ -n "$query" ]; then
+		metaurl="$hosturl/data/?q=${query}&pretty=true"
+	elif [ -n "$parentid" ]; then
+		metaurl="$hosturl/data/?q=ref:${parentid}&?pretty=true"
 	else
-		filesurl="${hosturl}listings/${args}?pretty=true"
+		metaurl="$hosturl/data/?pretty=true"
 	fi
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" ${filesurl}"
+	cmd="curl -sku \"$apisecret:XXXXXX\" $metaurl"
 
 	log "Calling $cmd"
 	
-	response=`curl -sku "$apisecret:$apikey" "${filesurl}"`
-	
-	#response_status=`echo "$response" | python -mjson.tool | grep '"status": "success"'`
+	response=`curl -sku "$apisecret:$apikey" "$metaurl"`
+
 	check_response_status "$response"
 
 	if [ -n "$response_status" ]; then
@@ -83,9 +89,9 @@ main() {
 format_api_json() {
 	
 	if ((verbose)); then
-		echo "$1" 
+		echo "$1"
 	else
-		result=`echo "$1" | grep -E '^ +"name"' | perl -pe "s/\"name\" ://; s/\"//g; s/,/\n/; s/ //g;"`
+		result=`echo "$1" | grep -E '^ +"oid"' | perl -pe "s/\"oid\"://; s/\"//g; s/,/\n/; s/ //g;"`
 		success "${result}"
 	fi
 }
@@ -113,7 +119,8 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
-    -S|--systemId) shift; systemId=$1 ;;
+    -Q|--query) shift; query=$1 ;;
+    -P|--parentid) shift; parentid=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

@@ -1,12 +1,11 @@
 #!/bin/bash
 # 
-# files-list
+# metadata-schema-addupdate
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It retrieves a file listing on a remote system. If no  jobs. Optionally, one can search by name, tag,
-# ontology, or start date
+# It adds a piece of metadata.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -21,17 +20,17 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [PATH]
+  echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... [SCHEMA_ID]
 
-List files on a remote system. If no system is specified, your default storage
-system will be used. By specifying a system, the path given will be resolved
-on that remote system. Note that the system id, not hostname must be given.
+Add a metadata record.
 
  Options:
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
-  -S, --systemId	Specify the system id
+  -F, --filetoupload The file containing the json app description to submit
+  -D, --data		The raw json to upload
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -49,44 +48,35 @@ on that remote system. Note that the system id, not hostname must be given.
 ##################################################################
 ##################################################################
 
-source "$DIR/files-common.sh"
+source "$DIR/metadata-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 	
-	if [ -n "$systemId" ]; then
-		filesurl="${hosturl}listings/system/${systemId}/${args}?pretty=true"
-	else
-		filesurl="${hosturl}listings/${args}?pretty=true"
-	fi
-	
-	cmd="curl -sku \"$apisecret:XXXXXX\" ${filesurl}"
+	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}schemas/${args}?pretty=true"
 
 	log "Calling $cmd"
-	
-	response=`curl -sku "$apisecret:$apikey" "${filesurl}"`
-	
-	#response_status=`echo "$response" | python -mjson.tool | grep '"status": "success"'`
-	check_response_status "$response"
 
-	if [ -n "$response_status" ]; then
+	response=`curl -sku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}schemas/${args}?pretty=true"`
+
+	check_response_status "$response"
+	
+		if [ "$response_status" = "success" ]; then
 		format_api_json "$response"
 	else
 		jsonval response_message "$response" "message" 
 		err "$response_message"
 	fi
-	
-	
 }
 
 format_api_json() {
-	
+
 	if ((verbose)); then
-		echo "$1" 
+		echo "$1"
 	else
-		result=`echo "$1" | grep -E '^ +"name"' | perl -pe "s/\"name\" ://; s/\"//g; s/,/\n/; s/ //g;"`
-		success "${result}"
+		jsonval oid "$i" "oid"
+		success "Successfully submitted schema object $oid"
 	fi
 }
 
@@ -101,10 +91,11 @@ format_api_json() {
 # Parse command line options
 source "$DIR/options.sh"
 
+
 # Main loop {{{
 
 # Print help if no arguments were passed.
-#[[ $# -eq 0 ]] && set -- "--help"
+[[ $# -eq 0 ]] && set -- "-i"
 
 # Read the options and set stuff
 while [[ $1 = -?* ]]; do
@@ -113,7 +104,7 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
-    -S|--systemId) shift; systemId=$1 ;;
+    -F|--filetoupload) shift; filetoupload=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
@@ -133,4 +124,3 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
-
