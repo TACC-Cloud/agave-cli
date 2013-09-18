@@ -84,12 +84,14 @@ main() {
 	fi
 	
 	if [ -n "$post_options" ]; then
+		
+		post_options=${post_options%&}
 	
-		cmd="curl -ku \"$apisecret:XXXXXX\" -X POST -F \"fileToUpload=@$filetoupload\" -d \"${post_options}\" $hosturl$args?pretty=true"
+		cmd="curl -ku \"$apisecret:XXXXXX\" -X POST -F \"fileToUpload=@$filetoupload\" -F \"${post_options}\" $hosturl$args?pretty=true"
 
 		log "Calling $cmd"
 	
-		response=`curl -ku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" -d "${post_options}" "$hosturl$args?pretty=true"`
+		response=`curl -ku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" -F "${post_options}" "$hosturl$args?pretty=true"`
 	else
 		
 		cmd="curl -ku \"$apisecret:$apikey\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl$args?pretty=true"
