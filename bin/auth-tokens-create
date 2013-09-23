@@ -89,11 +89,13 @@ main() {
 		post_options="lifetime=${lifetime}&${post_options}"
 	fi
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"$post_options\" $hosturl/?pretty=true"
+	post_options=${post_options%&}
+	
+	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"$post_options\" $hosturl?pretty=true"
 
 	log "Calling $cmd"
 		
-	response=`curl -sku "$apisecret:$apikey" -X POST -d "$post_options" "$hosturl/?pretty=true"`
+	response=`curl -sku "$apisecret:$apikey" -X POST -d "$post_options" "$hosturl?pretty=true"`
 	
 	check_response_status "$response"
 	

@@ -21,7 +21,6 @@ interactive_opts=(apisecret apikey filetoupload)
 # Print usage
 usage() {
   echo -n "$(basename $0) [OPTION]... [PATH]
-$(basename $0) [OPTION]... [APP_ID]
 
 Uploads a local file or folder to a remote storage system. The upload will occur
 via HTTP. The subsequent staging will be done via the native data protocol for 

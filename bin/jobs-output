@@ -33,6 +33,7 @@ List or download job output.
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
   -D, --download    Download the output file to the local folder
+  -P, --path		Path to desired output file relative to job output folder
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -59,30 +60,29 @@ main() {
 	if [ -z "$args" ]; then
 		err "Please specify a job id for which to view the output"
 	else
-	
+		echo $args
 		scriptargs=($args)
 		jobid=${scriptargs[0]}
-		outputpath=${scriptargs[1]}
 		
 		if [ -n "$download" ]; then
-			cmd="curl -sku \"$apisecret:XXXXXX\" -o \"$download\" $hosturl$jobid/output/media/$outputpath"
+			cmd="curl -sku \"$apisecret:XXXXXX\" -o \"$download\" $hosturl${jobid}/output/media/${path}"
 
 			log "Calling $cmd"
 	
-			response=`curl -sku "$apisecret:$apikey" -o "$download" "$profileurl"`
+			response=`curl -sku "$apisecret:$apikey" -o "${download}" "${profileurl}"`
 			
 			if [ 0 -eq $? ]; then
-				success "Successfully downloaded $ouputpath for from job $jobid to $download"
+				success "Successfully downloaded ${ouputpath} for from job ${jobid} to ${download}"
 			else
 				err "Failed to download $outputpath from job $jobid"
 			fi
 		else
 			
-			cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$jobid/output/listings/$outputpath"
+			cmd="curl -sku \"$apisecret:XXXXXX\" ${hosturl}${jobid}/outputs/listings/${path}?pretty=true"
 
 			log "Calling $cmd"
 	
-			response=`curl -sku "$apisecret:$apikey" "$hosturl$jobid/output/listings/$outputpath"`
+			response=`curl -sku "$apisecret:$apikey" "${hosturl}${jobid}/outputs/listings/${path}?pretty=true"`
 
 			#response_status=`echo "$response" | python -mjson.tool | grep '"status": "success"'`
 			check_response_status "$response"
@@ -101,9 +101,9 @@ main() {
 format_api_json() {
 	
 	if ((verbose)); then
-		echo "$1" | python -mjson.tool
+		echo "$1"
 	else
-		result=`echo "$1" | python -mjson.tool | grep -E '^ +"name"' | perl -pe "s/\"name\"://; s/\"//g; s/,/\n/; s/ //g;"`
+		result=`echo "$1" | grep -E '^ +"name"' | perl -pe "s/\"name\"://; s/\"//g; s/,/\n/; s/ //g;"`
 		success "${result}"
 	fi
 }
@@ -132,6 +132,7 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
+    -P|--path) shift; path=$1 ;;
     -D|--download) shift; name=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;

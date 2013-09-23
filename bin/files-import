@@ -21,7 +21,6 @@ interactive_opts=(apisecret apikey urltoingest)
 # Print usage
 usage() {
   echo -n "$(basename $0) [OPTION]... [PATH]
-$(basename $0) [OPTION]... [APP_ID]
 
 Imports a remote URI to a remote storage system. The subsequent staging will be  
 done via a proxy between the native data protocol of the remote system and the URL. 
@@ -86,18 +85,18 @@ main() {
 	
 	if [ -n "$post_options" ]; then
 	
-		cmd="curl -ku \"$apisecret:XXXXXX\" -X POST -d \"urlToIngest=$urltoingest\" -d \"${post_options}\" $hosturl$args?pretty=true"
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"urlToIngest=$urltoingest\" -d \"${post_options}\" $hosturl$args?pretty=true"
 
 		log "Calling $cmd"
 	
-		response=`curl -ku "$apisecret:$apikey" -X POST -d "urlToIngest=$urltoingest" -d "${post_options}" "$hosturl$args?pretty=true"`
+		response=`curl -sku "$apisecret:$apikey" -X POST -d "urlToIngest=$urltoingest" -d "${post_options}" "$hosturl$args?pretty=true"`
 	else
 		
-		cmd="curl -ku \"$apisecret:$apikey\" -X POST -d \"urlToIngest=$urltoingest\" $hosturl$args?pretty=true"
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"urlToIngest=$urltoingest\" $hosturl$args?pretty=true"
 
 		log "Calling $cmd"
 	
-		response=`curl -ku "$apisecret:$apikey" -X POST -d "urlToIngest=$urltoingest" "$hosturl$args?pretty=true"`
+		response=`curl -sku "$apisecret:$apikey" -X POST -d "urlToIngest=$urltoingest" "$hosturl$args?pretty=true"`
 		
 	fi
 	

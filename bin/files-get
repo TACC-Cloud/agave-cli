@@ -33,6 +33,7 @@ Note that the system id, not hostname must be given.
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
   -S, --systemId	Specify the system id
+  -R, --range		Byte range to retrieve in <start>-<end> format
   -N, --filename	Name by which the local file should be saved
   -P, --print		Print contents to stdout
   -H, --hosturl     URL of the service
@@ -75,12 +76,18 @@ main() {
 		else
 			outputarg="-O"
 		fi
+		
+		if [ -n "$range" ]; then
+			filerange="-r ${range} "
+		else
+			filerange=""
+		fi
 	
-		cmd="curl -ku \"$apisecret:XXXXXX\" ${outputarg} ${filesurl}"
+		cmd="curl -ku \"$apisecret:XXXXXX\" ${filerange} ${outputarg} ${filesurl}"
 
 		log "Calling $cmd"
-	
-		curl -ku "$apisecret:$apikey" "${outputarg}" "${filesurl}"
+
+		curl -ku "$apisecret:$apikey" ${filerange} ${outputarg} "${filesurl}"
 	fi
 }
 
@@ -107,6 +114,7 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
+    -R|--range) shift; range=$1 ;;
     -S|--systemId) shift; systemId=$1 ;;
     -N|--filename) shift; filename=$1 ;;
     -P|--print) print=$1 ;;
