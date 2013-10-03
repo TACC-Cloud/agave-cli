@@ -39,7 +39,8 @@ existing application, an application id must be provided.
   -f, --force       Skip all user interaction
   -i, --interactive Prompt for values
   -q, --quiet       Quiet (no output)
-  -v, --verbose     Output more
+  -v, --verbose     Verbose output
+  -V, --veryverbose Very verbose output
   -h, --help        Display this help and exit
       --version     Output version information and exit
 "
@@ -59,7 +60,9 @@ main() {
 	
 	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl$args?pretty=true"
 
-	log "Calling $cmd"
+	if ((veryverbose)); then
+			log "Calling $cmd"
+		fi
 
 	response=`curl -sku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" "$hosturl$args?pretty=true"`
 	
@@ -75,8 +78,11 @@ main() {
 
 format_api_json() {
 
-	if ((verbose)); then
+	if ((veryverbose)); then
 		echo "$1"
+	elif [[ $verbose -eq 1 ]]; then
+		result=$(jsonquery "$1" "result" 1)
+		echo "${result}" | python -mjson.tool
 	else
 		if [ -z "$args" ]; then
 			jsonval app_id "$i" "id"
@@ -115,6 +121,7 @@ while [[ $1 = -?* ]]; do
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
+    -V|--veryverbose) veryverbose=1; verbose=1 ;;
     -q|--quiet) quiet=1 ;;
     -i|--interactive) interactive=1 ;;
     -f|--force) force=1 ;;

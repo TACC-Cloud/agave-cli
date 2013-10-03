@@ -28,12 +28,15 @@ List all systems available to the authenticated user.
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
+  -S, --storage		Only return storage systems. Ignored if system id is given.
+  -E, --execution	Only return execution systems. Ignored if system id is given.
   -h, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
   -i, --interactive Prompt for values
   -q, --quiet       Quiet (no output)
-  -v, --verbose     Output more
+  -v, --verbose     Verbose output
+  -V, --veryverbose Very verbose output
   -h, --help        Display this help and exit
       --version     Output version information and exit
 "
@@ -51,29 +54,43 @@ main() {
 	#echo -n
 	#set -x
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$args?pretty=true"
-
-	log "Calling $cmd"
-		
-	response=`curl -sku "$apisecret:$apikey" "$hosturl$args?pretty=true"`
-	
-	check_response_status "$response"
-	
-	if [ "$response_status" = "success" ]; then
-		format_api_json "$response"
+	hosturl=${hosturl%/}
+	if [ -n "$args" ]; then
+		systemsurl="${hosturl}/${args}"
+	elif [ -n "$storage" ]; then
+		systemsurl="${hosturl}/type/storage"
+	elif [ -n "$execution" ]; then
+		systemsurl="${hosturl}/type/execution"
 	else
-		jsonval response_message "$response" "message" 
-		err "$response_message"
+		systemsurl="$hosturl"
+	fi
+	
+	cmd="curl -sku \"$apisecret:XXXXXX\" ${systemsurl}?pretty=true"
+	
+	if ((veryverbose)); then
+		log "Calling $cmd"
+	fi
+		
+	response=`curl -sku "$apisecret:$apikey" "${systemsurl}?pretty=true"`
+	
+	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+		result=$(format_api_json "$response")
+		success "$result"
+	else
+		err $(jsonquery "$response" "message")
 	fi
 }
 
 format_api_json() {
 	
-	if ((verbose)); then
+	if ((veryverbose)); then
 		echo "$1"
+	elif [[ $verbose -eq 1 ]]; then
+		result=$(jsonquery "$1" "result" 1)
+		echo "${result}" | python -mjson.tool
 	else
-		result=`echo "$1" | grep '^    "id"' | perl -pe "s/\"id\" ://; s/\"//g; s/,/\n/; s/\s//g; print \"\n\";"`
-		success "${result}"
+		result=$(jsonquery "$1" "result.[].id")
+		echo "${result}"
 	fi
 }
 
@@ -104,6 +121,7 @@ while [[ $1 = -?* ]]; do
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
+    -V|--veryverbose) veryverbose=1; verbose=1 ;;
     -q|--quiet) quiet=1 ;;
     -i|--interactive) interactive=1 ;;
     -f|--force) force=1 ;;

@@ -33,7 +33,8 @@ Sets the given system as the user's default system of that type
   -f, --force       Skip all user interaction
   -i, --interactive Prompt for values
   -q, --quiet       Quiet (no output)
-  -v, --verbose     Output more
+  -v, --verbose     Verbose output
+  -V, --veryverbose Very verbose output
   -h, --help        Display this help and exit
       --version     Output version information and exit
 "
@@ -57,30 +58,32 @@ main() {
 		
 		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=default\" $hosturl$args?pretty=true"
 
-		log "Calling $cmd"
+		if ((veryverbose)); then
+			log "Calling $cmd"
+		fi
 	
 		response=`curl -sku "$apisecret:$apikey" -X PUT -d "action=default" "$hosturl$args?pretty=true"`
 
-		check_response_status "$response"
-
-		if [ "$response_status" = "success" ]; then
-			format_api_json "$response"
+		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+			result=$(format_api_json "$response")
+			success "$result"
 		else
-			jsonval response_message "$response" "message" 
-			err "$response_message"
+			err $(jsonquery "$response" "message")
 		fi
 	fi	
 }
 
 format_api_json() {
 
-	if ((verbose)); then
-		echo "$1" | python -mjson.tool
+	if ((veryverbose)); then
+		echo "$1"
+	elif [[ $verbose -eq 1 ]]; then
+		result=$(jsonquery "$1" "result" 1)
+		echo "${result}" | python -mjson.tool
 	else
-		jsonval system_id "$1" "id" 
-		jsonval system_type "$1" "type" 
-		system_type=`echo "$system_type" | tr '[A-Z]' '[a-z]'`
-		success "Successfully set $args as the default system for $apisecret"
+		system_id=$(jsonquery "$1" "result.id")
+		system_type=$(jsonquery "$1" "result.type")
+		echo "Successfully set $system_id as the default $system_type system for $apisecret"
 	fi
 }
 
@@ -112,6 +115,7 @@ while [[ $1 = -?* ]]; do
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
+    -V|--veryverbose) veryverbose=1; verbose=1 ;;
     -q|--quiet) quiet=1 ;;
     -i|--interactive) interactive=1 ;;
     -f|--force) force=1 ;;

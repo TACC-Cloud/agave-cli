@@ -41,7 +41,8 @@ Note that the system id, not hostname must be given.
   -f, --force       Skip all user interaction
   -i, --interactive Prompt for values
   -q, --quiet       Quiet (no output)
-  -v, --verbose     Output more
+  -v, --verbose     Verbose output
+  -V, --veryverbose Very verbose output
   -h, --help        Display this help and exit
       --version     Output version information and exit
 "
@@ -85,7 +86,9 @@ main() {
 	
 		cmd="curl -ku \"$apisecret:XXXXXX\" ${filerange} ${outputarg} ${filesurl}"
 
-		log "Calling $cmd"
+		if ((veryverbose)); then
+			log "Calling $cmd"
+		fi
 
 		curl -ku "$apisecret:$apikey" ${filerange} ${outputarg} "${filesurl}"
 	fi
@@ -121,6 +124,7 @@ while [[ $1 = -?* ]]; do
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
+    -V|--veryverbose) veryverbose=1; verbose=1 ;;
     -q|--quiet) quiet=1 ;;
     -i|--interactive) interactive=1 ;;
     -f|--force) force=1 ;;

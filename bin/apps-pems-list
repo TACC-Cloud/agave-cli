@@ -35,7 +35,8 @@ username will return on the permissions for that user.
   -f, --force       Skip all user interaction
   -i, --interactive Prompt for values
   -q, --quiet       Quiet (no output)
-  -v, --verbose     Output more
+  -v, --verbose     Verbose output
+  -V, --veryverbose Very verbose output
   -h, --help        Display this help and exit
       --version     Output version information and exit
 "
@@ -59,7 +60,9 @@ main() {
 	
 		cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$args/pems/$username?pretty=true"
 
-		log "Calling $cmd"
+		if ((veryverbose)); then
+			log "Calling $cmd"
+		fi
 		
 		response=`curl -sku "$apisecret:$apikey" "$hosturl$args/pems/$username?pretty=true"`
 	
@@ -77,8 +80,11 @@ main() {
 
 format_api_json() {
 	
-	if ((verbose)); then
+	if ((veryverbose)); then
 		echo "$1"
+	elif [[ $verbose -eq 1 ]]; then
+		result=$(jsonquery "$1" "result" 1)
+		echo "${result}" | python -mjson.tool
 	else
 		result=`echo "$1"  | grep '^      "username"' | perl -pe "s/\"username\"\s://; s/\"//g; s/,/\n/; s/ //g; "`
 		success "${result}"
@@ -113,6 +119,7 @@ while [[ $1 = -?* ]]; do
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
+    -V|--veryverbose) veryverbose=1; verbose=1 ;;
     -q|--quiet) quiet=1 ;;
     -i|--interactive) interactive=1 ;;
     -f|--force) force=1 ;;

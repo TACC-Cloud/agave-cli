@@ -51,7 +51,8 @@ caller.
   -f, --force       Skip all user interaction
   -i, --interactive Prompt for values
   -q, --quiet       Quiet (no output)
-  -v, --verbose     Output more
+  -v, --verbose     Verbose output
+  -V, --veryverbose Very verbose output
   -h, --help        Display this help and exit
       --version     Output version information and exit
 "
@@ -113,29 +114,32 @@ main() {
 		post_options="noauth=$noauth&$post_options"
 	fi
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"$post_options\" -d \"url=${args}\" $hosturl"
+	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"$post_options\" -d \"url=${args}\" ${hosturl}?pretty=true"
 
-	log "Calling $cmd"
+	if ((veryverbose)); then
+		log "Calling $cmd"
+	fi
 
-	response=`curl -sku "$apisecret:$apikey" -X POST -d "${post_options}" -d "url=${args}" "$hosturl"`
+	response=`curl -sku "$apisecret:$apikey" -X POST -d "${post_options}" -d "url=${args}" "${hosturl}?pretty=true"`
 	
-	check_response_status "$response"
-	
-	if [ "$response_status" = "success" ]; then
-		format_api_json "$response"
+	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+		result=$(format_api_json "$response")
+		success "$result"
 	else
-		jsonval response_message "$response" "message" 
-		err "$response_message"
-	fi	
+		err $(jsonquery "$response" "message")
+	fi
 }
 
 format_api_json() {
 	
-	if ((verbose)); then
-		echo "$1" | python -mjson.tool
+	if ((veryverbose)); then
+		echo "$1"
+	elif [[ $verbose -eq 1 ]]; then
+		result=$(jsonquery "$1" "result" 1)
+		echo "${result}" | python -mjson.tool
 	else
-		jsonval postit_key "$1" "postit" 
-		success "${hosturl}${postit_key}"
+		result=$(jsonquery "$1" "result._links.self.href")
+		echo "${result}"
 	fi
 }
 
@@ -173,6 +177,7 @@ while [[ $1 = -?* ]]; do
 	-H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
+    -V|--veryverbose) veryverbose=1; verbose=1 ;;
     -q|--quiet) quiet=1 ;;
     -i|--interactive) interactive=1 ;;
     -f|--force) force=1 ;;

@@ -38,7 +38,8 @@ tag, or start date.
   -f, --force       Skip all user interaction
   -i, --interactive Prompt for values
   -q, --quiet       Quiet (no output)
-  -v, --verbose     Output more
+  -v, --verbose     Verbose output
+  -V, --veryverbose Very verbose output
   -h, --help        Display this help and exit
       --version     Output version information and exit
 "
@@ -71,30 +72,30 @@ main() {
 	
 	cmd="curl -sku \"$apisecret:XXXXXX\" $jobsurl?pretty=true"
 
-	log "Calling $cmd"
+	if ((veryverbose)); then
+			log "Calling $cmd"
+		fi
 	
 	response=`curl -sku "$apisecret:$apikey" "$jobsurl?pretty=true"`
 
-	#response_status=`echo "$response" | python -mjson.tool | grep '"status": "success"'`
-	check_response_status "$response"
-
-	if [ -n "$response_status" ]; then
-		format_api_json "$response"
+	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+		result=$(format_api_json "$response")
+		success "$result"
 	else
-		jsonval response_message "$response" "message" 
-		err "$response_message"
+		err $(jsonquery "$response" "message")
 	fi
-	
-	
 }
 
 format_api_json() {
 	
-	if ((verbose)); then
+	if ((veryverbose)); then
 		echo "$1"
+	elif [[ $verbose -eq 1 ]]; then
+		result=$(jsonquery "$1" "result" 1)
+		echo "${result}" | python -mjson.tool
 	else
-		result=`echo "$1" | python -mjson.tool | grep -E '^ +"id"' | perl -pe "s/\"id\"://; s/\"//g; s/,/\n/; s/ //g;"`
-		success "${result}"
+		result=$(jsonquery "$1" "result.[].id")
+		echo "${result}"
 	fi
 }
 
@@ -127,6 +128,7 @@ while [[ $1 = -?* ]]; do
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
+    -V|--veryverbose) veryverbose=1; verbose=1 ;;
     -q|--quiet) quiet=1 ;;
     -i|--interactive) interactive=1 ;;
     -f|--force) force=1 ;;

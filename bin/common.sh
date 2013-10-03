@@ -18,8 +18,8 @@
 [[ -t 1 ]] && piped=0 || piped=1
 
 # versioning info
-version="v0.1"
-api_release="v2"
+api_release="2"
+version="0.2"
 
 os=`uname -s`;
 
@@ -27,6 +27,7 @@ os=`uname -s`;
 force=0
 quiet=0
 verbose=0
+veryverbose=0
 interactive=0
 development=0
 baseurl="https://iplant-dev.tacc.utexas.edu/v2"
@@ -44,8 +45,8 @@ out() {
   if ((piped)); then
     message=$(echo $message | sed '
       s/\\[0-9]\{3\}\[[0-9]\(;[0-9]\{2\}\)\?m//g;
-      s/✖/Error:/g;
-      s/✔/Success:/g;
+      #s/✖/Error:/g;
+      #s/✔/Success:/g;
     ')
   fi
   printf '%b\n' "$message";
@@ -53,13 +54,18 @@ out() {
 die() { out "$@"; exit 1; } >&2
 err() { 
 	if (($verbose)); then 
-		out " \033[1;31m✖\033[0m  $response"
+		#out " \033[1;31m✖\033[0m  $response"
+		out "\033[1;31m${response}\033[0m"
 	else
-		out " \033[1;31m✖\033[0m  $@"; 
+		#out " \033[1;31m✖\033[0m  $@"; 
+		out "\033[1;31m$@\033[0m"
 	fi
 } >&2
 	
-success() { out " \033[1;32m✔\033[0m  $@"; }
+success() { 
+	#out " \033[1;32m✔\033[0m  $@"; 
+	out "$@"
+}
 
 # Verbose logging
 log() { (($verbose)) && out "$@"; }
@@ -90,6 +96,51 @@ function jsonval {
 	eval $__resultvar=`echo '${__temp##*|}'`
 }
 
+function jsonquery {
+	
+	oIFS="$IFS"
+	IFS="."
+	declare -a fields=($2)
+	IFS="$oIFS"
+	unset oIFS
+	#printf "> [%s]\n" "${fields[@]}"
+	
+	re='^[0-9]+$'
+	
+	for x in "${fields[@]}"; do
+		if [ "$x" == '\*' ]; then
+    		patharray=${patharray}',"[^"]*"'
+    		escpatharray=${escpatharray}',*'
+    		#echo $patharray"\\n"
+    	elif [[ $x = '[]' ]]; then
+    		patharray=${patharray}',[0-9]+'
+    		escpatharray=${escpatharray}',[0-9]*'
+    	elif [[ $x =~ $re ]] ; then
+    		patharray=${patharray}','$x
+    		escpatharray=${escpatharray}','$x
+    		#echo $patharray"\\n"
+    	else
+    		patharray=${patharray}',"'$x'"'
+    		escpatharray=${escpatharray}',\"'$x'\"'
+    		#echo $patharray"\\n"
+    	fi
+    done
+
+	patharray="${patharray:1:${#patharray}-1}"
+	escpatharray="${escpatharray:1:${#escpatharray}-1}"
+	
+    patharray='\['${patharray}'\]'
+    escpatharray='\['${escpatharray}'\]'
+	
+	if [ -z "$3" ]; then
+	    echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g | sed 's/^[ \t]*//g' | sed s/\"//g
+	else
+		# third argument says to leave the response quoted
+		echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g 
+    fi
+    unset patharray
+    unset escpatharray
+}
 
 # }}}
 
