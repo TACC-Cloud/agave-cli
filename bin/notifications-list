@@ -1,0 +1,141 @@
+#!/bin/bash
+# 
+# notifications-list
+# 
+# author: dooley@tacc.utexas.edu
+#
+# This script is part of the Agave API command line interface (CLI).
+# It retrieves a list of pending notifications. Optionally, one can search by 
+# an uuid to get all notifiations for a given object
+#
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "$DIR/common.sh"
+
+# Script logic -- TOUCH THIS {{{
+
+# A list of all variables to prompt in interactive mode. These variables HAVE
+# to be named exactly as the longname option definition in usage().
+interactive_opts=(apisecret apikey)
+
+# Print usage
+usage() {
+  echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... [NOTIFICATION_ID]
+
+List metadata objects. Results may be filtered by object id, parent id, or
+a custom query string following MongoDB conventions.
+
+ Options:
+  -s, --apisecret   API secret for authenticating
+  -k, --apikey      API key for authenticating, its recommended to insert
+                    this through the interactive option
+  -U, --uuid		Search for uuid of another api object
+  -H, --hosturl     URL of the service
+  -d, --development Run in dev mode using default dev server
+  -f, --force       Skip all user interaction
+  -i, --interactive Prompt for values
+  -q, --quiet       Quiet (no output)
+  -v, --verbose     Verbose output
+  -V, --veryverbose Very verbose output
+  -h, --help        Display this help and exit
+      --version     Output version information and exit
+"
+}
+
+##################################################################
+##################################################################
+#						Begin Script Logic						 #
+##################################################################
+##################################################################
+
+source "$DIR/metadata-common.sh"
+
+main() {
+	#echo -n
+	#set -x
+	
+	hosturl=${hosturl%/}
+	if [ -n "$args" ]; then
+		notificationurl="${hosturl}/${args}?pretty=true"
+	elif [ -n "$uuid" ]; then
+		notificationurl="${hosturl}/?associatedUuid=${uuid}&pretty=true"
+	else
+		notificationurl="${hosturl}?pretty=true"
+	fi
+	
+	cmd="curl -sku \"$apisecret:XXXXXX\" ${notificationurl}"
+
+	if ((veryverbose)); then
+			log "Calling $cmd"
+		fi
+	
+	response=`curl -sku "$apisecret:$apikey" "${notificationurl}"`
+
+	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+		result=$(format_api_json "$response")
+		success "$result"
+	else
+		err $(jsonquery "$response" "message")
+	fi
+}
+
+format_api_json() {
+	
+	if ((veryverbose)); then
+		echo "$1"
+	elif [[ $verbose -eq 1 ]]; then
+		result=$(jsonquery "$1" "result" 1)
+		echo "${result}" | python -mjson.tool
+	else
+		result=$(jsonquery "$1" "result.[]._links.self.href")
+		echo "${result}"
+	fi
+}
+
+##################################################################
+##################################################################
+#						End Script Logic						 #
+##################################################################
+##################################################################
+
+# }}}
+
+# Parse command line options
+source "$DIR/options.sh"
+
+# Main loop {{{
+
+# Print help if no arguments were passed.
+#[[ $# -eq 0 ]] && set -- "--help"
+
+# Read the options and set stuff
+while [[ $1 = -?* ]]; do
+  case $1 in
+    -h|--help) usage >&2; safe_exit ;;
+    --version) out "$(basename $0) $version"; safe_exit ;;
+    -s|--apisecret) shift; apisecret=$1 ;;
+    -k|--apikey) shift; apikey=$1 ;;
+    -U|--uuid) shift; uuid=$1 ;;
+    -H|--hosturl) shift; hosturl=$1;;
+  	-d|--development) development=1 ;;
+    -v|--verbose) verbose=1 ;;
+    -V|--veryverbose) veryverbose=1; verbose=1 ;;
+    -q|--quiet) quiet=1 ;;
+    -i|--interactive) interactive=1 ;;
+    -f|--force) force=1 ;;
+    --endopts) shift; break ;;
+    *) die "invalid option: $1" ;;
+  esac
+  shift
+done
+
+# Store the remaining part as arguments.
+args+=("$@")
+
+# }}}
+
+# Run the script logic
+source "$DIR/runner.sh"
+

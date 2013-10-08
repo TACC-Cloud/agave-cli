@@ -1,0 +1,133 @@
+#!/bin/bash
+# 
+# metadata-addupdate
+# 
+# author: dooley@tacc.utexas.edu
+#
+# This script is part of the Agave API command line interface (CLI).
+# It adds a piece of metadata.
+#
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "$DIR/common.sh"
+
+# Script logic -- TOUCH THIS {{{
+
+# A list of all variables to prompt in interactive mode. These variables HAVE
+# to be named exactly as the longname option definition in usage().
+interactive_opts=(apisecret apikey filetoupload)
+
+# Print usage
+usage() {
+  echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... [METADATA_ID]
+
+Add a metadata record.
+
+ Options:
+  -s, --apisecret   API secret for authenticating
+  -k, --apikey      API key for authenticating, its recommended to insert
+                    this through the interactive option
+  -F, --filetoupload The file containing the json app description to submit
+  -D, --data		The raw json to upload
+  -H, --hosturl     URL of the service
+  -d, --development Run in dev mode using default dev server
+  -f, --force       Skip all user interaction
+  -i, --interactive Prompt for values
+  -q, --quiet       Quiet (no output)
+  -v, --verbose     Verbose output
+  -V, --veryverbose Very verbose output
+  -h, --help        Display this help and exit
+      --version     Output version information and exit
+"
+}
+
+##################################################################
+##################################################################
+#						Begin Script Logic						 #
+##################################################################
+##################################################################
+
+source "$DIR/metadata-common.sh"
+
+main() {
+	#echo -n
+	#set -x
+	
+	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}data/${args}?pretty=true"
+
+	if ((veryverbose)); then
+			log "Calling $cmd"
+		fi
+
+	response=`curl -sku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}data/${args}?pretty=true"`
+
+	check_response_status "$response"
+	
+		if [ "$response_status" = "success" ]; then
+		format_api_json "$response"
+	else
+		jsonval response_message "$response" "message" 
+		err "$response_message"
+	fi
+}
+
+format_api_json() {
+
+	if ((veryverbose)); then
+		echo "$1"
+	elif [[ $verbose -eq 1 ]]; then
+		result=$(jsonquery "$1" "result" 1)
+		echo "${result}" | python -mjson.tool
+	else
+		jsonval oid "$i" "oid"
+		success "Successfully submitted metadata object $oid"
+	fi
+}
+
+##################################################################
+##################################################################
+#						End Script Logic						 #
+##################################################################
+##################################################################
+
+# }}}
+
+# Parse command line options
+source "$DIR/options.sh"
+
+
+# Main loop {{{
+
+# Print help if no arguments were passed.
+[[ $# -eq 0 ]] && set -- "-i"
+
+# Read the options and set stuff
+while [[ $1 = -?* ]]; do
+  case $1 in
+    -h|--help) usage >&2; safe_exit ;;
+    --version) out "$(basename $0) $version"; safe_exit ;;
+    -s|--apisecret) shift; apisecret=$1 ;;
+    -k|--apikey) shift; apikey=$1 ;;
+    -F|--filetoupload) shift; filetoupload=$1 ;;
+    -H|--hosturl) shift; hosturl=$1;;
+  	-d|--development) development=1 ;;
+    -v|--verbose) verbose=1 ;;
+    -V|--veryverbose) veryverbose=1; verbose=1 ;;
+    -q|--quiet) quiet=1 ;;
+    -i|--interactive) interactive=1 ;;
+    -f|--force) force=1 ;;
+    --endopts) shift; break ;;
+    *) die "invalid option: $1" ;;
+  esac
+  shift
+done
+
+# Store the remaining part as arguments.
+args+=("$@")
+
+# }}}
+
+# Run the script logic
+source "$DIR/runner.sh"
