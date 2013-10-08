@@ -16,7 +16,7 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey filetoupload)
+interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
@@ -55,13 +55,21 @@ main() {
 	#echo -n
 	#set -x
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}data/${args}?pretty=true"
+	if [ -n "$filetoupload" ]; then
+		metadatasource=" -F \"fileToUpload=@$filetoupload\" "
+	elif [ -n "$data" ]; then
+		metadatasource=" --data '$data' "
+	else
+		err "Please specify either a file to upload or the raw json data to post"
+	fi
+	
+	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST $metadatasource ${hosturl}data/${args}?pretty=true"
 
 	if ((veryverbose)); then
-			log "Calling $cmd"
-		fi
-
-	response=`curl -sku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}data/${args}?pretty=true"`
+		log "Calling $cmd"
+	fi
+	
+	response=`curl -sku "$apisecret:$apikey" -X POST $metadatasource "${hosturl}data/${args}?pretty=true"`
 
 	check_response_status "$response"
 	
@@ -111,6 +119,7 @@ while [[ $1 = -?* ]]; do
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
     -F|--filetoupload) shift; filetoupload=$1 ;;
+    -D|--data) shift; data=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

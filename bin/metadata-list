@@ -62,14 +62,14 @@ main() {
 	if [ -n "$args" ]; then
 		metaurl="$hosturl/data/${args}?pretty=true"
 	elif [ -n "$query" ]; then
-		metaurl="$hosturl/data/?q=${query}&pretty=true"
+		metaurl="$hosturl/data?q=${query}&pretty=true"
 	elif [ -n "$parentid" ]; then
-		metaurl="$hosturl/data/?q=ref:${parentid}&?pretty=true"
+		metaurl="$hosturl/data?q=\{\"associationIds\":\"${parentid}\"\}&pretty=true"
 	else
 		metaurl="$hosturl/data/?pretty=true"
 	fi
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" $metaurl"
+	cmd="curl -sku \"$apisecret:XXXXXX\" '$metaurl'"
 
 	if ((veryverbose)); then
 			log "Calling $cmd"
@@ -92,6 +92,9 @@ format_api_json() {
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
+	elif [ -n "$args" ]; then
+		result=$(jsonquery "$1" "result._links.self.href")
+		echo "${result}"
 	else
 		result=$(jsonquery "$1" "result.[]._links.self.href")
 		echo "${result}"
