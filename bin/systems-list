@@ -58,9 +58,9 @@ main() {
 	if [ -n "$args" ]; then
 		systemsurl="${hosturl}/${args}"
 	elif [ -n "$storage" ]; then
-		systemsurl="${hosturl}/type/storage"
+		systemsurl="${hosturl}/type/STORAGE"
 	elif [ -n "$execution" ]; then
-		systemsurl="${hosturl}/type/execution"
+		systemsurl="${hosturl}/type/EXECUTION"
 	else
 		systemsurl="$hosturl"
 	fi
@@ -122,7 +122,9 @@ while [[ $1 = -?* ]]; do
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
-  	-d|--development) development=1 ;;
+  	-S|--storage) storage=1;;
+    -E|--execution) execution=1;;
+    -d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
     -V|--veryverbose) veryverbose=1; verbose=1 ;;
     -q|--quiet) quiet=1 ;;
