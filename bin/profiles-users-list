@@ -22,6 +22,7 @@ interactive_opts=(apisecret apikey)
 # Print usage
 usage() {
   echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... [INTERNAL_USERNAME]
 
 Lists all internal users created by this account. Specifying the -u, -e, -n flag
 will restrict results to only internal users partially matching the given username, 
@@ -60,24 +61,27 @@ main() {
 	#echo -n
 	#set -x
 	
-	profileurl="${hosturl}$apisecret/users/"
-	if [ -n "$username" ]; then
-		profileurl="${hosturl}$apisecret/users/search/username/$username"
+	if [ -n "${args}" ]; then
+		profileurl="${hosturl}$apisecret/users/${args}?pretty=true"
+	elif [ -n "$username" ]; then
+		profileurl="${hosturl}$apisecret/users?username=${username}&pretty=true"
 	elif [ -n "$email" ]; then
-		profileurl="${hosturl}$apisecret/users/search/email/$email"
+		profileurl="${hosturl}$apisecret/users?email=${email}&pretty=true"
 	elif [ -n "$name" ]; then
-		profileurl="${hosturl}$apisecret/users/search/name/$name"
+		profileurl="${hosturl}$apisecret/users?name=${name}&pretty=true"
 	elif [ -n "$status" ]; then
-		profileurl="${hosturl}$apisecret/users/search/status/$status"
+		profileurl="${hosturl}$apisecret/users?status=${status}&pretty=true"
+	else
+		profileurl="${hosturl}$apisecret/users?pretty=true"
 	fi
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" $profileurl?pretty=true"
+	cmd="curl -sku \"$apisecret:XXXXXX\" $profileurl"
 
 	if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 		
-	response=`curl -sku "$apisecret:$apikey" $profileurl?pretty=true`
+	response=`curl -sku "$apisecret:$apikey" $profileurl`
 	
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")

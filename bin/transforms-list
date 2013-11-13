@@ -1,11 +1,11 @@
 #!/bin/bash
 # 
-# metadata-delete
+# systems-list
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It deletes a notification object.
+# It retrieves a list of one or more registered trasforms from the api
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -20,15 +20,15 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [METADATA_ID]
-
-Delete a registered notification. The associated object will not be altered.
+  echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... [TRANSFORM_ID]
+List all transforms available to the authenticated user.
 
  Options:
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
-  -H, --hosturl     URL of the service
+  -h, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
   -i, --interactive Prompt for values
@@ -46,44 +46,48 @@ Delete a registered notification. The associated object will not be altered.
 ##################################################################
 ##################################################################
 
-source "$DIR/notifications-common.sh"
+source "$DIR/transforms-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 	
-	if [ -z "$args" ]; then
-		err "Please specify a valid metadata object id to delete"
+	hosturl=${hosturl%/}
+	if [ -n "$args" ]; then
+		transformsurl="${hosturl}/${args}"
 	else
+		transformsurl="$hosturl"
+	fi
 	
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE ${hosturl}${args}?pretty=true"
-
-		if ((veryverbose)); then
-			log "Calling $cmd"
-		fi
+	cmd="curl -sku \"$apisecret:XXXXXX\" ${transformsurl}?pretty=true"
 	
-		response=`curl -sku "$apisecret:$apikey" -X DELETE "${hosturl}${args}?pretty=true"`
-
-		check_response_status "$response"
-
-		if [ "$response_status" = "success" ]; then
-			format_api_json "$response"
-		else
-			jsonval response_message "$response" "message" 
-			err "$response_message"
-		fi
-	fi	
+	if ((veryverbose)); then
+		log "Calling $cmd"
+	fi
+		
+	response=`curl -sku "$apisecret:$apikey" "${transformsurl}?pretty=true"`
+	
+	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+		result=$(format_api_json "$response")
+		success "$result"
+	else
+		err $(jsonquery "$response" "message")
+	fi
 }
 
 format_api_json() {
-
+	
 	if ((veryverbose)); then
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
+	elif [ -n "$args" ]; then
+		result=$(jsonquery "$1" "result.id")
+		echo "${result}"
 	else
-		echo "Successfully deleted metatada object $arg"
+		result=$(jsonquery "$1" "result.[].id")
+		echo "${result}"
 	fi
 }
 
@@ -102,7 +106,7 @@ source "$DIR/options.sh"
 # Main loop {{{
 
 # Print help if no arguments were passed.
-[[ $# -eq 0 ]] && set -- "-i"
+#[[ $# -eq 0 ]] && set -- "--help"
 
 # Read the options and set stuff
 while [[ $1 = -?* ]]; do
@@ -131,3 +135,4 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
+

@@ -1,18 +1,18 @@
 #!/bin/bash
 # 
-# systems-common.sh
+# transforms-common.sh
 # 
 # author: dooley@tacc.utexas.edu
 #
-# URL filter for systems services
+# URL filter for transforms services
 #
 
 filter_service_url() {
 	if [[ -z $hosturl ]]; then
 		if ((development)); then 
-			hosturl="$devurl/systems/"
+			hosturl="$devurl/transforms/"
 		else
-			hosturl="$baseurl/systems/"
+			hosturl="$baseurl/transforms/"
 		fi
 	fi
 }

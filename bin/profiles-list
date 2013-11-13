@@ -56,25 +56,25 @@ main() {
 	#echo -n
 	#set -x
 	
-	profileurl="$hosturl"
+	hosturl=${hosturl%/}
+	
 	if [ -n "$username" ]; then
-		profileurl="${hosturl}search/username/$username"
+		profileurl="${hosturl}?username=${username}&pretty=true"
+	elif [ -n "$email" ]; then
+		profileurl="${hosturl}?email=${email}&pretty=true"
+	elif [ -n "$name" ]; then
+		profileurl="${hosturl}?name=${name}&pretty=true"
 	else
-		if [ -n "$email" ]; then
-			profileurl="${hosturl}search/email/$email"
-		else
-			if [ -n "$name" ]; then
-				profileurl="${hosturl}search/name/$name"
-			fi
-		fi
+		profileurl="$hosturl?pretty=true"
 	fi
-	cmd="curl -sku \"$apisecret:XXXXXX\" $profileurl?pretty=true"
+	
+	cmd="curl -sku \"$apisecret:XXXXXX\" $profileurl"
 
 	if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 		
-	response=`curl -sku "$apisecret:$apikey" "${profileurl}?pretty=true"`
+	response=`curl -sku "$apisecret:$apikey" "${profileurl}"`
 	
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")

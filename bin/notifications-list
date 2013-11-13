@@ -24,8 +24,7 @@ usage() {
   echo -n "$(basename $0) [OPTION]...
 $(basename $0) [OPTION]... [NOTIFICATION_ID]
 
-List metadata objects. Results may be filtered by object id, parent id, or
-a custom query string following MongoDB conventions.
+List notifications individually or search by object uuid.
 
  Options:
   -s, --apisecret   API secret for authenticating
@@ -50,7 +49,7 @@ a custom query string following MongoDB conventions.
 ##################################################################
 ##################################################################
 
-source "$DIR/metadata-common.sh"
+source "$DIR/notifications-common.sh"
 
 main() {
 	#echo -n

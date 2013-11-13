@@ -5,7 +5,7 @@
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It adds a piece of metadata.
+# It adds a notification.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -23,14 +23,15 @@ usage() {
   echo -n "$(basename $0) [OPTION]...
 $(basename $0) [OPTION]... [METADATA_ID]
 
-Add a metadata record.
+Subscribe for a notification about an event in the API. Notifications require
+a valid, existing, Agave UUID, event, and callback in the form of a URL or 
+email address.
 
  Options:
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
   -F, --filetoupload The file containing the json app description to submit
-  -D, --data		The raw json to upload
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -49,19 +50,19 @@ Add a metadata record.
 ##################################################################
 ##################################################################
 
-source "$DIR/metadata-common.sh"
+source "$DIR/notifications-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}data/${args}?pretty=true"
+	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}?pretty=true"
 
 	if ((veryverbose)); then
-			log "Calling $cmd"
-		fi
-
-	response=`curl -sku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}data/${args}?pretty=true"`
+		log "Calling $cmd"
+	fi
+	
+	response=`curl -sku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}?pretty=true"`
 
 	check_response_status "$response"
 	

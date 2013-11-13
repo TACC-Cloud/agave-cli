@@ -1,11 +1,12 @@
 #!/bin/bash
 # 
-# systems-default
+# systems-publish
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# Sets the given system as the user's default system of that type
+# It removes the system from public use. Global admin privileges are 
+# required to publish and unpublish a system.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -22,7 +23,8 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
 
-Sets the given system as the user's default system of that type
+Removes the system from public use. Global admin privileges are required to 
+publish and unpublish a system.
 
  Options:
   -s, --apisecret   API secret for authenticating
@@ -56,13 +58,13 @@ main() {
 		err "Please specify a valid system id to publish"
 	else
 		
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=default\" $hosturl$args?pretty=true"
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=unpublish\" $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-		response=`curl -sku "$apisecret:$apikey" -X PUT -d "action=default" "$hosturl$args?pretty=true"`
+		response=`curl -sku "$apisecret:$apikey" -X PUT -d "action=unpublish" "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
@@ -82,8 +84,7 @@ format_api_json() {
 		echo "${result}" | python -mjson.tool
 	else
 		system_id=$(jsonquery "$1" "result.id")
-		system_type=$(jsonquery "$1" "result.type")
-		echo "Successfully set $system_id as the default $system_type system for $apisecret"
+		echo "Successfully removed system $args from public use"
 	fi
 }
 

@@ -30,8 +30,9 @@ verbose=0
 veryverbose=0
 interactive=0
 development=0
-baseurl="https://iplant-dev.tacc.utexas.edu/v2"
-devurl="http://localhost:8080"
+baseurl="http://iplant-qa.tacc.utexas.edu:8080"
+devurl="http://localhost:13001"
+#devurl="http://iplant-dev.tacc.utexas.edu:8080"
 disable_cache=0 # set to 1 to prevent using auth cache.
 args=()
 

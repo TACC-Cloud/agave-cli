@@ -10,7 +10,7 @@
 filter_service_url() {
 	if [[ -z $hosturl ]]; then
 		if ((development)); then 
-			hosturl="$devurl/apps-v1/apps/"
+			hosturl="$devurl/apps/"
 		else
 			hosturl="$baseurl/apps/"
 		fi

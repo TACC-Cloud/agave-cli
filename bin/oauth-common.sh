@@ -1,19 +1,21 @@
 #!/bin/bash
 # 
-# systems-common.sh
+# auth-common.sh
 # 
 # author: dooley@tacc.utexas.edu
 #
-# URL filter for systems services
+# URL filter for auth services
 #
 
 filter_service_url() {
 	if [[ -z $hosturl ]]; then
 		if ((development)); then 
-			hosturl="$devurl/systems/"
+			hosturl="${devurl}/token"
 		else
-			hosturl="$baseurl/systems/"
+			hosturl="${baseurl}/token"
 		fi
 	fi
+	
+	hosturl=${hosturl}
 }
 

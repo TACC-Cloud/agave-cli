@@ -1,11 +1,12 @@
 #!/bin/bash
 # 
-# metadata-delete
+# systems-setdefault
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It deletes a notification object.
+# Sets the given system as the user's default system of that type or
+# alternatively the global default system of that type.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -20,14 +21,18 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [METADATA_ID]
+  echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
 
-Delete a registered notification. The associated object will not be altered.
+Sets the given system as the user's default system of that type. If the -G
+argument is provided, the system will be set as the global default system 
+of that type. Note, admin privileges are needed to set global default
+systems.
 
  Options:
   -s, --apisecret   API secret for authenticating
   -k, --apikey      API key for authenticating, its recommended to insert
                     this through the interactive option
+  -G, --global      Set as global default
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -46,31 +51,35 @@ Delete a registered notification. The associated object will not be altered.
 ##################################################################
 ##################################################################
 
-source "$DIR/notifications-common.sh"
+source "$DIR/systems-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 	
 	if [ -z "$args" ]; then
-		err "Please specify a valid metadata object id to delete"
+		err "Please specify a valid system id to publish"
 	else
-	
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X DELETE ${hosturl}${args}?pretty=true"
+		
+		if [[ $global -eq 1 ]]; then
+			action="globalDefault";
+		else
+			action="default";
+		fi
+		
+		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=${action}\" $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-		response=`curl -sku "$apisecret:$apikey" -X DELETE "${hosturl}${args}?pretty=true"`
+		response=`curl -sku "$apisecret:$apikey" -X PUT -d "action=${action}" "$hosturl$args?pretty=true"`
 
-		check_response_status "$response"
-
-		if [ "$response_status" = "success" ]; then
-			format_api_json "$response"
+		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+			result=$(format_api_json "$response")
+			success "$result"
 		else
-			jsonval response_message "$response" "message" 
-			err "$response_message"
+			err $(jsonquery "$response" "message")
 		fi
 	fi	
 }
@@ -83,7 +92,9 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		echo "Successfully deleted metatada object $arg"
+		system_id=$(jsonquery "$1" "result.id")
+		system_type=$(jsonquery "$1" "result.type")
+		echo "Successfully set $system_id as the default $system_type system for $apisecret"
 	fi
 }
 
@@ -111,6 +122,7 @@ while [[ $1 = -?* ]]; do
     --version) out "$(basename $0) $version"; safe_exit ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
+    -G|--global) shift; global=1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

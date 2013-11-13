@@ -96,7 +96,7 @@ main() {
 		response=`curl -ku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" -F "${post_options}" "$hosturl$args?pretty=true"`
 	else
 		
-		cmd="curl -ku \"$apisecret:$apikey\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl$args?pretty=true"
+		cmd="curl -ku \"$apisecret:XXXXXX\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"

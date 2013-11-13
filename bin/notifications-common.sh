@@ -1,18 +1,18 @@
 #!/bin/bash
 # 
-# systems-common.sh
+# notifications-common.sh
 # 
 # author: dooley@tacc.utexas.edu
 #
-# URL filter for systems services
+# URL filter for notifications services
 #
 
 filter_service_url() {
 	if [[ -z $hosturl ]]; then
 		if ((development)); then 
-			hosturl="$devurl/systems/"
+			hosturl="$devurl/notifications/"
 		else
-			hosturl="$baseurl/systems/"
+			hosturl="$baseurl/notifications/"
 		fi
 	fi
 }
