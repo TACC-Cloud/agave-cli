@@ -26,10 +26,8 @@ Provides a mechanism for adding and updating user roles on a system.
 Setting a role to empty or NONE deletes the user's rold on the system.
 
  Options:
-  -s, --apisecret   API secret for authenticating
-  -k, --apikey      API key for authenticating, its recommended to insert
-                    this through the interactive option
-  -u, --username	The user whose permissions should be set
+  -z, --access_token	Access token
+  -u, --roleusername	The user whose permissions should be set
   -r, --role	    The role to set for the user. Valid roles are USER, 
                     PUBLISHER, ADMIN, and OWNER
   -h, --hosturl     URL of the service
@@ -59,19 +57,20 @@ main() {
 	if [ -z "$args" ]; then
 		err "Please specify a valid system id for which to retrieve the user roles"
 	else
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"role=$role\" $hosturl$args/roles/$username?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X POST -d \"role=$role\" $hosturl$args/roles/$username?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-		response=`curl -sku "$apisecret:$apikey" -X POST -d "role=$role" "$hosturl$args/roles/$username?pretty=true"`
+		response=`curl -sk -H "${authheader}" -X POST -d "role=$role" "$hosturl$args/roles/$roleusername?pretty=true"`
 		
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
 			success "$result"
 		else
-			err $(jsonquery "$response" "message")
+			errorresponse=$(jsonquery "$response" "message")
+			err "$errorresponse"
 		fi
 	fi
 }
@@ -113,10 +112,9 @@ source "$DIR/options.sh"
 while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
-    --version) out "$(basename $0) $version"; safe_exit ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
-    -u|--username) shift; username=$1 ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -z|--access_token) shift; access_token=$1 ;;
+    -u|--roleusername) shift; roleusername=$1 ;;
     -r|--role) shift; role=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;

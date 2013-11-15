@@ -27,9 +27,7 @@ information related to number of retries, permission grants and revocations, rea
 failure, and other hiccups that occurred in the transfer process.
 
  Options:
-  -s, --apisecret   API secret for authenticating
-  -k, --apikey      API key for authenticating, its recommended to insert
-                    this through the interactive option
+  -z, --access_token	Access token
   -S, --systemId	Specify the system id
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
@@ -40,7 +38,9 @@ failure, and other hiccups that occurred in the transfer process.
   -V, --veryverbose Very verbose output
   -h, --help        Display this help and exit
       --version     Output version information and exit
+
 "
+	disclaimer;
 }
 
 ##################################################################
@@ -61,26 +61,28 @@ main() {
 		filesurl="${hosturl}history/${args}?pretty=true"
 	fi
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" ${filesurl}"
+	cmd="curl -sk -H \"${authheader}\" ${filesurl}"
 
 	if ((veryverbose)); then
+		version;
 		log "Calling $cmd"
 	fi
 	
-	response=`curl -sku "$apisecret:$apikey" "${filesurl}"`
+	response=`curl -sk -H "${authheader}" "${filesurl}"`
 	
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
 		success "$result"
 	else
-		err $(jsonquery "$response" "message")
+		errorresponse=$(jsonquery "$response" "message")
+		err "$errorresponse"
 	fi
 }
 
 format_api_json() {
 
 	if ((veryverbose)); then
-		echo "$1"
+		echo $1
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
@@ -110,9 +112,8 @@ source "$DIR/options.sh"
 while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
-    --version) out "Agave (cli) v${api_release}.${version}"; safe_exit ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -z|--access_token) shift; access_token=$1 ;;
     -S|--systemId) shift; systemId=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;

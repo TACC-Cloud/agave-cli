@@ -28,9 +28,7 @@ system, the path given will be resolved on that remote system. Note that the
 system id, not hostname must be given.
 
  Options:
-  -s, --apisecret   API secret for authenticating
-  -k, --apikey      API key for authenticating, its recommended to insert
-                    this through the interactive option
+  -z, --access_token	Access token
   -S, --systemId	Specify the system id
   -D, --destination	Name of the new folder
   -H, --hosturl     URL of the service
@@ -66,19 +64,20 @@ main() {
 			filesurl="${hosturl}media/${args}?pretty=true"
 		fi
 	
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=copy&path=${destination}\" ${filesurl}"
+		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=copy&path=${destination}\" ${filesurl}"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-		response=`curl -sku "$apisecret:$apikey" -X PUT -d "action=copy&path=${destination}" "${filesurl}"`
+		response=`curl -sk -H "${authheader}" -X PUT -d "action=copy&path=${destination}" "${filesurl}"`
 	
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
 			success "$result"
 		else
-			err $(jsonquery "$response" "message")
+			errorresponse=$(jsonquery "$response" "message")
+			err "$errorresponse"
 		fi
 	fi	
 	
@@ -116,9 +115,8 @@ source "$DIR/options.sh"
 while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
-    --version) out "$(basename $0) $version"; safe_exit ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -z|--access_token) shift; access_token=$1 ;;
     -S|--systemId) shift; systemId=$1 ;;
     -D|--destination) shift; destination=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;

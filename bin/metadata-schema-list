@@ -28,9 +28,7 @@ List metadata. Results may be filtered by object id, parent id, or
 a custom query string following MongoDB conventions.
 
  Options:
-  -s, --apisecret   API secret for authenticating
-  -k, --apikey      API key for authenticating, its recommended to insert
-                    this through the interactive option
+  -z, --access_token	Access token
   -Q, --query		Search for metadata by custom query
   -P, --parentid	Search for metadata associated with the given parent 
   					object id
@@ -69,19 +67,20 @@ main() {
 		metaurl="$hosturl/schemas/?pretty=true"
 	fi
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" $metaurl"
+	cmd="curl -sk -H \"${authheader}\" $metaurl"
 
 	if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-	response=`curl -sku "$apisecret:$apikey" "$metaurl"`
+	response=`curl -sk -H "${authheader}" "$metaurl"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
 		success "$result"
 	else
-		err $(jsonquery "$response" "message")
+		errorresponse=$(jsonquery "$response" "message")
+		err "$errorresponse"
 	fi
 }
 
@@ -118,9 +117,8 @@ source "$DIR/options.sh"
 while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
-    --version) out "$(basename $0) $version"; safe_exit ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -z|--access_token) shift; access_token=$1 ;;
     -Q|--query) shift; query=$1 ;;
     -P|--parentid) shift; parentid=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;

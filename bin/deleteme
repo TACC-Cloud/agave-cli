@@ -1,0 +1,1 @@
+<ams:fault xmlns:ams="http://wso2.org/apimanager/security"><ams:code>900906</ams:code><ams:message>No matching resource found in the API for the given request</ams:message><ams:description>Access failure for API: /files, version: 2.0 with key: 58b08b46f9d13a55c3fa284baf72660</ams:description></ams:fault>

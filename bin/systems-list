@@ -17,7 +17,7 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(access_token)
 
 # Print usage
 usage() {
@@ -28,9 +28,7 @@ List all systems available to the authenticated user. URL querying by type,
 default designation, and scope is supported.
 
  Options:
-  -s, --apisecret   	API secret for authenticating
-  -k, --apikey      	API key for authenticating, its recommended to insert
-                    	this through the interactive option
+  -z, --access_token	Access token
   -S, --storageonly		Only return storage systems. Ignored if system id is given.
   -E, --executiononly	Only return execution systems. Ignored if system id is given.
   -D, --defaultonly		Only return default systems. Ignored if system id is given.
@@ -59,7 +57,6 @@ main() {
 	#echo -n
 	#set -x
 	
-	hosturl=${hosturl%/}
 	if [ -n "$args" ]; then
 		systemsurl="${hosturl}/${args}?pretty=true"
 	else
@@ -81,19 +78,20 @@ main() {
 		systemsurl="${hosturl}?${querystring}"
 	fi
 		
-	cmd="curl -sku \"$apisecret:XXXXXX\" ${systemsurl}"
+	cmd="curl -sk -H \"${authheader}\" ${systemsurl}"
 	
 	if ((veryverbose)); then
 		log "Calling $cmd"
 	fi
 		
-	response=`curl -sku "$apisecret:$apikey" "${systemsurl}"`
+	response=`curl -sk -H "${authheader}" "${systemsurl}"`
 	
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
 		success "$result"
 	else
-		err $(jsonquery "$response" "message")
+		errorresponse=$(jsonquery "$response" "message")
+		err "$errorresponse"
 	fi
 }
 
@@ -134,9 +132,8 @@ source "$DIR/options.sh"
 while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
-    --version) out "$(basename $0) $version"; safe_exit ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -z|--access_token) shift; access_token=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-S|--storageonly) storageonly=1;;
     -E|--executiononly) executiononly=1;;

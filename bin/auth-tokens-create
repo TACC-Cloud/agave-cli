@@ -1,6 +1,6 @@
 #!/bin/bash
 # 
-# auth-token-get.sh
+# auth-tokens-create.sh
 # 
 # author: dooley@tacc.utexas.edu
 #
@@ -22,32 +22,27 @@ storetoken=0
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(apisecret apikey username password)
 
 # Print usage
 usage() {
   echo -n "$(basename $0) [OPTION]...
 
-Create a new auth token. Tokens can be restricted to a specific number
-of uses and/or timeframe during which they are valid. Tokens can also 
-have an internal user attached to them. When interacting with systems, 
-the authentication credentials of the internal user, if available, will
-be used instead of those of the API user.
+Obtain a new oauth bearer token. Tokens can be used repeatedly until they 
+expire at which point you can simply do an oauth-renew with your API 
+username and password to refresh your token. This step is required to 
+interact with any Agave services
 
 For ease of use, the -S option can be specified to store the new 
 credential for reuse in subsequent calls to the API.
 
  Options:
-  -s, --apisecret   API secret for authenticating
-  -k, --apikey      API key for authenticating, its recommended to insert
-                    this through the interactive option
-  -l, --lifetime    Lifetime of the returned token in seconds
-  -m, --maxUses     Maximum number of times the returned token can be used
-  -u, --internalUsername  Internal user to attach to this token
-  -x, --apiusername API username for whom the returned token should apply, 
-                    requires admin permissions
-  -S, --storetoken  Store the token for later use. This prevents you from 
-                    reauthenticating with every command.
+  -u, --username    Agave tenant username
+  -p, --password    Agave tenant passwordxwxw
+  -s, --apisecret   Consumer secret
+  -k, --apikey      Consumer Key
+  -x, --proxyuser   API username for whom the returned token should apply, requires admin permissions
+  -S, --storetoken  Store the token for later use so you can work without reauthenticating on every command.
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -71,40 +66,32 @@ source "$DIR/auth-common.sh"
 main() {
 	#echo -n
 	#set -x
+	hosturl=https://129.114.60.211/token
+	local post_options="grant_type=password&username=${username}&password=${password}&scope=PRODUCTION"
 	
-	local post_options='';
+	# if [ -n "$tenant" ]; then
+# 		post_options="tenant=${tenant}"
+# 	fi
+# 	
+# 	if [ -n "$proxyuser" ]; then
+# 		post_options="enduser=${proxyuser}&${post_options}"
+# 	fi
+	#
+	#post_options=${post_options%&}
 	
-	if [ -n "$internalUsername" ]; then
-		post_options="internalUsername=${internalUsername}"
-	fi
-	
-	if [ -n "$apiusername" ]; then
-		post_options="username=${apiusername}&${post_options}"
-	fi
-	
-	if [ -n "$maxUses" ]; then
-		post_options="maxUses=${maxUses}&${post_options}"
-	fi
-	
-	if [ -n "$lifetime" ]; then
-		post_options="lifetime=${lifetime}&${post_options}"
-	fi
-	
-	post_options=${post_options%&}
-	
-	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"$post_options\" $hosturl?pretty=true"
+	cmd="curl -sku \"$apikey:XXXXXX\" -X POST -d \"grant_type=client_credentials&username=${username}&password=XXXXXX&scope=PRODUCTION\" -H \"Content-Type:application/x-www-form-urlencoded\" $hosturl"
 
 	if ((veryverbose)); then
 		log "Calling $cmd"
 	fi
 		
-	response=`curl -sku "$apisecret:$apikey" -X POST -d "$post_options" "$hosturl?pretty=true"`
+	response=`curl -sku "$apikey:$apisecret" -X POST -d "$post_options" -H "Content-Type:application/x-www-form-urlencoded" "$hosturl" | python -mjson.tool`
 	
-	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+	if [[ $(jsonquery "$response" "token_type") = 'bearer' ]]; then
 		result=$(format_api_json "$response")
 		success "$result"
 	else
-		err $(jsonquery "$response" "message")
+		err "$response"
 	fi
 	
 	
@@ -113,11 +100,12 @@ main() {
 format_api_json() {
 	
 	if ((storetoken)); then
-		if [ -n "$apiusername" ]; then
-			apisecret=$apiusername;
-		fi
-		jsonval response_token "$1" "token" 
-		echo "{\"apisecret\":\"$apisecret\",\"apikey\":\"$response_token\"}" > ~/.agave
+		# if [ -n "$proxyuser" ]; then
+# 			apisecret=$apiusername;
+# 		fi
+		jsonval access_token "$1" "access_token" 
+		echo "{\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\"}" > ~/.agave
+		
 		echo "Token successfully stored";
 	fi	
 		
@@ -153,13 +141,12 @@ source "$DIR/options.sh"
 while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
-    --version) out "$(basename $0) $version"; safe_exit ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -u|--username) shift; username=$1 ;;
+  	-p|--password) shift; password=$1 ;;  	
+	-s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
-    -l|--lifetime) shift; lifetime=$1 ;;
-  	-m|--maxUses) shift; maxuses=$1 ;;
-  	-u|--internalUsername) shift; internalUsername=$1 ;;
-	-x|--apiusername) shift; apiusername=$1;;
+    -x|--proxyuser) shift; proxyuser=$1;;
 	-S|--storetoken) storetoken=1 ;;
 	-H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;

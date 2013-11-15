@@ -27,9 +27,7 @@ List past, current, or a specific job. Results may be filtered by name,
 tag, or start date.
 
  Options:
-  -s, --apisecret   API secret for authenticating
-  -k, --apikey      API key for authenticating, its recommended to insert
-                    this through the interactive option
+  -z, --access_token	Access token
   -n, --name		Search for app by name
   -t, --tag			Search for app by tag
   -S, --startdate   Start date of the job in yyyy-mm-dd format
@@ -70,19 +68,20 @@ main() {
 		jobsurl="$hosturl/"
 	fi
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" $jobsurl?pretty=true"
+	cmd="curl -sk -H \"${authheader}\" $jobsurl?pretty=true"
 
 	if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-	response=`curl -sku "$apisecret:$apikey" "$jobsurl?pretty=true"`
+	response=`curl -sk -H "${authheader}" "$jobsurl?pretty=true"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
 		success "$result"
 	else
-		err $(jsonquery "$response" "message")
+		errorresponse=$(jsonquery "$response" "message")
+		err "$errorresponse"
 	fi
 }
 
@@ -119,9 +118,8 @@ source "$DIR/options.sh"
 while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
-    --version) out "$(basename $0) $version"; safe_exit ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -z|--access_token) shift; access_token=$1 ;;
     -n|--name) shift; name=$1 ;;
     -t|--tag) shift; tag=$1 ;;
     -S|--startdate) shift; startdate=$1 ;;

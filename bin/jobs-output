@@ -29,9 +29,7 @@ usage() {
 List or download job output.
 
  Options:
-  -s, --apisecret   API secret for authenticating
-  -k, --apikey      API key for authenticating, its recommended to insert
-                    this through the interactive option
+  -z, --access_token	Access token
   -D, --download    Download the output file to the local folder
   -P, --path		Path to desired output file relative to job output folder
   -H, --hosturl     URL of the service
@@ -66,13 +64,13 @@ main() {
 		jobid=${scriptargs[0]}
 		
 		if [ -n "$download" ]; then
-			cmd="curl -sku \"$apisecret:XXXXXX\" -o \"$download\" $hosturl${jobid}/output/media/${path}"
+			cmd="curl -sk -H \"${authheader}\" -o \"$download\" $hosturl${jobid}/output/media/${path}"
 
 			if ((veryverbose)); then
-			log "Calling $cmd"
-		fi
+				log "Calling $cmd"
+			fi
 	
-			response=`curl -sku "$apisecret:$apikey" -o "${download}" "${profileurl}"`
+			response=`curl -sk -H "${authheader}" -o "${download}" "${profileurl}"`
 			
 			if [ 0 -eq $? ]; then
 				success "Successfully downloaded ${ouputpath} for from job ${jobid} to ${download}"
@@ -81,19 +79,20 @@ main() {
 			fi
 		else
 			
-			cmd="curl -sku \"$apisecret:XXXXXX\" ${hosturl}${jobid}/outputs/listings/${path}?pretty=true"
+			cmd="curl -sk -H \"${authheader}\" ${hosturl}${jobid}/outputs/listings/${path}?pretty=true"
 
 			if ((veryverbose)); then
-			log "Calling $cmd"
-		fi
+				log "Calling $cmd"
+			fi
 	
-			response=`curl -sku "$apisecret:$apikey" "${hosturl}${jobid}/outputs/listings/${path}?pretty=true"`
+			response=`curl -sk -H "${authheader}" "${hosturl}${jobid}/outputs/listings/${path}?pretty=true"`
 
 			if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 				result=$(format_api_json "$response")
 				success "$result"
 			else
-				err $(jsonquery "$response" "message")
+				errorresponse=$(jsonquery "$response" "message")
+				err "$errorresponse"
 			fi
 		fi
 	fi		
@@ -133,9 +132,8 @@ source "$DIR/options.sh"
 while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
-    --version) out "$(basename $0) $version"; safe_exit ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -z|--access_token) shift; access_token=$1 ;;
     -P|--path) shift; path=$1 ;;
     -D|--download) shift; name=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;

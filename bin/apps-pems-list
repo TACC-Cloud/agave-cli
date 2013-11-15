@@ -26,9 +26,7 @@ List the current user permissions for this app. Specifying a specific
 username will return on the permissions for that user.
 
  Options:
-  -s, --apisecret   API secret for authenticating
-  -k, --apikey      API key for authenticating, its recommended to insert
-                    this through the interactive option
+  -z, --access_token	Access token
   -u, --username	The user whose permissions should be listed
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
@@ -58,21 +56,21 @@ main() {
 		err "Please specify a valid app id for which to retrieve permissions"
 	else
 	
-		cmd="curl -sku \"$apisecret:XXXXXX\" $hosturl$args/pems/$username?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" $hosturl$args/pems/$username?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 		
-		response=`curl -sku "$apisecret:$apikey" "$hosturl$args/pems/$username?pretty=true"`
+		response=`curl -sk -H "${authheader}" "$hosturl$args/pems/$username?pretty=true"`
 	
 		check_response_status "$response"
 	
 		if [ "$response_status" = "success" ]; then
 			format_api_json "$response"
 		else
-			jsonval response_message "$response" "message" 
-			err "$response_message"
+			errorresponse=$(jsonquery "$response" "message")
+			err "$errorresponse"
 		fi
 	fi	
 	
@@ -112,9 +110,8 @@ source "$DIR/options.sh"
 while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
-    --version) out "$(basename $0) $version"; safe_exit ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -z|--access_token) shift; access_token=$1 ;;
     -u|--username) shift; username=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;

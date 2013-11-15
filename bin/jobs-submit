@@ -25,9 +25,7 @@ usage() {
 Submit a new job request.
 
  Options:
-  -s, --apisecret   API secret for authenticating
-  -k, --apikey      API key for authenticating, its recommended to insert
-                    this through the interactive option
+  -z, --access_token	Access token
   -F, --filetoupload The file containing the json app description to submit
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
@@ -53,19 +51,20 @@ main() {
 	#echo -n
 	#set -x
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl"
+	cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl"
 
 	if ((veryverbose)); then
-			log "Calling $cmd"
-		fi
+		log "Calling $cmd"
+	fi
 
-	response=`curl -sku "$apisecret:$apikey" -X POST -F "fileToUpload=@$filetoupload" "$hosturl"`
+	response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$hosturl"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
 		success "$result"
 	else
-		err $(jsonquery "$response" "message")
+		errorresponse=$(jsonquery "$response" "message")
+		err "$errorresponse"
 	fi
 }
 
@@ -103,9 +102,8 @@ source "$DIR/options.sh"
 while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
-    --version) out "$(basename $0) $version"; safe_exit ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -z|--access_token) shift; access_token=$1 ;;
     -F|--filetoupload) shift; filetoupload=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;

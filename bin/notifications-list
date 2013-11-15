@@ -27,9 +27,7 @@ $(basename $0) [OPTION]... [NOTIFICATION_ID]
 List notifications individually or search by object uuid.
 
  Options:
-  -s, --apisecret   API secret for authenticating
-  -k, --apikey      API key for authenticating, its recommended to insert
-                    this through the interactive option
+  -z, --access_token	Access token
   -U, --uuid		Search for uuid of another api object
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
@@ -64,19 +62,20 @@ main() {
 		notificationurl="${hosturl}?pretty=true"
 	fi
 	
-	cmd="curl -sku \"$apisecret:XXXXXX\" ${notificationurl}"
+	cmd="curl -sk -H \"${authheader}\" ${notificationurl}"
 
 	if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-	response=`curl -sku "$apisecret:$apikey" "${notificationurl}"`
+	response=`curl -sk -H "${authheader}" "${notificationurl}"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
 		success "$result"
 	else
-		err $(jsonquery "$response" "message")
+		errorresponse=$(jsonquery "$response" "message")
+		err "$errorresponse"
 	fi
 }
 
@@ -113,9 +112,8 @@ source "$DIR/options.sh"
 while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
-    --version) out "$(basename $0) $version"; safe_exit ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -z|--access_token) shift; access_token=$1 ;;
     -U|--uuid) shift; uuid=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;

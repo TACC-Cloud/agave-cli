@@ -31,9 +31,7 @@ the remote system.
 Also remember that no permissions can be set on public files and folders.
 
  Options:
-  -s, --apisecret   API secret for authenticating
-  -k, --apikey      API key for authenticating, its recommended to insert
-                    this through the interactive option
+  -z, --access_token	Access token
   -U, --username	The user whose permissions should be listed
   -P, --permission	The permission to set
   -S, --systemId	Specify the system id
@@ -71,19 +69,20 @@ main() {
 			filesurl="${hosturl}pems/${args}?pretty=true"
 		fi
 		
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X POST -d \"username=${username}&permission=${permission}\" ${filesurl}"
+		cmd="curl -sk -H \"${authheader}\" -X POST -d \"username=${pemusername}&permission=${permission}\" ${filesurl}"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 		
-		response=`curl -sku "$apisecret:$apikey" -X POST -d "username=${username}&permission=${permission}" "${filesurl}"`
+		response=`curl -sk -H "${authheader}" -X POST -d "username=${pemusername}&permission=${permission}" "${filesurl}"`
 	
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
 			success "$result"
 		else
-			err $(jsonquery "$response" "message")
+			errorresponse=$(jsonquery "$response" "message")
+			err "$errorresponse"
 		fi
 	fi	
 	
@@ -122,10 +121,9 @@ source "$DIR/options.sh"
 while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
-    --version) out "$(basename $0) $version"; safe_exit ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
-    -U|--username) shift; username=$1 ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -z|--access_token) shift; access_token=$1 ;;
+    -U|--pemusername) shift; pemusername=$1 ;;
     -P|--permission) shift; permission=$1 ;;
     -S|--systemId) shift; systemId=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;

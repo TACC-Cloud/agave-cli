@@ -12,7 +12,7 @@ filter_service_url() {
 		if ((development)); then 
 			hosturl="$devurl/notifications/"
 		else
-			hosturl="$baseurl/notifications/"
+			hosturl="$baseurl/notifications/$version/"
 		fi
 	fi
 }

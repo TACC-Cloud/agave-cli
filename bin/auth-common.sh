@@ -10,9 +10,9 @@
 filter_service_url() {
 	if [[ -z $hosturl ]]; then
 		if ((development)); then 
-			hosturl="http://localhost/auth-v2"
+			hosturl="${devurl}/token"
 		else
-			hosturl="$baseurl/auth"
+			hosturl="${baseurl}/token"
 		fi
 	fi
 	

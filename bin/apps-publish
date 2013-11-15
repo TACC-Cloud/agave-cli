@@ -45,9 +45,7 @@ disable previously published apps when appropriate.
 Global admin privileges are required to publish a system.
 
  Options:
-  -s, --apisecret   API secret for authenticating
-  -k, --apikey      API key for authenticating, its recommended to insert
-                    this through the interactive option
+  -z, --access_token	Access token
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -76,21 +74,21 @@ main() {
 		err "Please specify a valid app id to publish"
 	else
 		
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=publish\" $hosturl$args?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=publish\" $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-		response=`curl -sku "$apisecret:$apikey" -X PUT -d "action=publish" "$hosturl$args?pretty=true"`
+		response=`curl -sk -H "${authheader}" -X PUT -d "action=publish" "$hosturl$args?pretty=true"`
 
 		check_response_status
 	
 		if [ "$response_status" = "success" ]; then
 			format_api_json "$response"
 		else
-			jsonval response_message "$response" "message" 
-			err "$response_message"
+			errorresponse=$(jsonquery "$response" "message")
+			err "$errorresponse"
 		fi
 	fi	
 }
@@ -129,9 +127,8 @@ source "$DIR/options.sh"
 while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
-    --version) out "$(basename $0) $version"; safe_exit ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -z|--access_token) shift; access_token=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

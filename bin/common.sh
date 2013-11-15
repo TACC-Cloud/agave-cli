@@ -12,14 +12,14 @@
 # Preamble {{{
 
 # Exit immediately on error
-#set -e
+#set -e -x
 
 # Detect whether output is piped or not.
 [[ -t 1 ]] && piped=0 || piped=1
 
 # versioning info
-api_release="2"
-version="0.2"
+version="2.0"
+revision="${version}-r$(head -c 8 ../.git/FETCH_HEAD)"
 
 os=`uname -s`;
 
@@ -30,8 +30,9 @@ verbose=0
 veryverbose=0
 interactive=0
 development=0
-baseurl="http://iplant-qa.tacc.utexas.edu:8080"
-devurl="http://localhost:13001"
+baseurl="https://129.114.60.211"
+devurl="http://localhost:8080"
+#devurl="http://iplant-qa.tacc.utexas.edu:8080"
 #devurl="http://iplant-dev.tacc.utexas.edu:8080"
 disable_cache=0 # set to 1 to prevent using auth cache.
 args=()
@@ -54,6 +55,10 @@ out() {
 }
 die() { out "$@"; exit 1; } >&2
 err() { 
+	if [[ -n $(isxmlstring "$response") ]]; then
+		response=`echo "$response" | xmllint --format -`
+	fi
+	
 	if (($verbose)); then 
 		#out " \033[1;31m✖\033[0m  $response"
 		out "\033[1;31m${response}\033[0m"
@@ -66,6 +71,51 @@ err() {
 success() { 
 	#out " \033[1;32m✔\033[0m  $@"; 
 	out "$@"
+}
+
+version() {
+	out "iPlant Agave API v${version}
+Agave client command line interface (revision ${revision})
+"
+}
+
+copyright() {
+	out "Copyright (c) 2013, University of Texas at Austin
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the University of Texas at Austin nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS AS IS
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"
+}
+
+disclaimer() {
+	out "Documentation on the Agave API, client libaries, and developer tools is
+available online at the Agave Developer Portal, http://agaveapi.co. For
+localized help of the various CLI commands, run any command with the -h 
+or --help option.
+"
 }
 
 # Verbose logging
@@ -97,50 +147,64 @@ function jsonval {
 	eval $__resultvar=`echo '${__temp##*|}'`
 }
 
-function jsonquery {
-	
-	oIFS="$IFS"
-	IFS="."
-	declare -a fields=($2)
-	IFS="$oIFS"
-	unset oIFS
-	#printf "> [%s]\n" "${fields[@]}"
-	
-	re='^[0-9]+$'
-	
-	for x in "${fields[@]}"; do
-		if [ "$x" == '\*' ]; then
-    		patharray=${patharray}',"[^"]*"'
-    		escpatharray=${escpatharray}',*'
-    		#echo $patharray"\\n"
-    	elif [[ $x = '[]' ]]; then
-    		patharray=${patharray}',[0-9]+'
-    		escpatharray=${escpatharray}',[0-9]*'
-    	elif [[ $x =~ $re ]] ; then
-    		patharray=${patharray}','$x
-    		escpatharray=${escpatharray}','$x
-    		#echo $patharray"\\n"
-    	else
-    		patharray=${patharray}',"'$x'"'
-    		escpatharray=${escpatharray}',\"'$x'\"'
-    		#echo $patharray"\\n"
-    	fi
-    done
+function isxmlstring {
+	firstcharacter=${1:0:1}
+	if [[ "$firstcharacter" = "<" ]]; then
+		echo 1
+	fi
+}
 
-	patharray="${patharray:1:${#patharray}-1}"
-	escpatharray="${escpatharray:1:${#escpatharray}-1}"
-	
-    patharray='\['${patharray}'\]'
-    escpatharray='\['${escpatharray}'\]'
-	
-	if [ -z "$3" ]; then
-	    echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g | sed 's/^[ \t]*//g' | sed s/\"//g
+function jsonquery {
+	if [[ -n $(isxmlstring $1) ]]; then
+		if [[ "$2" = "message" ]]; then 
+			responsemessage=${1#*<ams:message>}
+			responsemessage=${responsemessage%</ams:message>*}
+			echo $responsemessage
+		fi
 	else
-		# third argument says to leave the response quoted
-		echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g 
-    fi
-    unset patharray
-    unset escpatharray
+		oIFS="$IFS"
+		IFS="."
+		declare -a fields=($2)
+		IFS="$oIFS"
+		unset oIFS
+		#printf "> [%s]\n" "${fields[@]}"
+	
+		re='^[0-9]+$'
+	
+		for x in "${fields[@]}"; do
+			if [ "$x" == '\*' ]; then
+				patharray=${patharray}',"[^"]*"'
+				escpatharray=${escpatharray}',*'
+				#echo $patharray"\\n"
+			elif [[ $x = '[]' ]]; then
+				patharray=${patharray}',[0-9]+'
+				escpatharray=${escpatharray}',[0-9]*'
+			elif [[ $x =~ $re ]] ; then
+				patharray=${patharray}','$x
+				escpatharray=${escpatharray}','$x
+				#echo $patharray"\\n"
+			else
+				patharray=${patharray}',"'$x'"'
+				escpatharray=${escpatharray}',\"'$x'\"'
+				#echo $patharray"\\n"
+			fi
+		done
+
+		patharray="${patharray:1:${#patharray}-1}"
+		escpatharray="${escpatharray:1:${#escpatharray}-1}"
+	
+		patharray='\['${patharray}'\]'
+		escpatharray='\['${escpatharray}'\]'
+	
+		if [ -z "$3" ]; then
+			echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g | sed 's/^[ \t]*//g' | sed s/\"//g
+		else
+			# third argument says to leave the response quoted
+			echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g 
+		fi
+		unset patharray
+		unset escpatharray
+	fi
 }
 
 # }}}
@@ -151,6 +215,9 @@ function jsonquery {
 prompt_options() {
   local desc=
   local val=
+  if [ -f "$HOME/.agave" ]; then
+	  tokenstore=`cat $HOME/.agave`
+  fi
   for val in ${interactive_opts[@]}; do
   	
 	# Skip values which already are defined
@@ -183,19 +250,56 @@ prompt_options() {
 		}
       }
     ')
+    
     [[ ! "$desc" ]] && continue
 
-    echo -n "$desc: "
-
+	#echo -n "$desc: "
+	
     # In case this is a password field, hide the user input
     if [[ $val == "apikey" ]]; then
-      stty -echo; read apikey; stty echo
-      echo
-    # Otherwise just read the input
+    	jsonval savedapikey "${tokenstore}" "apikey" 
+		echo -n "Consumer key [$savedapikey]: "
+      	eval "read $val"
+      	if  [[ -z $apikey ]]; then 
+      		apikey=$savedapikey
+      	fi
+      	#stty -echo; read apikey; stty echo
+      	#echo
+    elif [[ $val == "apisecret" ]]; then
+    	jsonval savedapisecret "${tokenstore}" "apisecret" 
+		echo -n "Consumer secret [$savedapisecret]: "
+    	eval "read $val"
+      	if  [[ -z $apisecret ]]; then 
+      		apisecret=$savedapisecret
+      	fi
+    elif [[ $val == "username" ]]; then
+    	jsonval savedusername "${tokenstore}" "username"
+		echo -n "Agave tenant username [$savedusername]: "	
+    	eval "read $val"
+    	if  [[ -z $username ]]; then 
+      		username=$savedusername
+      	fi
+    elif [[ $val == "password" ]]; then
+    	echo -n "Agave tenant password: "
+    	stty -echo; read password; stty echo
+    	# Otherwise just read the input
     else
-      eval "read $val"
+    	echo -n "$desc: "
+		eval "read $val"
     fi
   done
+}
+
+get_auth_header() {
+	if [[ "$development" -ne 1 ]]; then
+		echo "Authorization: Bearer $access_token"
+	else
+		#echo " -u \"${username}:${password}\" "
+		jwtprefix="eyJ0eXAiOiJKV1QiLCJhbGciOiJTSEEyNTZ3aXRoUlNBIiwieDV0IjoiTm1KbU9HVXhNelpsWWpNMlpEUmhOVFpsWVRBMVl6ZGhaVFJpT1dFME5XSTJNMkptT1RjMVpBPT0ifQ=="
+		jwtbody=`echo "{\"iss\":\"wso2.org/products/am\",\"exp\":2384481713842,\"http://wso2.org/claims/subscriber\":\"${username}\",\"http://wso2.org/claims/applicationid\":\"5\",\"http://wso2.org/claims/applicationname\":\"DefaultApplication\",\"http://wso2.org/claims/applicationtier\":\"Unlimited\",\"http://wso2.org/claims/apicontext\":\"/apps\",\"http://wso2.org/claims/version\":\"2.0\",\"http://wso2.org/claims/tier\":\"Unlimited\",\"http://wso2.org/claims/keytype\":\"PRODUCTION\",\"http://wso2.org/claims/usertype\":\"APPLICATION_USER\",\"http://wso2.org/claims/enduser\":\"${username}\",\"http://wso2.org/claims/enduserTenantId\":\"-9999\", \"http://wso2.org/claims/emailaddress\":\"${username}@test.com\", \"http://wso2.org/claims/fullname\":\"Dev User\", \"http://wso2.org/claims/givenname\":\"Dev\", \"http://wso2.org/claims/lastname\":\"User\", \"http://wso2.org/claims/primaryChallengeQuestion\":\"N/A\", \"http://wso2.org/claims/role\":\"Internal/everyone\", \"http://wso2.org/claims/title\":\"N/A\"}" | base64 -`
+		jwtsuffix="FA6GZjrB6mOdpEkdIQL/p2Hcqdo2QRkg/ugBbal8wQt6DCBb1gC6wPDoAenLIOc+yDorHPAgRJeLyt2DutNrKRFv6czq1wz7008DrdLOtbT4EKI96+mXJNQuxrpuU9lDZmD4af/HJYZ7HXg3Hc05+qDJ+JdYHfxENMi54fXWrxs="
+		echo "x-jwt-assertion-test-com: ${jwtprefix}.${jwtbody}.${jwtsuffix}"
+	fi
 }
 
 check_response_status() {

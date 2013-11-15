@@ -26,9 +26,7 @@ List the user permissions associated with a file or folder. These permissions
 are set at the API level and do not reflect *nix or other file system ACL.
 
  Options:
-  -s, --apisecret   API secret for authenticating
-  -k, --apikey      API key for authenticating, its recommended to insert
-                    this through the interactive option
+  -z, --access_token	Access token
   -U, --username	The user whose permissions should be listed
   -S, --systemId	Specify the system id
   -H, --hosturl     URL of the service
@@ -65,21 +63,21 @@ main() {
 			filesurl="${hosturl}pems/${args}?pretty=true"
 		fi
 
-		cmd="curl -sku \"$apisecret:XXXXXX\" ${filesurl}"
+		cmd="curl -sk -H \"${authheader}\" ${filesurl}"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 		
-		response=`curl -sku "$apisecret:$apikey" "${filesurl}"`
+		response=`curl -sk -H "${authheader}" "${filesurl}"`
 	
 		check_response_status "$response"
 	
 		if [ "$response_status" = "success" ]; then
 			format_api_json "$response"
 		else
-			jsonval response_message "$response" "message" 
-			err "$response_message"
+			errorresponse=$(jsonquery "$response" "message")
+			err "$errorresponse"
 		fi
 	fi	
 	
@@ -119,9 +117,8 @@ source "$DIR/options.sh"
 while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
-    --version) out "$(basename $0) $version"; safe_exit ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -z|--access_token) shift; access_token=$1 ;;
     -U|--username) shift; username=$1 ;;
     -S|--systemId) shift; systemId=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;

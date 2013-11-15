@@ -29,9 +29,7 @@ of that type. Note, admin privileges are needed to set global default
 systems.
 
  Options:
-  -s, --apisecret   API secret for authenticating
-  -k, --apikey      API key for authenticating, its recommended to insert
-                    this through the interactive option
+  -z, --access_token	Access token
   -G, --global      Set as global default
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
@@ -67,19 +65,20 @@ main() {
 			action="default";
 		fi
 		
-		cmd="curl -sku \"$apisecret:XXXXXX\" -X PUT -d \"action=${action}\" $hosturl$args?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=${action}\" $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-		response=`curl -sku "$apisecret:$apikey" -X PUT -d "action=${action}" "$hosturl$args?pretty=true"`
+		response=`curl -sk -H "${authheader}" -X PUT -d "action=${action}" "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
 			success "$result"
 		else
-			err $(jsonquery "$response" "message")
+			errorresponse=$(jsonquery "$response" "message")
+			err "$errorresponse"
 		fi
 	fi	
 }
@@ -119,9 +118,8 @@ source "$DIR/options.sh"
 while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
-    --version) out "$(basename $0) $version"; safe_exit ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -z|--access_token) shift; access_token=$1 ;;
     -G|--global) shift; global=1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
