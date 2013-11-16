@@ -27,7 +27,7 @@ Once deleted, the username cannot be reused.
 
  Options:
   -z, --access_token	Access token
-  -U, --username 	Username of internal user to delete
+  -U, --internalusername 	Username of internal user to delete
   -h, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -52,13 +52,13 @@ main() {
 	#echo -n
 	#set -x
 	
-	cmd="curl -sk -H \"${authheader}\" -X DELETE $hosturl$apisecret/users/$internalusername?pretty=true"
+	cmd="curl -sk -H \"${authheader}\" -X DELETE $hosturl$username/users/$internalusername?pretty=true"
 	
 	if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 		
-	response=`curl -sk -H "${authheader}" -X DELETE $hosturl$apisecret/users/$internalusername?pretty=true`
+	response=`curl -sk -H "${authheader}" -X DELETE $hosturl$username/users/$internalusername?pretty=true`
 	
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
@@ -108,7 +108,7 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
-    -U|--username) shift; internalusername=$1 ;;
+    -U|--internalusername) shift; internalusername=$1 ;;
     -h|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

@@ -16,7 +16,7 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(access_token apikey)
 
 # Print usage
 usage() {
@@ -78,7 +78,7 @@ main() {
 			log "Calling $cmd"
 		fi
 		
-	response=`curl -sk "${get_auth_header}" "$hosturl?pretty=true"`
+	response=`curl -sk -H "${authheader}" "$hosturl?pretty=true"`
 	
 	check_response_status "$response"
 	

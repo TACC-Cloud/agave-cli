@@ -18,7 +18,7 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(access_token apikey)
 
 # Print usage
 usage() {
@@ -126,7 +126,7 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
     -N|--appname) shift; appname=$1 ;;
-    -V|--appversion) shift; appversion=$1 ;;
+    -R|--appversion) shift; appversion=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

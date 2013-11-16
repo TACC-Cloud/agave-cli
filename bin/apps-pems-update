@@ -27,7 +27,7 @@ view and run this application. Valid permissions are READ, WRITE, and EXECUTE.
 
  Options:
   -z, --access_token	Access token
-  -u, --username	The user whose permissions should be set
+  -u, --pemusername	The user whose permissions should be set
   -p, --permission	The permission to set. Valid permissions are READ, 
                     WRITE, and EXECUTE.
   -h, --hosturl     URL of the service
@@ -57,13 +57,13 @@ main() {
 	if [ -z "$args" ]; then
 		err "Please specify an app id for which to set the permissions"
 	else
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"permission=$permission\" $hosturl$args/pems/$username?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X POST -d \"permission=$permission\" $hosturl$args/pems/$pemusername?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-		response=`curl -sk -H "${authheader}" -X POST -d "permission=$permission" "$hosturl$args/pems/$username?pretty=true"`
+		response=`curl -sk -H "${authheader}" -X POST -d "permission=$permission" "$hosturl$args/pems/$pemusername?pretty=true"`
 		
 		check_response_status "$response"
 	
@@ -111,7 +111,7 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
-    -u|--username) shift; username=$1 ;;
+    -u|--pemusername) shift; pemusername=$1 ;;
     -p|--permission) shift; permission=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;

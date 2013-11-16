@@ -37,6 +37,7 @@ else
 			jsonval apikey "${tokenstore}" "apikey" 
 			jsonval username "${tokenstore}" "username" 
 			jsonval access_token "${tokenstore}" "access_token"
+			jsonval refresh_token "${tokenstore}" "refresh_token"
 		fi
 	fi
 	

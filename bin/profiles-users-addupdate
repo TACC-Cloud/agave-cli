@@ -58,13 +58,13 @@ main() {
 	#echo -n
 	#set -x
 	
-	cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl$apisecret/users/$args?pretty=true"
+	cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl$username/users/$args?pretty=true"
 
 	if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 
-	response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$hosturl$apisecret/users/$args?pretty=true"`
+	response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$hosturl$username/users/$args?pretty=true"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")

@@ -17,7 +17,7 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(access_token)
 
 # Print usage
 usage() {
@@ -34,7 +34,7 @@ email address, or first and/or last name respectively.
   					are 'active' and 'deleted'
   -N, --name        Search for internal user by first and/or last name
   -E, --email       Search by internal user email address
-  -U, --username	Search by internal user username
+  -U, --internaluser		Search by internal user username
   -h, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -60,17 +60,17 @@ main() {
 	#set -x
 	
 	if [ -n "${args}" ]; then
-		profileurl="${hosturl}$apisecret/users/${args}?pretty=true"
-	elif [ -n "$username" ]; then
-		profileurl="${hosturl}$apisecret/users?username=${username}&pretty=true"
+		profileurl="${hosturl}$username/users/${args}?pretty=true"
+	elif [ -n "$internaluser" ]; then
+		profileurl="${hosturl}$username/users?username=${internaluser}&pretty=true"
 	elif [ -n "$email" ]; then
-		profileurl="${hosturl}$apisecret/users?email=${email}&pretty=true"
+		profileurl="${hosturl}$username/users?email=${email}&pretty=true"
 	elif [ -n "$name" ]; then
-		profileurl="${hosturl}$apisecret/users?name=${name}&pretty=true"
+		profileurl="${hosturl}$username/users?name=${name}&pretty=true"
 	elif [ -n "$status" ]; then
-		profileurl="${hosturl}$apisecret/users?status=${status}&pretty=true"
+		profileurl="${hosturl}$username/users?status=${status}&pretty=true"
 	else
-		profileurl="${hosturl}$apisecret/users?pretty=true"
+		profileurl="${hosturl}$username/users?pretty=true"
 	fi
 	
 	cmd="curl -sk -H \"${authheader}\" $profileurl"
@@ -129,7 +129,7 @@ while [[ $1 = -?* ]]; do
     -S|--status) shift; status=$1 ;;
     -N|--name) shift; name=$1 ;;
     -E|--email) shift; email=$1 ;;
-    -U|--username) shift; username=$1 ;;
+    -U|--internaluser) shift; internaluser=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

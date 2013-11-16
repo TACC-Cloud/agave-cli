@@ -55,18 +55,18 @@ main() {
 	#set -x
 	
 	if [ -n "$systemId" ]; then
-		filesurl="${hosturl}listings/system/${systemId}/${args}?pretty=true"
+		filesurl="${hosturl}listings/system/${systemId}/${args}"
 	else
-		filesurl="${hosturl}listings/${args}?pretty=true"
+		filesurl="${hosturl}listings/${args}"
 	fi
 	
-	cmd="curl -sk -H \"${authheader}\" ${filesurl}"
+	cmd="curl -sk -H \"${authheader}\" ${filesurl%/}?pretty=true"
 
 	if ((veryverbose)); then
-			log "Calling $cmd"
-		fi
+		log "Calling $cmd"
+	fi
 	
-	response=`curl -sk -H "${authheader}" "${filesurl}"`
+	response=`curl -sk -H "${authheader}" "${filesurl%/}"`
 	
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
@@ -82,7 +82,7 @@ main() {
 format_api_json() {
 	
 	if ((veryverbose)); then
-		echo "$1"
+		echo "$1" | python -mjson.tool
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
