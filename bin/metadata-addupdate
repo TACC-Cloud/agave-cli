@@ -67,15 +67,16 @@ main() {
 		log "Calling $cmd"
 	fi
 	
-	response=`curl -sk -H "${authheader}" -X POST $metadatasource "${hosturl}data/${args}?pretty=true"`
+	response=`curl -sk -H "${authheader}" -X POST "${metadatasource}" "${hosturl}data/${args}?pretty=true"`
 
-	check_response_status "$response"
-	
-	if [ "$response_status" = "success" ]; then
-		format_api_json "$response"
+	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+		echo "its working"
+		result=$(format_api_json "$response")
+		success "$result"
 	else
-		jsonval response_message "$response" "message" 
-		err "$response_message"
+		echo "its failing"
+		errorresponse=$(jsonquery "$response" "message")
+		err "$errorresponse"
 	fi
 }
 

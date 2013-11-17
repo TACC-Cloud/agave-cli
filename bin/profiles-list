@@ -69,8 +69,8 @@ main() {
 	cmd="curl -sk -H \"${authheader}\" $profileurl"
 
 	if ((veryverbose)); then
-			log "Calling $cmd"
-		fi
+		log "Calling $cmd"
+	fi
 		
 	response=`curl -sk -H "${authheader}" "${profileurl}"`
 	

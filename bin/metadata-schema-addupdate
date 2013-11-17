@@ -56,18 +56,17 @@ main() {
 	cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}schemas/${args}?pretty=true"
 
 	if ((veryverbose)); then
-			log "Calling $cmd"
-		fi
+		log "Calling $cmd"
+	fi
 
-	response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}schemas/${args}?pretty=true"`
+	response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@${filetoupload}" "${hosturl}schemas/${args}?pretty=true"`
 
-	check_response_status "$response"
-	
-	if [ "$response_status" = "success" ]; then
-		format_api_json "$response"
+	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+		result=$(format_api_json "$response")
+		success "$result"
 	else
-		jsonval response_message "$response" "message" 
-		err "$response_message"
+		errorresponse=$(jsonquery "$response" "message")
+		err "$errorresponse"
 	fi
 }
 

@@ -70,8 +70,8 @@ main() {
 	cmd="curl -sk -H \"${authheader}\" $metaurl"
 
 	if ((veryverbose)); then
-			log "Calling $cmd"
-		fi
+		log "Calling $cmd"
+	fi
 	
 	response=`curl -sk -H "${authheader}" "$metaurl"`
 
