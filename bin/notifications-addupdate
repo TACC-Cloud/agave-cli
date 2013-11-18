@@ -80,7 +80,7 @@ format_api_json() {
 		echo "${result}" | python -mjson.tool
 	else
 		jsonval oid "$i" "oid"
-		success "Successfully submitted metadata object $oid"
+		success "Successfully submitted notification object $oid"
 	fi
 }
 

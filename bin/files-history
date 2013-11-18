@@ -82,7 +82,7 @@ main() {
 format_api_json() {
 
 	if ((veryverbose)); then
-		echo $1
+		echo $response | python -mjson.tool
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
