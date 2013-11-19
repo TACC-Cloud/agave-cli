@@ -58,7 +58,7 @@ main() {
 	#set -x
 	
 	if [ -n "$args" ]; then
-		systemsurl="${hosturl}/${args}?pretty=true"
+		systemsurl="${hosturl}${args}?pretty=true"
 	else
 		querystring="pretty=true"
 		if [ -n "$storageonly" ]; then
