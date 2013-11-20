@@ -19,6 +19,8 @@ Installation
 
 No installation is necessary. Just add the bin directory to your classpath and you're ready to go.
 
+	export PATH=$PATH:/path/to/foundation-cli/bin
+	
 
 Contents
 =================
