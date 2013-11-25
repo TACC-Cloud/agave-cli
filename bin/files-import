@@ -32,7 +32,7 @@ is non-blocking.
  Options:
   -z, --access_token	Access token
   -U, --urltoingest The url to be imported
-  -C, --callbackurl	The email address or webhook to notify upon completion of all 
+  -W, --webhook		The email address or webhook to notify upon completion of all 
   					import filtering
   -T, --filetype	The filetype associated with this file. See transforms-list
   					for a full list of supported file types. Defaults to 'raw'
@@ -64,8 +64,8 @@ main() {
 	
 	local post_options='';
 	
-	if [ -n "$callbackurl" ]; then
-		post_options="callbackURL=${callbackurl}"
+	if [ -n "$webhook" ]; then
+		post_options="notification=${webhook}"
 	fi
 	
 	if [ -n "$filetype" ]; then
@@ -148,7 +148,7 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
     -U|--urltoingest) shift; urltoingest=$1 ;;
-    -C|--callbackurl) shift; callbackurl=$1 ;;
+    -W|--webhook) shift; webhook=$1 ;;
     -T|--filetype) shift; filetype=$1 ;;
     -N|--filename) shift; filename=$1 ;;
     -S|--systemid) shift; systemid=$1 ;;
