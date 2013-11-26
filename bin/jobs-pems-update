@@ -55,13 +55,13 @@ main() {
 	if [ -z "$args" ]; then
 		err "Please specify a job for which to set the permissions"
 	else
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"permission=$permission\" $hosturl$args/pems/$username"
+		cmd="curl -sk -H \"${authheader}\" -X POST -d \"permission=$permission\" $hosturl$args/pems/$username?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-		response=`curl -sk -H "${authheader}" -X POST -d "permission=$permission" "$hosturl$args/pems/$username"`
+		response=`curl -sk -H "${authheader}" -X POST -d "permission=$permission" "$hosturl$args/pems/$username?pretty=true"`
 		
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")

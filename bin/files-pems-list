@@ -71,9 +71,7 @@ main() {
 		
 		response=`curl -sk -H "${authheader}" "${filesurl}"`
 	
-		check_response_status "$response"
-	
-		if [ "$response_status" = "success" ]; then
+		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			format_api_json "$response"
 		else
 			errorresponse=$(jsonquery "$response" "message")

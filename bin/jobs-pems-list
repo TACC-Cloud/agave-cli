@@ -55,13 +55,13 @@ main() {
 		err "Please specify a valid app id for which to retrieve permissions"
 	else
 	
-		cmd="curl -sk -H \"${authheader}\" $hosturl$args/pems/$apiusername"
+		cmd="curl -sk -H \"${authheader}\" $hosturl$args/pems/$apiusername?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 		
-		response=`curl -sk -H "${authheader}" "$hosturl$args/pems/$apiusername"`
+		response=`curl -sk -H "${authheader}" "$hosturl$args/pems/$apiusername?pretty=true"`
 	
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
@@ -82,7 +82,7 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		result=$(jsonquery "$1" "result.permissions.[].username")
+		result=$(jsonquery "$1" "result.[].username")
 		echo "${result}"
 	fi
 }
@@ -110,7 +110,7 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
-    -u|--apiusername) shift; apiusername =$1 ;;
+    -u|--apiusername) shift; apiusername=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
     -d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

@@ -100,8 +100,12 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		result=`echo "$1" | python -mjson.tool | grep '^            "id"' | perl -pe "s/\"id\"://; s/\"//g; s/,/\n/; s/\s//g; print \"\n\";"`
-		success "${result}"
+		if [ -n "$args" ]; then
+			result=$(jsonquery "$1" "result.id")
+		else
+			result=$(jsonquery "$1" "result.[].id")
+		fi
+		echo "${result}"
 	fi
 }
 

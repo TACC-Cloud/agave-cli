@@ -93,7 +93,11 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		result=$(jsonquery "$1" "result.[].id")
+		if [ -n "$args" ]; then
+			result=$(jsonquery "$1" "result.id")
+		else
+			result=$(jsonquery "$1" "result.[].id")
+		fi
 		echo "${result}"
 	fi
 }

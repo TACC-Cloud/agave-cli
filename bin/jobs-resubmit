@@ -55,13 +55,13 @@ main() {
 	if [ -Z "$args" ]; then 
 		err "Please specify a job id to resubmit"
 	else
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"action=resubmit\" $hosturl$args"
+		cmd="curl -sk -H \"${authheader}\" -X POST -d \"action=resubmit\" $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X POST -d "action=resubmit" "$hosturl$args"`
+		response=`curl -sk -H "${authheader}" -X POST -d "action=resubmit" "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
@@ -76,7 +76,7 @@ main() {
 format_api_json() {
 
 	if ((veryverbose)); then
-		echo "$1"
+		echo "$1" | python -mjson.tool
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool

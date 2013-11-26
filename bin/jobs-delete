@@ -54,13 +54,13 @@ main() {
 		err "Please specify a valid app id to delete"
 	else
 	
-		cmd="curl -sk -H \"${authheader}\" -X DELETE $hosturl$args"
+		cmd="curl -sk -H \"${authheader}\" -X DELETE $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-		response=`curl -sk -H "${authheader}" -X DELETE "$hosturl$args"`
+		response=`curl -sk -H "${authheader}" -X DELETE "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")

@@ -64,9 +64,7 @@ main() {
 		
 		response=`curl -sk -H "${authheader}" "$hosturl$args/pems/$pemusername?pretty=true"`
 	
-		check_response_status "$response"
-	
-		if [ "$response_status" = "success" ]; then
+		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
 			success "$result"
 		else
@@ -85,8 +83,12 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		result=`echo "$1"  | grep '^      "username"' | perl -pe "s/\"username\"\s://; s/\"//g; s/,/\n/; s/ //g; "`
-		success "${result}"
+		if [ -n "$pemusername" ]; then
+			result=$(jsonquery "$1" "result.permissions.[].username")
+		else
+			result=$(jsonquery "$1" "result.permissions.[].username")
+		fi
+		echo "${result}"
 	fi
 }
 
