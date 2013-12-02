@@ -263,6 +263,15 @@ prompt_options() {
       	fi
       	#stty -echo; read apikey; stty echo
       	#echo
+    elif [[ $val == "refresh_token" ]]; then
+    	jsonval savedrefreshtoken "${tokenstore}" "refresh_token" 
+		echo -n "Refresh token [$savedrefreshtoken]: "
+      	eval "read $val"
+      	if  [[ -z $refresh_token ]]; then 
+      		refresh_token=$savedrefreshtoken
+      	fi
+      	#stty -echo; read apikey; stty echo
+      	#echo
     elif [[ $val == "apisecret" ]]; then
     	jsonval savedapisecret "${tokenstore}" "apisecret" 
 		echo -n "Consumer secret [$savedapisecret]: "

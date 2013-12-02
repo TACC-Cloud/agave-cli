@@ -16,6 +16,6 @@ filter_service_url() {
 		fi
 	fi
 	
-	hosturl=${hosturl}
+	hosturl="${hosturl%&}"
 }
 

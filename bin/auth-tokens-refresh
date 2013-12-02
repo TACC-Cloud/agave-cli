@@ -14,14 +14,14 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "$DIR/common.sh"
 
 # set to 1 to prevent using cache. token creation requires a valid key
-#disable_cache=1
+disable_cache=1
 storetoken=0
 
 # Script logic -- TOUCH THIS {{{
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=()
+interactive_opts=(apisecret apikey refresh_token)
 
 # Print usage
 usage() {
@@ -71,13 +71,13 @@ main() {
 	#
 	#post_options=${post_options%&}
 	
-	cmd="curl -sku \"$apikey:XXXXXX\" -X POST -d \"${post_options}\" -H \"Content-Type:application/x-www-form-urlencoded\" $hosturl"
+	cmd="curl -sku \"$apikey:XXXXXX\" -X POST -d \"${post_options}\" -H \"Content-Type:application/x-www-form-urlencoded\" ${hosturl%/}"
 
 	if ((veryverbose)); then
 		log "Calling $cmd"
 	fi
 		
-	response=`curl -sku "$apikey:$apisecret" -X POST -d "$post_options" -H "Content-Type:application/x-www-form-urlencoded" "$hosturl" | python -mjson.tool`
+	response=`curl -sku "$apikey:$apisecret" -X POST -d "${post_options}" -H "Content-Type:application/x-www-form-urlencoded" "${hosturl%/}"`
 	
 	if [[ $(jsonquery "$response" "token_type") = 'bearer' ]]; then
 		result=$(format_api_json "$response")
@@ -97,16 +97,16 @@ format_api_json() {
 		jsonval refresh_token "$1" "refresh_token" 
 		echo "{\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\"}" > ~/.agave
 		
-		echo "Token successfully stored";
+		lifetime=$(jsonquery "$1" "expires_in")
+		echo "Token successfully refreshed and cached for ${lifetime} seconds";
 	fi	
 		
 	if ((veryverbose)); then
-		echo "$1"
+		echo "${1}" | python -mjson.tool
 	elif [[ $verbose -eq 1 ]]; then
-		result=$(jsonquery "$1" "result" 1)
-		echo "${result}" | python -mjson.tool
+		echo "${1}" | python -mjson.tool
 	else
-		result=$(jsonquery "$1" "result.token")
+		result=$(jsonquery "$1" "access_token")
 		echo "${result}"
 	fi
 }
