@@ -82,10 +82,9 @@ main() {
 	
 		response=`curl -sk -H "${authheader}" -X PUT -d "action=publish" "$hosturl$args?pretty=true"`
 
-		check_response_status
-	
-		if [ "$response_status" = "success" ]; then
-			format_api_json "$response"
+		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+			result=$(format_api_json "$response")
+			success "$result"
 		else
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"

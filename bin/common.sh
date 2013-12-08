@@ -32,6 +32,7 @@ interactive=0
 development=0
 baseurl="https://agave.iplantc.org"
 devurl="http://localhost:8080"
+#devurl="http://iplant-qa.tacc.utexas.edu:8080"
 disable_cache=0 # set to 1 to prevent using auth cache.
 args=()
 
@@ -53,7 +54,10 @@ out() {
 }
 die() { out "$@"; exit 1; } >&2
 err() { 
-	if [[ -n $(isxmlstring "$response") ]]; then
+	if [[ -n $(ishtmlstring "$response") ]]; then 
+		jsonresponsemessage="{\"status\":\"error\",\"message\":\"Unable to contact api server\",\"result\":null}"
+		response=`echo $jsonresponsemessage | python -mjson.tool`
+	elif [[ -n $(isxmlstring "$response") ]]; then
 		response=`echo "$response" | xmllint --format -`
 	fi
 	
@@ -145,6 +149,13 @@ function jsonval {
 	eval $__resultvar=`echo '${__temp##*|}'`
 }
 
+function ishtmlstring {
+	firstelement=${1:0:5}
+	if [[ "$firstelement" = "<html" ]]; then
+		echo 1
+	fi
+}
+
 function isxmlstring {
 	firstcharacter=${1:0:1}
 	if [[ "$firstcharacter" = "<" ]]; then
@@ -153,7 +164,12 @@ function isxmlstring {
 }
 
 function jsonquery {
-	if [[ -n $(isxmlstring $1) ]]; then
+
+	if [[ -n $(ishtmlstring $1) ]]; then 
+		if [[ "$2" = "message" ]]; then 
+			echo "Unable to contact api server"
+		fi
+	elif [[ -n $(isxmlstring $1) ]]; then
 		if [[ "$2" = "message" ]]; then 
 			responsemessage=${1#*<ams:message>}
 			responsemessage=${responsemessage%</ams:message>*}
@@ -311,13 +327,26 @@ get_auth_header() {
 
 check_response_status() {
 	
-	local __response_status=`echo "$1" | grep '^  "status" : "success"'`
-	if [[ -n $__response_status ]]; then
-		eval response_status="success"
-	else 
-		local __response_status=`echo "$1" | python -mjson.tool | grep '^    "status": "success"'`
+	if [[ "$?" -eq 22 ]]; then
+		jsonresponsemessage="{\"status\":\"error\",\"message\":\"Unable to contact api server\",\"result\":null}"
+		response=`echo $jsonresponsemessage | python -mjson.tool`
+	else
+		local __response_status=`echo "$1" | grep '^  "status" : "success"'`
 		if [[ -n $__response_status ]]; then
 			eval response_status="success"
+		elif [[ -n $(isxmlstring $1) ]]; then
+			responsemessage=${1#*<ams:message>}
+			responsemessage=${responsemessage%</ams:message>*}
+			jsonresponsemessage="{\"status\":\"error\",\"message\":\"${responsemessage}\",\"result\":null}"
+			response=`echo "$jsonresponsemessage" | python -mjson.tool`
+		else
+			local __html_check=`echo "$1" | grep '^<'`
+			if [[ -z $____html_check ]]; then
+				local __response_status=`echo "$1" | python -mjson.tool | grep '^    "status": "success"'`
+				if [[ -n $__response_status ]]; then
+					eval response_status="success"
+				fi
+			fi
 		fi
 	fi
 }

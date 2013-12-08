@@ -72,11 +72,9 @@ main() {
 	
 		response=`curl -sk -H "${authheader}" -X PUT -d "action=rename&path=${name}" "${filesurl}"`
 	
-		#response_status=`echo "$response" | python -mjson.tool | grep '"status": "success"'`
-		check_response_status "$response"
-
-		if [ -n "$response_status" ]; then
-			format_api_json "$response"
+		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+			result=$(format_api_json "$response")
+			success "$result"
 		else
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
