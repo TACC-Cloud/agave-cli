@@ -58,7 +58,11 @@ err() {
 		jsonresponsemessage="{\"status\":\"error\",\"message\":\"Unable to contact api server\",\"result\":null}"
 		response=`echo $jsonresponsemessage | python -mjson.tool`
 	elif [[ -n $(isxmlstring "$response") ]]; then
-		response=`echo "$response" | xmllint --format -`
+		#response=`echo "$response" | xmllint --format -`
+		responsemessage=${1#*<ams:message>}
+		responsemessage=${responsemessage%</ams:message>*}
+		jsonresponsemessage="{\"status\":\"error\",\"message\":\"${responsemessage}\",\"result\":null}"
+		response=`echo "$jsonresponsemessage" | python -mjson.tool`
 	fi
 	
 	if (($verbose)); then 
