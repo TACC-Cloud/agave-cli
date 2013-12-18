@@ -33,7 +33,7 @@ application assets in the cloning user's default storage system.
   -N, --appname     Name given to the clone of the existing app. Defaults
                     to the current app name and the authenticated user's 
                     username appended with a dash
-  -V, --appversion  Version given to the clone of the existing app. Defaults
+  -R, --appversion  Version given to the clone of the existing app. Defaults
                     to the current app's version number
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
