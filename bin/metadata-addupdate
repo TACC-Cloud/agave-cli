@@ -16,7 +16,7 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(apisecret apikey fileToUpload)
 
 # Print usage
 usage() {
@@ -28,7 +28,6 @@ Add a metadata record.
  Options:
   -z, --access_token	Access token
   -F, --filetoupload The file containing the json app description to submit
-  -D, --data		The raw json to upload
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -54,41 +53,40 @@ main() {
 	#set -x
 	
 	if [ -n "$filetoupload" ]; then
-		metadatasource=" -F \"fileToUpload=@$filetoupload\" "
-	elif [ -n "$data" ]; then
-		metadatasource=" --data '$data' "
+		metadatasource="  "
 	else
 		err "Please specify either a file to upload or the raw json data to post"
 	fi
 	
-	cmd="curl -sk -H \"${authheader}\" -X POST $metadatasource ${hosturl}data/${args}?pretty=true"
+	cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@${filetoupload}\" ${hosturl}data/${args}?pretty=true"
 
+	
 	if ((veryverbose)); then
 		log "Calling $cmd"
 	fi
 	
-	response=`curl -sk -H "${authheader}" -X POST "${metadatasource}" "${hosturl}data/${args}?pretty=true"`
-
+	
+	response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@${filetoupload}" "${hosturl}data/${args}?pretty=true"`
+	
+	
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-		echo "its working"
 		result=$(format_api_json "$response")
 		success "$result"
 	else
-		echo "its failing"
 		errorresponse=$(jsonquery "$response" "message")
 		err "$errorresponse"
 	fi
 }
 
 format_api_json() {
-
+	
 	if ((veryverbose)); then
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		jsonval oid "$i" "oid"
+		jsonval oid "$i" "uuid"
 		success "Successfully submitted metadata object $oid"
 	fi
 }
@@ -117,7 +115,6 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
     -F|--filetoupload) shift; filetoupload=$1 ;;
-    -D|--data) shift; data=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

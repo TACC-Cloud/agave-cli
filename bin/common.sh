@@ -42,13 +42,13 @@ out() {
   ((quiet)) && return
 
   local message="$@"
-  if ((piped)); then
-    message=$(echo $message | sed '
-      s/\\[0-9]\{3\}\[[0-9]\(;[0-9]\{2\}\)\?m//g;
-      #s/✖/Error:/g;
-      #s/✔/Success:/g;
-    ')
-  fi
+  #if ((piped)); then
+  #  message=$(echo $message | sed '
+  #    s/\\[0-9]\{3\}\[[0-9]\(;[0-9]\{2\}\)\?m//g;
+  #    #s/✖/Error:/g;
+  #    #s/✔/Success:/g;
+  #  ')
+  #fie
   printf '%b\n' "$message";
 }
 die() { out "$@"; exit 1; } >&2

@@ -88,7 +88,7 @@ format_api_json() {
 		echo "${result}" | python -mjson.tool
 	else
 		system_id=$(jsonquery "$1" "result.id")
-		success "Successfully cloned app $args to $system_id"
+		success "Successfully cloned system $args to $system_id"
 	fi
 }
 
