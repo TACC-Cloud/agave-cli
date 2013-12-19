@@ -17,9 +17,10 @@ The following technologies are required to use the Agave API cli tools.
 Installation
 =================
 
-No installation is necessary. Just add the bin directory to your classpath and you're ready to go.
+Just clone the repository from Bitbucket and add the bin directory to your classpath and you're ready to go.
 
-	export PATH=$PATH:/path/to/Agave-cli/bin
+	> git clone https://bitbucket.org/taccaci/foundation-cli.git
+	> export PATH=$PATH:`pwd`/foundation-cli/bin
 	
 
 Contents

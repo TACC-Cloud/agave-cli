@@ -308,6 +308,8 @@ prompt_options() {
     elif [[ $val == "password" ]]; then
     	echo -n "Agave tenant password: "
     	stty -echo; read password; stty echo
+    	echo -n "
+";
     	# Otherwise just read the input
     else
     	echo -n "$desc: "
