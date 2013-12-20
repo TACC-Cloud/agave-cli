@@ -83,7 +83,7 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		success "Successfully updated permission for $username"
+		success "Successfully updated permission for $pemusername"
 	fi
 }
 

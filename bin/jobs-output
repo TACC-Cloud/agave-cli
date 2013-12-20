@@ -31,6 +31,7 @@ List or download job output.
  Options:
   -z, --access_token	Access token
   -D, --download    Download the output file to the local folder
+  -N, --name    	Name to give the downloaded file
   -P, --path		Path to desired output file relative to job output folder
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
@@ -59,23 +60,33 @@ main() {
 	if [ -z "$args" ]; then
 		err "Please specify a job id for which to view the output"
 	else
-		echo $args
 		scriptargs=($args)
 		jobid=${scriptargs[0]}
 		
 		if [ -n "$download" ]; then
-			cmd="curl -sk -H \"${authheader}\" -o \"$download\" $hosturl${jobid}/output/media/${path}"
-
-			if ((veryverbose)); then
-				log "Calling $cmd"
-			fi
-	
-			response=`curl -sk -H "${authheader}" -o "${download}" "${profileurl}"`
 			
-			if [ 0 -eq $? ]; then
-				success "Successfully downloaded ${ouputpath} for from job ${jobid} to ${download}"
+			if [ -z "$path" ]; then
+				response="Please specify an output file path to download"
+				err "$response"
 			else
-				err "Failed to download $outputpath from job $jobid"
+			
+				if [ -z "$name" ]; then
+					name=`basename $path`
+				fi
+			
+				cmd="curl -k -H \"${authheader}\" -o \"$name\" $hosturl${jobid}/outputs/media/${path}"
+
+				if ((veryverbose)); then
+					log "Calling $cmd"
+				fi
+	
+				eval response=`curl -k -H "${authheader}" -o "${name}" "${hosturl}${jobid}/outputs/media/${path}"`
+			
+				if [ 0 -eq $? ]; then
+					success "Successfully downloaded ${path} from job ${jobid} to ${name}"
+				else
+					err "Failed to download $path from job $jobid"
+				fi
 			fi
 		else
 			
@@ -135,7 +146,8 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
     -P|--path) shift; path=$1 ;;
-    -D|--download) shift; name=$1 ;;
+    -D|--download) download=1 ;;
+    -N|--name) download=1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
