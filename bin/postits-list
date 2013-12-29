@@ -12,10 +12,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
 
-# set to 1 to prevent using cache. token creation requires a valid key
-disable_cache=1
-noauth=0
-
 # Script logic -- TOUCH THIS {{{
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
@@ -24,7 +20,7 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTIONS]... [POSTIT]
+  echo -n "$(basename $0) [OPTION]...
 
 Lists all active PostIts for the authenticated user.
 
@@ -48,15 +44,7 @@ Lists all active PostIts for the authenticated user.
 ##################################################################
 ##################################################################
 
-filter_service_url() {
-	if [[ -z $hosturl ]]; then
-		if ((development)); then 
-			hosturl="http://localhost/postit-v2"
-		else
-			hosturl="$baseurl/postits/$version"
-		fi
-	fi
-}
+source "$DIR/postits-common.sh"
 
 main() {
 	#echo -n
@@ -93,8 +81,8 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		result=$(jsonquery "$1" "result.[]._links.self.href"
-   		echo "${result}"
+		result=$(jsonquery "$1" "result.[]._links.self.href")
+		echo "${result}"
 	fi
 }
 
@@ -109,11 +97,10 @@ format_api_json() {
 # Parse command line options
 source "$DIR/options.sh"
 
-
 # Main loop {{{
 
 # Print help if no arguments were passed.
-[[ $# -eq 0 ]] && set -- "-i"
+#[[ $# -eq 0 ]] && set -- "-i"
 
 # Read the options and set stuff
 while [[ $1 = -?* ]]; do

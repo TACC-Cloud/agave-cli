@@ -13,10 +13,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
 
-# set to 1 to prevent using cache. token creation requires a valid key
-disable_cache=1
-noauth=0
-
 # Script logic -- TOUCH THIS {{{
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
@@ -62,15 +58,7 @@ caller.
 ##################################################################
 ##################################################################
 
-filter_service_url() {
-	if [[ -z $hosturl ]]; then
-		if ((development)); then 
-			hosturl="http://localhost/postit-v2/"
-		else
-			hosturl="$baseurl/postits/$version/"
-		fi
-	fi
-}
+source "$DIR/postits-common.sh"
 
 main() {
 	#echo -n
@@ -168,8 +156,7 @@ while [[ $1 = -?* ]]; do
     -l|--lifetime) shift; lifetime=$1 ;;
   	-m|--maxUses) shift; maxuses=$1 ;;
   	-u|--internalUsername) shift; internalUsername=$1 ;;
-	-U|--url) shift; url=$1;;
-    -M|--method) shift; method=$1;;
+	-M|--method) shift; method=$1;;
     -N|--noauth) noauth=1;;
     -x|--apiusername) shift; apiusername=$1;;
 	-H|--hosturl) shift; hosturl=$1;;

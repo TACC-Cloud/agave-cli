@@ -49,15 +49,7 @@ Immediately expires an existing PostIt.
 ##################################################################
 ##################################################################
 
-filter_service_url() {
-	if [[ -z $hosturl ]]; then
-		if ((development)); then 
-			hosturl="http://localhost/postit-v2/"
-		else
-			hosturl="$baseurl/postits/$version/"
-		fi
-	fi
-}
+source "$DIR/postits-common.sh"
 
 main() {
 	#echo -n
