@@ -1,0 +1,136 @@
+#!/bin/bash
+# 
+# auth-token-status.sh
+# 
+# author: dooley@tacc.utexas.edu
+#
+# This script is part of the Agave API command line interface (CLI).
+# It checks the current auth status
+#
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "$DIR/common.sh"
+
+# Script logic -- TOUCH THIS {{{
+
+# A list of all variables to prompt in interactive mode. These variables HAVE
+# to be named exactly as the longname option definition in usage().
+interactive_opts=()
+
+# Print usage
+usage() {
+  echo -n "$(basename $0) [OPTION]...
+
+Obtain a new oauth bearer token. Tokens can be used repeatedly until they 
+expire at which point you can simply do an oauth-renew with your API 
+username and password to refresh your token. This step is required to 
+interact with any Agave services
+
+For ease of use, the -S option can be specified to store the new 
+credential for reuse in subsequent calls to the API.
+
+ Options:
+  -d, --development Run in dev mode using default dev server
+  -f, --force       Skip all user interaction
+  -i, --interactive Prompt for values
+  -q, --quiet       Quiet (no output)
+  -v, --verbose     Verbose output
+  -h, --help        Display this help and exit
+      --version     Output version information and exit
+"
+}
+
+##################################################################
+##################################################################
+#						Begin Script Logic						 #
+##################################################################
+##################################################################
+
+source "$DIR/auth-common.sh"
+
+main() {
+	#echo -n
+	#set -x
+	
+	if [ -f "$HOME/.agave" ]; then
+		if [ -n "$current_username" ]; then
+			#response="{\"status\":\"success\",\"message\":null,\"result\":{\"username\":\"$current_username\"}}"
+			success "$username"
+		elif [ -n "$current_access_token" ]; then
+			#response="{\"status\":\"success\",\"message\":null,\"result\":{\"access_token\":\"$access_token\"}}"
+			success "$access_token"
+		else
+			time_left=$(get_token_remaining_time)
+	
+			if [ "$time_left" -le "0" ]; then
+				jsonresponsemessage="{\"status\":\"error\",\"message\":\"Current token for $username is expired\",\"result\":null}"
+				response=`echo $jsonresponsemessage | python -mjson.tool`	
+				errorresponse=$(jsonquery "$response" "message")
+				err "$errorresponse"
+			else 
+				jsonresponsemessage=`cat ~/.agave`
+				response="{\"status\":\"success\",\"message\":null,\"result\":${jsonresponsemessage}}"
+				format_api_json "$response"
+			fi
+		fi
+	else
+		jsonresponsemessage="{\"status\":\"error\",\"message\":\"No authentication cache found. Please run auth-tokens-create to obtain an access token before re-running this command.\",\"result\":null}"
+		response=`echo $jsonresponsemessage | python -mjson.tool`	
+		errorresponse=$(jsonquery "$response" "message")
+		err "$errorresponse"
+	fi
+}
+
+format_api_json() {
+	
+	if [[ $verbose -eq 1 ]]; then
+		echo "$1" | python -mjson.tool
+	else
+		success "Current token for $username valid for another $time_left seconds"
+	fi
+}
+
+##################################################################
+##################################################################
+#						End Script Logic						 #
+##################################################################
+##################################################################
+
+# }}}
+
+# Parse command line options
+source "$DIR/options.sh"
+
+
+# Main loop {{{
+
+# Print help if no arguments were passed.
+[[ $# -eq 0 ]] && set -- "-i"
+
+# Read the options and set stuff
+while [[ $1 = -?* ]]; do
+  case $1 in
+    -h|--help) usage >&2; safe_exit ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -u|--current_username) current_username=1;;
+    -z|--current_access_token) current_access_token=1;;
+    -d|--development) development=1 ;;
+    -v|--verbose) verbose=1 ;;
+    -q|--quiet) quiet=1 ;;
+    -i|--interactive) interactive=1 ;;
+    -f|--force) force=1 ;;
+    --endopts) shift; break ;;
+    *) die "invalid option: $1" ;;
+  esac
+  shift
+done
+
+# Store the remaining part as arguments.
+args+=("$@")
+
+# }}}
+
+# Run the script logic
+source "$DIR/runner.sh"
+

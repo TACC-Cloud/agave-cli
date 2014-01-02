@@ -105,7 +105,9 @@ format_api_json() {
 # 		fi
 		jsonval access_token "$1" "access_token" 
 		jsonval refresh_token "$1" "refresh_token" 
-		echo "{\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\"}" > ~/.agave
+		jsonval expires_in "$1" "expires_in" 
+		created_at=`date +%s`
+		echo "{\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\"}" > ~/.agave
 		
 		lifetime=$(jsonquery "$1" "expires_in")
 		echo "Token successfully refreshed and cached for ${lifetime} seconds";

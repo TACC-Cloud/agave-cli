@@ -35,6 +35,8 @@ application assets in the cloning user's default storage system.
                     username appended with a dash
   -R, --appversion  Version given to the clone of the existing app. Defaults
                     to the current app's version number
+  -S, --system  	Execution system for the new app. Defaults to the current
+                    app's execution system.
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -71,13 +73,17 @@ main() {
 			clone_version="&version=$appversion"
 		fi
 		
-		cmd="curl -sk  -H \"${authheader}\" -X PUT -d \"action=clone$clone_name$clone_version\" $hosturl$args?pretty=true"
+		if [ -n "$system" ]; then
+			clone_system="&system=$system"
+		fi
+		
+		cmd="curl -sk  -H \"${authheader}\" -X PUT -d \"action=clone$clone_name$clone_version$clone_system\" $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-		response=`curl -sk  -H "${authheader}" -X PUT -d "action=clone$clone_name$clone_version" "$hosturl$args?pretty=true"`
+		response=`curl -sk  -H "${authheader}" -X PUT -d "action=clone$clone_name$clone_version$clone_system" "$hosturl$args?pretty=true"`
 		
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
@@ -127,6 +133,7 @@ while [[ $1 = -?* ]]; do
     -z|--access_token) shift; access_token=$1 ;;
     -N|--appname) shift; appname=$1 ;;
     -R|--appversion) shift; appversion=$1 ;;
+    -S|--system) shift; system=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

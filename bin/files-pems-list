@@ -89,8 +89,50 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		result=$(jsonquery "$1" "result.permissions.[].username")
-		echo "${result}"
+		#result=$(jsonquery "$1" "result.[].username")
+		#echo "${result}"
+
+		pemusers=( $(jsonquery "$1" "result.[].username") )
+		
+		n=0
+		for i in $(jsonquery "$1" "result.[].permission.read")
+		do
+			if [[ "$i" = 'rue' ]]; then
+				canread='READ '
+			else
+				canread=''
+			fi
+			pemusers[$n]="${pemusers[$n]} $canread"
+			n=$[n+1]
+		done
+		
+		n=0
+		for i in $(jsonquery "$1" "result.[].permission.write")
+		do
+			if [[ "$i" = 'rue' ]]; then
+				canwrite='WRITE '
+			else
+				canwrite=''
+			fi
+			pemusers[$n]="${pemusers[$n]}$canwrite"
+			n=$[n+1]
+		done
+		
+		n=0
+		for i in $(jsonquery "$1" "result.[].permission.write")
+		do
+			if [[ "$i" = 'rue' ]]; then
+				canexecute='EXECUTE '
+			else
+				canexecute=''
+			fi
+			pemusers[$n]="${pemusers[$n]}$canexecute"
+			n=$[n+1]
+		done
+		
+		for i in "${pemusers[@]}"; do
+			echo "$i"
+		done
 	fi
 }
 

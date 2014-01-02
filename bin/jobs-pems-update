@@ -26,7 +26,7 @@ Update user permissions for a particular job.
 
  Options:
   -z, --access_token	Access token
-  -u, --username	The user whose permissions should be set
+  -u, --apiusername	The user whose permissions should be set
   -p, --permission	The permission to set
   -h, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
@@ -55,13 +55,13 @@ main() {
 	if [ -z "$args" ]; then
 		err "Please specify a job for which to set the permissions"
 	else
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"permission=$permission\" $hosturl$args/pems/$username?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X POST -d \"permission=$permission\" $hosturl$args/pems/$apiusername?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-		response=`curl -sk -H "${authheader}" -X POST -d "permission=$permission" "$hosturl$args/pems/$username?pretty=true"`
+		response=`curl -sk -H "${authheader}" -X POST -d "permission=$permission" "$hosturl$args/pems/$apiusername?pretty=true"`
 		
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
@@ -81,7 +81,7 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		echo "Successfully updated permission for $username"
+		echo "Successfully updated permission for $apiusername"
 	fi
 }
 
@@ -108,7 +108,7 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
-    -u|--username) shift; username=$1 ;;
+    -u|--apiusername) shift; apiusername=$1 ;;
     -p|--permission) shift; permission=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;

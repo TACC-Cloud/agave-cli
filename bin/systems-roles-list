@@ -82,8 +82,24 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		result=$(jsonquery "$1" "result.[].username" 1)
-		echo "${result}"
+		if [[ -z "$roleusername" ]]; then
+			roleusers=( $(jsonquery "$1" "result.[].username") )
+			
+			n=0
+			for i in $(jsonquery "$1" "result.[].role")
+			do
+				roleusers[$n]="${roleusers[$n]} $i"
+				n=$[n+1]
+			done
+			
+			for i in "${roleusers[@]}"; do
+				echo "$i"
+			done
+		
+		else
+			systemrole=$(jsonquery "$1" "result.role")
+			 echo "$roleusername $systemrole"
+		fi	
 	fi
 }
 

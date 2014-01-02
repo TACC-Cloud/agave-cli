@@ -357,4 +357,18 @@ check_response_status() {
 	fi
 }
 
+get_token_remaining_time() {
+	
+	auth_cache=`cat ~/.agave`
+	
+	jsonval expires_in "$auth_cache" "expires_in" 
+	jsonval created_at "$auth_cache" "created_at" 
+	
+	expiration_time=`expr $created_at + $expires_in`
+	current_time=`date +%s`
+	
+	time_left=`expr $expiration_time - $current_time`
+	
+	echo $time_left
+}
 # }}}
