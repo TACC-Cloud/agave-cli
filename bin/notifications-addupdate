@@ -25,11 +25,16 @@ $(basename $0) [OPTION]... [METADATA_ID]
 
 Subscribe for a notification about an event in the API. Notifications require
 a valid, existing, Agave UUID, event, and callback in the form of a URL or 
-email address.
+email address. The needed information can be passed in as a file containing
+information as a JSON object or via command line arguments IF the -F option is used, then 
 
  Options:
   -z, --access_token	Access token
   -F, --filetoupload The file containing the json app description to submit
+  -U, --url 	The callback url or email address for this notification
+  -E, --event	The event about which to send notifications.
+  -P, --persistent	Whether this event should expire after the first occurance.
+  -A, --associatedUuid	The uuid of the object for which this notification applies.
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -54,14 +59,42 @@ main() {
 	#echo -n
 	#set -x
 	
-	cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}$args?pretty=true"
+	if [[ -n "$filetoupload" ]]; then
+		cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}$args?pretty=true"
 
-	if ((veryverbose)); then
-		log "Calling $cmd"
+		if ((veryverbose)); then
+			log "Calling $cmd"
+		fi
+	
+		response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}$args?pretty=true"`
+	
+	else 
+	
+		if [[ -z "url" ]]; then
+			err "Please specify a url or email address to which the notification will be sent"
+		fi
+		
+		if [[ -z "event" ]]; then
+			err "Please specify an event upon which the notification will be sent"
+		fi
+		
+		if [[ -z "associatedUuid" ]]; then
+			err "Please specify an associatedUuid for which the notification will be sent"
+		fi
+		
+		if [[ -z "persistent" ]]; then
+			persistent="false"
+		fi
+			
+		cmd="curl -sk -H \"${authheader}\" -X POST -d \"event=${event}&persistent=${persistent}&associatedUuid=${associatedUuid}&url=${url}\" ${hosturl}$args?pretty=true"
+
+		if ((veryverbose)); then
+			log "Calling $cmd"
+		fi
+	
+		response=`curl -sk -H "${authheader}" -X POST -d "event=${event}&persistent=${persistent}&associatedUuid=${associatedUuid}&url=${url}" "${hosturl}$args?pretty=true"`
 	fi
 	
-	response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}$args?pretty=true"`
-
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
 		success "$result"
@@ -79,8 +112,8 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		jsonval oid "$i" "oid"
-		success "Successfully submitted notification object $oid"
+		jsonval oid "$i" "id"
+		success "Successfully submitted notification $oid"
 	fi
 }
 
@@ -108,6 +141,10 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
     -F|--filetoupload) shift; filetoupload=$1 ;;
+    -U|--url) shift; url=$1 ;;
+    -E|--event) shift; event=$1 ;;
+    -P|--persistent) shift; persistent=$1 ;;
+    -A|--associatedUuid) shift; associatedUuid=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

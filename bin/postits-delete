@@ -13,10 +13,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
 
-# set to 1 to prevent using cache. token creation requires a valid key
-disable_cache=1
-noauth=0
-
 # Script logic -- TOUCH THIS {{{
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
