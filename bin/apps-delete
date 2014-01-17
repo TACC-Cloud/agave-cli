@@ -53,7 +53,8 @@ main() {
 	#set -x
 	
 	if [ -z "$args" ]; then
-		err "Please specify a valid app id to delete"
+		response="Please specify a valid app id to delete"
+		err $response 
 	else
 	
 		cmd="curl -sk -H \"${authheader}\" -X DELETE $hosturl/$args?pretty=true"
@@ -82,7 +83,7 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		success "Successfully deleted app $arg"
+		success "Successfully deleted app $args"
 	fi
 }
 

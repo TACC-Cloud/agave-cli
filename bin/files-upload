@@ -63,53 +63,128 @@ main() {
 	
 	local post_options='';
 	
-	if [ -n "$callbackurl" ]; then
-		post_options="callbackURL=${callbackurl}"
-	fi
-	
-	if [ -n "$filetype" ]; then
-		post_options="fileType=${filetype}&${post_options}"
-	fi
-	
-	if [ -n "$filename" ]; then
-		post_options="fileName=${filename}&${post_options}"
-	fi
-	
-	if [ -n "$systemid" ]; then
-		hosturl="${hosturl}media/system/${systemid}/"
-	else
-		hosturl="${hosturl}media/"
-	fi
-	
-	if [ -n "$post_options" ]; then
+	if [ ! -e "$filetoupload" ]; then
 		
-		post_options=${post_options%&}
+		response="Local file $filetoupload does not exist"
+		err "$response"
 	
-		cmd="curl -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" -F \"${post_options}\" $hosturl$args?pretty=true"
-
-		if ((veryverbose)); then
-			log "Calling $cmd"
+	else
+	
+		if [ -n "$callbackurl" ]; then
+			post_options="callbackURL=${callbackurl}"
 		fi
 	
-		response=`curl -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" -F "${post_options}" "$hosturl$args?pretty=true"`
-	else
-		
-		cmd="curl -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl$args?pretty=true"
-
-		if ((veryverbose)); then
-			log "Calling $cmd"
+		if [ -n "$filetype" ]; then
+			post_options="fileType=${filetype}&${post_options}"
 		fi
 	
-		response=`curl -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$hosturl$args?pretty=true"`
-		
-	fi
+		if [ -n "$systemid" ]; then
+			filesurl="${hosturl}media/system/${systemid}/"
+		else
+			filesurl="${hosturl}media/"
+		fi
 	
-	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-		result=$(format_api_json "$response")
-		success "$result"
-	else
-		errorresponse=$(jsonquery "$response" "message")
-		err "$errorresponse"
+		if [ -n "$filename" ]; then
+			post_options="fileName=${filename}&${post_options}"
+		fi	
+	
+		# If the filetoupload is a file, then just copy it up.
+		if [ -f "$filetoupload" ]; then
+		
+			#recursively copy the folder applying filename to the root
+			if [ -n "$post_options" ]; then
+	
+				post_options=${post_options%&}
+
+				cmd="curl -# -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" -F \"${post_options}\" $filesurl$args?pretty=true"
+
+				if ((veryverbose)); then
+					log "Calling $cmd"
+				fi
+				#response='{"status":"success","response":{},"message":null}'
+				response=`curl -# -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" -F "${post_options}" "$filesurl$args?pretty=true"`
+			
+			else
+	
+				cmd="curl -# -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" $filesurl$args?pretty=true"
+
+				if ((veryverbose)); then
+					log "Calling $cmd"
+				fi
+				#response='{"status":"success","response":{},"message":null}'
+				response=`curl -# -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$filesurl$args?pretty=true"`
+	
+			fi
+		
+		# if it is a directory, then create the remote directory, using the $filename value
+		# or the basename of the $filetoupload, then recursively uploading the contents
+		else
+			filetoupload=${filetoupload%/}
+			cliargs=''
+			
+			if ((development)); then
+				cliargs="${cliargs} -d"
+			fi
+	
+			if ((veryverbose)); then
+				cliargs="${cliargs} -V"
+			fi
+	
+			if ((verbose)); then
+				cliargs="${cliargs} -v"
+			fi
+	
+			if [ -n "$systemid" ]; then
+				cliargs="${cliargs} -S ${systemid}"
+			fi
+		
+			if [ -d "$filename" ]; then
+				newdirname="$filename"
+			else
+				newdirname=`basename ${filetoupload}`
+			fi	
+		
+			if [[ -d "$args" ]]; then
+				args=${args%/}
+			fi
+			newdirpath="${args}/${newdirname}"
+			
+			echo "Creating directory $newdirpath ..."
+			echo "Calling $DIR/files-mkdir ${cliargs} -N ${newdirname} $args"
+			# create the remote directory to which everything will be copied
+			$DIR/files-mkdir ${cliargs} -N ${newdirname} $args
+		
+			# recursively copy
+			for i in `ls $filetoupload`; do
+		
+				if [ "$i" = "." ] || [ "$i" = ".." ]; then 
+					continue; 
+				else
+					
+					childfiletoupload="$filetoupload/$i"
+					
+					# call out to the mkdirs command
+					#echo "Calling $DIR/files-upload $cliargs -F ${childfiletoupload} $newdirpath"
+					$DIR/files-upload $cliargs -F ${childfiletoupload} $newdirpath
+				fi			
+			done
+			
+			if [ -n "$systemid" ]; then
+				filesurl="${hosturl}listings/system/${systemid}/${newdirpath}"
+			else
+				filesurl="${hosturl}listings/${newdirpath}"
+			fi
+			#echo "Calling curl -sk -H ${authheader} \"${filesurl%/}?pretty=true\""
+			response=`curl -sk -H "${authheader}"  "${filesurl%/}?pretty=true"`
+		fi
+		
+		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+			result=$(format_api_json "$response")
+			success "$result"
+		else
+			errorresponse=$(jsonquery "$response" "message")
+			err "$errorresponse"
+		fi
 	fi
 }
 

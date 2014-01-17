@@ -86,7 +86,7 @@ Agave client command line interface (revision ${revision})
 }
 
 copyright() {
-	out "Copyright (c) 2013, University of Texas at Austin
+	out "Copyright (c) 2013, Texas Advanced Computing Center
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

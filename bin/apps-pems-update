@@ -29,7 +29,8 @@ view and run this application. Valid permissions are READ, WRITE, and EXECUTE.
   -z, --access_token	Access token
   -u, --pemusername	The user whose permissions should be set
   -p, --permission	The permission to set. Valid permissions are READ, 
-                    WRITE, and EXECUTE.
+  			WRITE, EXECUTE, READ_WRITE, READ_EXECUTE, 
+  			WRITE_EXECUTE, ALL, and NONE
   -h, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction

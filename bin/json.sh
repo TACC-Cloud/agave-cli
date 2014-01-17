@@ -1,4 +1,12 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# 
+# json.sh
+# 
+# author: dooley@tacc.utexas.edu
+#
+# a pipeable JSON parser written in Bash based on the work 
+# of AJ ONeal.
+# @see https://github.com/dominictarr/JSON.sh
 
 throw () {
   echo "$*" >&2

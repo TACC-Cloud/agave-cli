@@ -86,8 +86,8 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		jsonval oid "$i" "uuid"
-		success "Successfully submitted metadata object $oid"
+		uuid=$(jsonquery "$1" "result.uuid")
+		success "Successfully submitted metadata object $uuid"
 	fi
 }
 

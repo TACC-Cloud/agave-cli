@@ -27,7 +27,6 @@ are set at the API level and do not reflect *nix or other file system ACL.
 
  Options:
   -z, --access_token	Access token
-  -U, --username	The user whose permissions should be listed
   -S, --systemId	Specify the system id
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
@@ -53,31 +52,26 @@ main() {
 	#echo -n
 	#set -x
 	
-	if [ -z "$args" ]; then
-		err "Please specify a valid file path for which to retrieve permissions"
+	if [ -n "$systemId" ]; then
+		filesurl="${hosturl}pems/system/${systemId}/${args}?pretty=true"
 	else
-	
-		if [ -n "$systemId" ]; then
-			filesurl="${hosturl}pems/system/${systemId}/${args}?pretty=true"
-		else
-			filesurl="${hosturl}pems/${args}?pretty=true"
-		fi
+		filesurl="${hosturl}pems/${args}?pretty=true"
+	fi
 
-		cmd="curl -sk -H \"${authheader}\" ${filesurl}"
+	cmd="curl -sk -H \"${authheader}\" ${filesurl}"
 
-		if ((veryverbose)); then
-			log "Calling $cmd"
-		fi
-		
-		response=`curl -sk -H "${authheader}" "${filesurl}"`
+	if ((veryverbose)); then
+		log "Calling $cmd"
+	fi
 	
-		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-			format_api_json "$response"
-		else
-			errorresponse=$(jsonquery "$response" "message")
-			err "$errorresponse"
-		fi
-	fi	
+	response=`curl -sk -H "${authheader}" "${filesurl}"`
+
+	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+		format_api_json "$response"
+	else
+		errorresponse=$(jsonquery "$response" "message")
+		err "$errorresponse"
+	fi
 	
 }
 
@@ -159,7 +153,6 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
-    -U|--username) shift; username=$1 ;;
     -S|--systemId) shift; systemId=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;

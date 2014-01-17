@@ -1,12 +1,11 @@
 #!/bin/bash
 # 
-# metadata-list
+# metadata-pems-update
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It retrieves a list of metadata. Optionally, one can search by 
-# a custom search term using json dot notation
+# It provides a mechanism for managing share permissions on metadata.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -17,22 +16,22 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(apisecret apikey username permission)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]...
-$(basename $0) [OPTION]... [METADATA_ID]
+  echo -n "$(basename $0) [OPTION]... [METADATA_ID]
 
-List metadata objects. Results may be filtered by object id, parent id, or
-a custom query string following MongoDB conventions.
+Update the user permissions on this metadata object. This will impact who can 
+view and edit this metadata. Valid permissions are READ, WRITE, READ_WRITE, 
+ALL, and NONE.
 
  Options:
-  -z, --access_token Access token
-  -Q, --query		Search for metadata by custom query
-  -P, --parentid	Search for metadata associated with the given parent 
-  					object id
-  -H, --hosturl     URL of the service
+  -z, --access_token	Access token
+  -u, --pemusername	The user whose permissions should be set
+  -p, --permission	The permission to set. Valid permissions are READ, 
+  			WRITE, READ_WRITE, ALL, and NONE
+  -h, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
   -i, --interactive Prompt for values
@@ -56,31 +55,25 @@ main() {
 	#echo -n
 	#set -x
 	
-	hosturl=${hosturl%/}
-	if [ -n "$args" ]; then
-		metaurl="$hosturl/data/${args}?pretty=true"
-	elif [ -n "$query" ]; then
-		metaurl="$hosturl/data?q=${query}&pretty=true"
-	elif [ -n "$parentid" ]; then
-		metaurl="$hosturl/data?q=\{\"associationIds\":\"${parentid}\"\}&pretty=true"
+	if [ -z "$args" ]; then
+		err "Please specify an metadata id for which to set the permissions"
 	else
-		metaurl="$hosturl/data/?pretty=true"
-	fi
-	
-	cmd="curl -sk -H \"${authheader}\" '$metaurl'"
+		hosturl=${hosturl%/}
+		cmd="curl -sk -H \"${authheader}\" -X POST -d \"permission=$permission\" ${hosturl}/data/$args/pems/$pemusername?pretty=true"
 
-	if ((veryverbose)); then
+		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-	response=`curl -sk -H "${authheader}" "$metaurl"`
-
-	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-		result=$(format_api_json "$response")
-		success "$result"
-	else
-		errorresponse=$(jsonquery "$response" "message")
-		err "$errorresponse"
+		response=`curl -sk -H "${authheader}" -X POST -d "permission=$permission" "${hosturl}/data/$args/pems/$pemusername?pretty=true"`
+		
+		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+			result=$(format_api_json "$response")
+			success "$result"
+		else
+			errorresponse=$(jsonquery "$response" "message")
+			err "$errorresponse"
+		fi
 	fi
 }
 
@@ -91,12 +84,8 @@ format_api_json() {
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
-	elif [ -n "$args" ]; then
-		result=$(jsonquery "$1" "result._links.self.href")
-		echo "${result}"
 	else
-		result=$(jsonquery "$1" "result.[].uuid")
-		echo "${result}"
+		success "Successfully updated permission for $pemusername"
 	fi
 }
 
@@ -111,6 +100,7 @@ format_api_json() {
 # Parse command line options
 source "$DIR/options.sh"
 
+
 # Main loop {{{
 
 # Print help if no arguments were passed.
@@ -122,8 +112,8 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
-    -Q|--query) shift; query=$1 ;;
-    -P|--parentid) shift; parentid=$1 ;;
+    -u|--pemusername) shift; pemusername=$1 ;;
+    -p|--permission) shift; permission=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

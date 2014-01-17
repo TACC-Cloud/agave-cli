@@ -1,12 +1,12 @@
 #!/bin/bash
 # 
-# metadata-list
+# apps-pems-list
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It retrieves a list of metadata. Optionally, one can search by 
-# a custom search term using json dot notation
+# It provides a mechanism for discovering share permissions on a
+# metadata object.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -21,17 +21,14 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]...
-$(basename $0) [OPTION]... [METADATA_ID]
+  echo -n "$(basename $0) [OPTION]... [METADATA_ID]
 
-List metadata objects. Results may be filtered by object id, parent id, or
-a custom query string following MongoDB conventions.
+List the current user permissions for this metadata object. Specifying a  
+specific username will return on the permissions for that user.
 
  Options:
-  -z, --access_token Access token
-  -Q, --query		Search for metadata by custom query
-  -P, --parentid	Search for metadata associated with the given parent 
-  					object id
+  -z, --access_token	Access token
+  -u, --pemusername	The user whose permissions should be listed
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -56,47 +53,105 @@ main() {
 	#echo -n
 	#set -x
 	
-	hosturl=${hosturl%/}
-	if [ -n "$args" ]; then
-		metaurl="$hosturl/data/${args}?pretty=true"
-	elif [ -n "$query" ]; then
-		metaurl="$hosturl/data?q=${query}&pretty=true"
-	elif [ -n "$parentid" ]; then
-		metaurl="$hosturl/data?q=\{\"associationIds\":\"${parentid}\"\}&pretty=true"
+	if [ -z "$args" ]; then
+		err "Please specify a valid metadata id for which to retrieve permissions"
 	else
-		metaurl="$hosturl/data/?pretty=true"
-	fi
-	
-	cmd="curl -sk -H \"${authheader}\" '$metaurl'"
+		hosturl=${hosturl%/}
+		
+		cmd="curl -sk -H \"${authheader}\" ${hosturl}/data/$args/pems/$pemusername?pretty=true"
 
-	if ((veryverbose)); then
+		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
+		
+		response=`curl -sk -H "${authheader}" "${hosturl}/data/$args/pems/$pemusername?pretty=true"`
 	
-	response=`curl -sk -H "${authheader}" "$metaurl"`
-
-	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-		result=$(format_api_json "$response")
-		success "$result"
-	else
-		errorresponse=$(jsonquery "$response" "message")
-		err "$errorresponse"
-	fi
+		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+			result=$(format_api_json "$response")
+			success "$result"
+		else
+			errorresponse=$(jsonquery "$response" "message")
+			err "$errorresponse"
+		fi
+	fi	
+	
 }
 
 format_api_json() {
 	
 	if ((veryverbose)); then
-		echo "$1"
+		echo "$1" | python -mjson.tool
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
-	elif [ -n "$args" ]; then
-		result=$(jsonquery "$1" "result._links.self.href")
-		echo "${result}"
 	else
-		result=$(jsonquery "$1" "result.[].uuid")
-		echo "${result}"
+		if [[ -z "$pemusername" ]]; then
+			pemusers=( $(jsonquery "$1" "result.[].username") )
+			
+			n=0
+			for i in $(jsonquery "$1" "result.[].permission.read")
+			do
+				if [[ "$i" = 'rue' ]]; then
+					canread='READ '
+				else
+					canread=''
+				fi
+				pemusers[$n]="${pemusers[$n]} $canread"
+				n=$[n+1]
+			done
+			
+			n=0
+			for i in $(jsonquery "$1" "result.[].permission.write")
+			do
+				if [[ "$i" = 'rue' ]]; then
+					canwrite='WRITE '
+				else
+					canwrite=''
+				fi
+				pemusers[$n]="${pemusers[$n]}$canwrite"
+				n=$[n+1]
+			done
+			
+			n=0
+			for i in $(jsonquery "$1" "result.[].permission.execute")
+			do
+				if [[ "$i" = 'rue' ]]; then
+					canexecute='EXECUTE '
+				else
+					canexecute=''
+				fi
+				pemusers[$n]="${pemusers[$n]}$canexecute"
+				n=$[n+1]
+			done
+			
+			for i in "${pemusers[@]}"; do
+				echo "$i"
+			done
+		
+		else
+			userpem=$(jsonquery "$1" "result.permission.read")
+			if [[ "$userpem" = 'rue' ]]; then
+				canread='READ '
+			else
+				canread=''
+			fi
+		
+			userpem=$(jsonquery "$1" "result.permission.write")
+			if [[ "$userpem" = 'rue' ]]; then
+				canwrite='WRITE '
+			else
+				canwrite=''
+			fi	
+			
+			userpem=$(jsonquery "$1" "result.permission.execute")
+			if [[ "$userpem" = 'rue' ]]; then
+				canexecute='EXECUTE '
+			else
+				canexecute=''
+			fi				
+
+			echo "$pemusername $canread$canwrite$canexecute"
+		fi
 	fi
 }
 
@@ -111,6 +166,7 @@ format_api_json() {
 # Parse command line options
 source "$DIR/options.sh"
 
+
 # Main loop {{{
 
 # Print help if no arguments were passed.
@@ -122,8 +178,7 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
-    -Q|--query) shift; query=$1 ;;
-    -P|--parentid) shift; parentid=$1 ;;
+    -u|--pemusername) shift; pemusername=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

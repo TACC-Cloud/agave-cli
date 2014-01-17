@@ -78,8 +78,8 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		oid=$(jsonquery "$1" "result.oid")
-		echo "Successfully submitted metadata schema object $oid"
+		uuid=$(jsonquery "$1" "result.uuid")
+		echo "Successfully submitted metadata schema object $uuid"
 	fi
 }
 
