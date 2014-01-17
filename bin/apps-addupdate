@@ -82,10 +82,10 @@ format_api_json() {
 		echo "${result}" | python -mjson.tool
 	else
 		if [ -z "$args" ]; then
-			jsonval app_id "$i" "id"
+			app_id=$(jsonquery "$1" "result.id")
 			success "Successfully added app $app_id"
 		else
-			success "Successfully updated app $arg"
+			success "Successfully updated app $args"
 		fi
 	fi
 }
