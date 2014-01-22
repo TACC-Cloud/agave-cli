@@ -154,7 +154,7 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
     -l|--lifetime) shift; lifetime=$1 ;;
-  	-m|--maxUses) shift; maxuses=$1 ;;
+  	-m|--maxUses) shift; maxUses=$1 ;;
   	-u|--internalUsername) shift; internalUsername=$1 ;;
 	-M|--method) shift; method=$1;;
     -N|--noauth) noauth=1;;
