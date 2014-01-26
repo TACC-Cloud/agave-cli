@@ -19,7 +19,7 @@
 
 # versioning info
 version="2.0"
-revision="${version}-r$(head -c 8 $DIR/../.git/FETCH_HEAD)"
+revision="${version}-r$(git rev-parse --short HEAD)"
 
 os=`uname -s`;
 

@@ -80,7 +80,7 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		echo "Successfully deleted job $arg"
+		echo "Successfully deleted job $args"
 	fi
 }
 
