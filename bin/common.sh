@@ -19,7 +19,7 @@
 
 # versioning info
 version="2.0"
-revision="${version}-r$(git rev-parse --short HEAD)"
+revision="${version}-r$(head -c 5 $DIR/../.git/refs/heads/master)"
 
 os=`uname -s`;
 
