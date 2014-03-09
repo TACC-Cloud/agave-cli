@@ -1,0 +1,157 @@
+#!/bin/bash
+# 
+# clients-create
+# 
+# author: dooley@tacc.utexas.edu
+#
+# This script is part of the Agave API command line interface (CLI).
+# It creates a new client application and generates a set of API keys for the user.
+#
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "$DIR/common.sh"
+interactive=1
+
+# Script logic -- TOUCH THIS {{{
+
+# A list of all variables to prompt in interactive mode. These variables HAVE
+# to be named exactly as the longname option definition in usage().
+interactive_opts=(apiusername apipassword)
+
+# Print usage
+usage() {
+  echo -n "$(basename $0) [OPTION]...
+
+It creates a new client application and generates a set of API keys for the user.
+
+ Options:
+  -u, --apiusername	API username
+  -p, --apipassword	API password
+  -N, --client_name		The name of the client application
+  -T, --tier		The subscription tier
+  -D, --description	A short description of the client application for which these keys are being generated.
+  -C, --callbackUrl	The callback url for the OAuth auth grant
+  -S, --storeclient Store the new api keys for later use so you do not have to manually reenter them when obtaining an auth token.
+  -H, --hosturl     URL of the service
+  -d, --development Run in dev mode using default dev server
+  -f, --force       Skip all user interaction
+  -i, --interactive Prompt for values
+  -q, --quiet       Quiet (no output)
+  -v, --verbose     Verbose output
+  -V, --veryverbose Very verbose output
+  -h, --help        Display this help and exit
+      --version     Output version information and exit
+"
+}
+
+##################################################################
+##################################################################
+#						Begin Script Logic						 #
+##################################################################
+##################################################################
+
+source "$DIR/clients-common.sh"
+
+main() {
+	#echo -n
+	#set -x
+	
+	if [ -z "$client_name" ]; then
+		err "Please specify a valid name for the new client"
+	fi
+	
+	if [ -z "$tier" ]; then
+		tier='Unlimited'
+	fi
+	
+	cmd="curl -sku \"${apiusername}:xxxx\" -X POST -d \"client_name=${client_name}&tier=${tier}&description=${description}&callbackUrl=${callbackUrl}\" ${hosturl}${args}?pretty=true"
+
+	if ((veryverbose)); then
+		log "Calling $cmd"
+	fi
+
+	response=`curl -sku "${apiusername}:${apipassword}" -X POST -d "client_name=${client_name}&tier=${tier}&description=${description}&callbackUrl=${callbackUrl}" "${hosturl}${args}?pretty=true"`
+			
+	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+		result=$(format_api_json "$response")
+		success "${result}"
+	else
+		errorresponse=$(jsonquery "$response" "message")
+		err "$errorresponse"
+	fi
+}
+
+format_api_json() {
+
+	if ((storeclient)); then
+		
+		formatted_response=`"${result}" | python -mjson.tool`
+		client_secret=$(jsonquery "$formatted_response" "result.consumerSecret")
+		client_key=$(jsonquery "$formatted_response" "result.consumerKey")
+		
+		echo "{\"apisecret\":\"$client_secret\",\"apikey\":\"$client_key\",\"username\":\"$apiusername\",\"access_token\":\"\",\"refresh_token\":\"\",\"created_at\":\"\",\"expires_in\":\"\"}" > ~/.agave
+	fi	
+	
+	if ((veryverbose)); then
+		echo "$1" | python -mjson.tool
+	elif [[ $verbose -eq 1 ]]; then
+		result=$(jsonquery "$1" "result" 1)
+		echo "${result}" | python -mjson.tool
+	else
+		formatted_response=`echo "$1" | python -mjson.tool`
+		client_secret=$(jsonquery "$formatted_response" "result.consumerSecret")
+		client_key=$(jsonquery "$formatted_response" "result.consumerKey")
+		success "Successfully created client $client_name\nkey: $client_key \nsecret: $client_secret"
+	fi
+}
+
+##################################################################
+##################################################################
+#						End Script Logic						 #
+##################################################################
+##################################################################
+
+# }}}
+
+# Parse command line options
+source "$DIR/options.sh"
+
+
+# Main loop {{{
+
+# Print help if no arguments were passed.
+[[ $# -eq 0 ]] && set -- "-i"
+
+# Read the options and set stuff
+while [[ $1 = -?* ]]; do
+  case $1 in
+    -h|--help) usage >&2; safe_exit ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -u|--apiusername) shift; apiusername=$1 ;;
+    -p|--apipassword) shift; apipassword=$1 ;;
+    -S|--storeclient) storeclient=1;;
+    -N|--client_name) shift; client_name=$1 ;;
+  	-T|--tier) shift; tier=$1 ;;
+  	-D|--description) shift; description=$1 ;;
+  	-C|--callbackUrl) shift; callbackUrl=$1 ;;
+    -H|--hosturl) shift; hosturl=$1;;
+  	-d|--development) development=1 ;;
+    -v|--verbose) verbose=1 ;;
+    -V|--veryverbose) veryverbose=1; verbose=1 ;;
+    -q|--quiet) quiet=1 ;;
+    -i|--interactive) interactive=1 ;;
+    -f|--force) force=1 ;;
+    --endopts) shift; break ;;
+    *) die "invalid option: $1" ;;
+  esac
+  shift
+done
+
+# Store the remaining part as arguments.
+args+=("$@")
+
+# }}}
+
+# Run the script logic
+source "$DIR/runner.sh"

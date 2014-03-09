@@ -1,6 +1,6 @@
 #!/bin/bash
 # 
-# systems-delete
+# clients-delete
 # 
 # author: dooley@tacc.utexas.edu
 #
@@ -14,12 +14,13 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
+interactive=1
 
 # Script logic -- TOUCH THIS {{{
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(apiusername apipassword)
 
 # Print usage
 usage() {
@@ -32,7 +33,8 @@ the archive system is deleted. File transfers may also fail if the transfer
 had not yet started when the system was deleted.
 
  Options:
-  -z, --access_token	Access token
+  -u, --apiusername	API apiusername
+  -p, --apipassword	API apipassword
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
   -f, --force       Skip all user interaction
@@ -51,23 +53,23 @@ had not yet started when the system was deleted.
 ##################################################################
 ##################################################################
 
-source "$DIR/systems-common.sh"
+source "$DIR/clients-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 	
 	if [ -z "$args" ]; then
-		err "Please specify a valid system id to delete"
+		err "Please specify a valid client to delete"
 	else
 	
-		cmd="curl -sk -H \"${authheader}\" -X DELETE $hosturl$args?pretty=true"
+		cmd="curl -sku \"${apiusername}:xxxx\" -X DELETE $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-		response=`curl -sk -H "${authheader}" -X DELETE "$hosturl$args?pretty=true"`
+		response=`curl -sku "${apiusername}:${apipassword}" -X DELETE "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
@@ -81,15 +83,13 @@ main() {
 
 format_api_json() {
 
-	jsonval storedtoken "${tokenstore}" "apikey" 
-	
 	if ((veryverbose)); then
-		echo "$1"
+		echo "$1" | python -mjson.tool
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		echo "Successfully deleted system $args"
+		echo "Successfully deleted client $args"
 	fi
 }
 
@@ -115,7 +115,8 @@ while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
-    -z|--access_token) shift; access_token=$1 ;;
+    -u|--apiusername) shift; apiusername=$1 ;;
+    -p|--apipassword) shift; apipassword=$1;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

@@ -1,47 +1,43 @@
 #!/bin/bash
 # 
-# systems-delete
+# clients-list
 # 
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It deletes a registered system. User must have admin privileges
-# on the system to perform this operation. Once deleted, the system
-# cannot be recovered and all registered applications on that system
-# will be disabled
+# It retrieves a list of one or more registered clients.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
+interactive=1
 
 # Script logic -- TOUCH THIS {{{
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(apiusername apipassword)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
+  echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... [CLIENT_NAME]
 
-Deletes a registered system. Deleting a system automatically disables all 
-applications registered with the given system as either a storage or 
-execution host. Actively running jobs may fail to archive their data if
-the archive system is deleted. File transfers may also fail if the transfer
-had not yet started when the system was deleted.
+List all clients registered to the authenticated user.
 
  Options:
-  -z, --access_token	Access token
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -u, --apiusername		API apiusername
+  -p, --apipassword		API apipassword
+  -h, --hosturl     	URL of the service
+  -d, --development 	Run in dev mode using default dev server
+  -f, --force       	Skip all user interaction
+  -i, --interactive 	Prompt for values
+  -q, --quiet       	Quiet (no output)
+  -v, --verbose     	Verbose output
+  -V, --veryverbose 	Very verbose output
+  -h, --help        	Display this help and exit
+      --version     	Output version information and exit
 "
 }
 
@@ -51,45 +47,48 @@ had not yet started when the system was deleted.
 ##################################################################
 ##################################################################
 
-source "$DIR/systems-common.sh"
+source "$DIR/clients-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 	
-	if [ -z "$args" ]; then
-		err "Please specify a valid system id to delete"
+	if [ -n "$args" ]; then
+		clientsurl="${hosturl}${args}?pretty=true"
 	else
+		clientsurl="${hosturl}?pretty=true"
+	fi
+		
+	cmd="curl -sku \"${apiusername}:xxxx\" ${clientsurl}"
 	
-		cmd="curl -sk -H \"${authheader}\" -X DELETE $hosturl$args?pretty=true"
-
-		if ((veryverbose)); then
-			log "Calling $cmd"
-		fi
+	if ((veryverbose)); then
+		log "Calling $cmd"
+	fi
+		
+	response=`curl -sku "${apiusername}:${apipassword}" "${clientsurl}"`
 	
-		response=`curl -sk -H "${authheader}" -X DELETE "$hosturl$args?pretty=true"`
-
-		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-			result=$(format_api_json "$response")
-			success "$result"
-		else
-			errorresponse=$(jsonquery "$response" "message")
-			err "$errorresponse"
-		fi
-	fi	
+	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+		result=$(format_api_json "$response")
+		success "$result"
+	else
+		errorresponse=$(jsonquery "$response" "message")
+		err "$errorresponse"
+	fi
 }
 
 format_api_json() {
-
-	jsonval storedtoken "${tokenstore}" "apikey" 
 	
 	if ((veryverbose)); then
-		echo "$1"
+		echo "$1" | python -mjson.tool
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
+	elif [ -n "$args" ]; then
+		result=$(jsonquery "$1" "result.name")
+		echo "${result}"
 	else
-		echo "Successfully deleted system $args"
+		result=$(jsonquery "$1" "result.[].name")
+		echo "${result}"
 	fi
 }
 
@@ -108,14 +107,15 @@ source "$DIR/options.sh"
 # Main loop {{{
 
 # Print help if no arguments were passed.
-[[ $# -eq 0 ]] && set -- "-i"
+#[[ $# -eq 0 ]] && set -- "--help"
 
 # Read the options and set stuff
 while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
-    -z|--access_token) shift; access_token=$1 ;;
+    -u|--apiusername) shift; apiusername=$1 ;;
+    -p|--apipassword) shift; apipassword=$1;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
@@ -136,3 +136,4 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
+

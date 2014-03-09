@@ -18,7 +18,7 @@
 [[ -t 1 ]] && piped=0 || piped=1
 
 # versioning info
-version="2.0"
+version="v2"
 revision="${version}-r$(head -c 5 $DIR/../.git/refs/heads/master)"
 
 os=`uname -s`;
@@ -236,6 +236,7 @@ prompt_options() {
   if [ -f "$HOME/.agave" ]; then
 	  tokenstore=`cat $HOME/.agave`
   fi
+  
   for val in ${interactive_opts[@]}; do
   	
 	# Skip values which already are defined
@@ -276,7 +277,7 @@ prompt_options() {
     # In case this is a password field, hide the user input
     if [[ $val == "apikey" ]]; then
     	jsonval savedapikey "${tokenstore}" "apikey" 
-		echo -n "Consumer key [$savedapikey]: "
+		echo -n "API key [$savedapikey]: "
       	eval "read $val"
       	if  [[ -z $apikey ]]; then 
       		apikey=$savedapikey
@@ -294,20 +295,20 @@ prompt_options() {
       	#echo
     elif [[ $val == "apisecret" ]]; then
     	jsonval savedapisecret "${tokenstore}" "apisecret" 
-		echo -n "Consumer secret [$savedapisecret]: "
+		echo -n "API secret [$savedapisecret]: "
     	eval "read $val"
       	if  [[ -z $apisecret ]]; then 
       		apisecret=$savedapisecret
       	fi
     elif [[ $val == "username" ]]; then
     	jsonval savedusername "${tokenstore}" "username"
-		echo -n "Agave tenant username [$savedusername]: "	
+		echo -n "API username [$savedusername]: "	
     	eval "read $val"
     	if  [[ -z $username ]]; then 
       		username=$savedusername
       	fi
     elif [[ $val == "password" ]]; then
-    	echo -n "Agave tenant password: "
+    	echo -n "API password: "
     	stty -echo; read password; stty echo
     	echo -n "
 ";
