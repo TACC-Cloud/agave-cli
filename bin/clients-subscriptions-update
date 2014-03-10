@@ -88,25 +88,14 @@ main() {
 
 format_api_json() {
 
-	if ((storeclient)); then
-		
-		formatted_response=`"${result}" | python -mjson.tool`
-		client_secret=$(jsonquery "$formatted_response" "result.consumerSecret")
-		client_key=$(jsonquery "$formatted_response" "result.consumerKey")
-		
-		echo "{\"apisecret\":\"$client_secret\",\"apikey\":\"$client_key\",\"username\":\"$apiusername\",\"access_token\":\"\",\"refresh_token\":\"\",\"created_at\":\"\",\"expires_in\":\"\"}" > ~/.agave
-	fi	
-	
 	if ((veryverbose)); then
 		echo "$1" | python -mjson.tool
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		formatted_response=`echo "$1" | python -mjson.tool`
-		client_secret=$(jsonquery "$formatted_response" "result.consumerSecret")
-		client_key=$(jsonquery "$formatted_response" "result.consumerKey")
-		success "Successfully created client $client_name\nkey: $client_key \nsecret: $client_secret"
+		result=$(jsonquery "$1" "result.[].name")
+		echo "${result}"
 	fi
 }
 
