@@ -65,13 +65,13 @@ main() {
 		tier='Unlimited'
 	fi
 	
-	cmd="curl -sku \"${apiusername}:xxxx\" -X POST -d \"client_name=${client_name}&tier=${tier}&description=${description}&callbackUrl=${callbackUrl}\" ${hosturl}${args}?pretty=true"
+	cmd="curl -sku \"${apiusername}:xxxx\" -X POST -d \"name=${client_name}&tier=${tier}&description=${description}&callbackUrl=${callbackUrl}\" ${hosturl}${args}?pretty=true"
 
 	if ((veryverbose)); then
 		log "Calling $cmd"
 	fi
 
-	response=`curl -sku "${apiusername}:${apipassword}" -X POST -d "client_name=${client_name}&tier=${tier}&description=${description}&callbackUrl=${callbackUrl}" "${hosturl}${args}?pretty=true"`
+	response=`curl -sku "${apiusername}:${apipassword}" -X POST -d "name=${client_name}&tier=${tier}&description=${description}&callbackUrl=${callbackUrl}" "${hosturl}${args}?pretty=true"`
 			
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
@@ -87,8 +87,8 @@ format_api_json() {
 	if ((storeclient)); then
 		
 		formatted_response=`"${result}" | python -mjson.tool`
-		client_secret=$(jsonquery "$formatted_response" "result.consumerSecret")
-		client_key=$(jsonquery "$formatted_response" "result.consumerKey")
+		client_secret=$(jsonquery "$formatted_response" "result.secret")
+		client_key=$(jsonquery "$formatted_response" "result.key")
 		
 		echo "{\"apisecret\":\"$client_secret\",\"apikey\":\"$client_key\",\"username\":\"$apiusername\",\"access_token\":\"\",\"refresh_token\":\"\",\"created_at\":\"\",\"expires_in\":\"\"}" > ~/.agave
 	fi	
@@ -100,8 +100,8 @@ format_api_json() {
 		echo "${result}" | python -mjson.tool
 	else
 		formatted_response=`echo "$1" | python -mjson.tool`
-		client_secret=$(jsonquery "$formatted_response" "result.consumerSecret")
-		client_key=$(jsonquery "$formatted_response" "result.consumerKey")
+		client_secret=$(jsonquery "$formatted_response" "result.secret")
+		client_key=$(jsonquery "$formatted_response" "result.key")
 		success "Successfully created client $client_name\nkey: $client_key \nsecret: $client_secret"
 	fi
 }

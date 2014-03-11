@@ -82,10 +82,10 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	elif [ -n "$args" ]; then
-		result=$(jsonquery "$1" "result.api_name")
+		result=$(jsonquery "$1" "result.apiName")
 		echo "${result}"
 	else
-		result=$(jsonquery "$1" "result.[].api_name")
+		result=$(jsonquery "$1" "result.[].apiName")
 		echo "${result}"
 	fi
 }
