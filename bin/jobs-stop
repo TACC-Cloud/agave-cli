@@ -50,7 +50,7 @@ main() {
 	#echo -n
 	#set -x
 	
-	if [ -Z "$args" ]; then 
+	if [ -z "$args" ]; then 
 		err "Please specify a job id to stop"
 	else
 		cmd="curl -sk -H \"${authheader}\" -X POST -d \"action=stop\" $hosturl$args?pretty=true"
