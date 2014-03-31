@@ -30,22 +30,26 @@ application assets in the cloning user's default storage system.
 
  Options:
   -z, --access_token	Access token
-  -N, --appname     Name given to the clone of the existing app. Defaults
-                    to the current app name and the authenticated user's 
-                    username appended with a dash
-  -R, --appversion  Version given to the clone of the existing app. Defaults
-                    to the current app's version number
-  -S, --system  	Execution system for the new app. Defaults to the current
-                    app's execution system.
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -N, --appname     	Name given to the clone of the existing app. Defaults
+                    	to the current app name and the authenticated user's 
+                    	username appended with a dash
+  -R, --appversion  	Version given to the clone of the existing app. Defaults
+                    	to the current app's version number
+  -E, --executionSystem Execution system for the new app. Defaults to the current
+                    	app's execution system.
+  -P, --deploymentPath  Deployment path for the application assets on the cloned app's
+                    	storage system. This only applies to clone public apps.                    
+  -S, --deploymentSystem	Deployment system for the new app. Defaults to the current
+                    	user's default storage system. This only applies to clone public apps.
+  -H, --hosturl     	URL of the service
+  -d, --development 	Run in dev mode using default dev server
+  -f, --force       	Skip all user interaction
+  -i, --interactive 	Prompt for values
+  -q, --quiet       	Quiet (no output)
+  -v, --verbose     	Verbose output
+  -V, --veryverbose 	Very verbose output
+  -h, --help        	Display this help and exit
+      --version     	Output version information and exit
 "
 }
 
@@ -65,25 +69,34 @@ main() {
 		err "Please specify a valid app id to clone"
 	else
 		
+		form_params="action=clone"
 		if [ -n "$appname" ]; then
-			clone_name="&name=$appname"
+			form_params="name=${appname}&${form_params}"
 		fi
 		
 		if [ -n "$appversion" ]; then
-			clone_version="&version=$appversion"
+			form_params="version=${appversion}&${form_params}"
 		fi
 		
-		if [ -n "$system" ]; then
-			clone_system="&system=$system"
+		if [ -n "$deploymentSystem" ]; then
+			form_params="deploymentSystem=${deploymentSystem}&${form_params}"
 		fi
 		
-		cmd="curl -sk  -H \"${authheader}\" -X PUT -d \"action=clone$clone_name$clone_version$clone_system\" $hosturl$args?pretty=true"
+		if [ -n "$executionSystem" ]; then
+			form_params="executionSystem=${executionSystem}&${form_params}"
+		fi
+		
+		if [ -n "$deploymentPath" ]; then
+			form_params="deploymentPath=${deploymentPath}&${form_params}"
+		fi
+		
+		cmd="curl -sk  -H \"${authheader}\" -X PUT -d \"$form_params\" $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 	
-		response=`curl -sk  -H "${authheader}" -X PUT -d "action=clone$clone_name$clone_version$clone_system" "$hosturl$args?pretty=true"`
+		response=`curl -sk  -H "${authheader}" -X PUT -d "$form_params" "$hosturl$args?pretty=true"`
 		
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
@@ -133,7 +146,9 @@ while [[ $1 = -?* ]]; do
     -z|--access_token) shift; access_token=$1 ;;
     -N|--appname) shift; appname=$1 ;;
     -R|--appversion) shift; appversion=$1 ;;
-    -S|--system) shift; system=$1 ;;
+    -S|--deploymentSystem) shift; deploymentSystem=$1 ;;
+    -E|--executionSystem) shift; executionSystem=$1 ;;
+    -P|--deploymentPath) shift; deploymentPath=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

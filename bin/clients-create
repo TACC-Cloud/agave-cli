@@ -86,7 +86,7 @@ format_api_json() {
 
 	if ((storeclient)); then
 		
-		formatted_response=`"${result}" | python -mjson.tool`
+		formatted_response=`echo "$1" | python -mjson.tool`
 		client_secret=$(jsonquery "$formatted_response" "result.consumerSecret")
 		client_key=$(jsonquery "$formatted_response" "result.consumerKey")
 		

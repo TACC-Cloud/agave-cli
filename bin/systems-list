@@ -33,6 +33,7 @@ default designation, and scope is supported.
   -E, --executiononly	Only return execution systems. Ignored if system id is given.
   -D, --defaultonly		Only return default systems. Ignored if system id is given.
   -P, --publiconly		Only return public systems. Ignored if system id is given.
+  -Q, --privateonly		Only return private systems. Ignored if system id is given.
   -h, --hosturl     	URL of the service
   -d, --development 	Run in dev mode using default dev server
   -f, --force       	Skip all user interaction
@@ -68,7 +69,11 @@ main() {
 		fi
 		
 		if [ -n "$publiconly" ]; then
-			querystring="public=true&${querystring}"
+			querystring="publicOnly=true&${querystring}"
+		fi
+		
+		if [ -n "$privateonly" ]; then
+			querystring="privateOnly=true&${querystring}"
 		fi
 		
 		if [ -n "$defaultonly" ]; then
@@ -139,6 +144,7 @@ while [[ $1 = -?* ]]; do
     -E|--executiononly) executiononly=1;;
     -D|--defaultonly) defaultonly=1;;
     -P|--publiconly) publiconly=1;;
+    -Q|--privateonly) privateonly=1;;
     -d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
     -V|--veryverbose) veryverbose=1; verbose=1 ;;
