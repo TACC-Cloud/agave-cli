@@ -39,7 +39,7 @@ else
 			if [ -z "$access_token" ]; then
 				jsonval access_token "${tokenstore}" "access_token"
 			fi
-			jsonval refresh_token "${tokenstore}" "refresh_token"
+				jsonval refresh_token "${tokenstore}" "refresh_token"
 		fi
 	fi
 

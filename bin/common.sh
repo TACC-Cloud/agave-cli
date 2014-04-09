@@ -19,10 +19,11 @@
 
 # versioning info
 version="v2"
-if [ -e "$DIR/../.git/refs/heads/master" ]; then
-revision="${version}-r$(head -c 5 $DIR/../.git/refs/heads/master)"
+if [ -e "$DIR/../.git/refs/heads/master" ];
+then
+  revision="${version}-r$(head -c 5 $DIR/../.git/refs/heads/master)"
 else
-revision="${version}"
+  revision="${version}"
 fi
 
 os=`uname -s`;
@@ -85,8 +86,8 @@ success() {
 }
 
 version() {
-	out "iPlant Agave API v${version}
-Agave client command line interface (revision ${revision})
+	out "iPlant Agave API ${version}
+Agave CLI (revision ${revision})
 "
 }
 
