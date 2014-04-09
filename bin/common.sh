@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # common.sh
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # Common helper functions and global variables for all cli scripts.
@@ -53,8 +53,8 @@ out() {
   printf '%b\n' "$message";
 }
 die() { out "$@"; exit 1; } >&2
-err() { 
-	if [[ -n $(ishtmlstring "$response") ]]; then 
+err() {
+	if [[ -n $(ishtmlstring "$response") ]]; then
 		jsonresponsemessage="{\"status\":\"error\",\"message\":\"Unable to contact api server\",\"result\":null}"
 		response=`echo $jsonresponsemessage | python -mjson.tool`
 	elif [[ -n $(isxmlstring "$response") ]]; then
@@ -64,19 +64,19 @@ err() {
 		jsonresponsemessage="{\"status\":\"error\",\"message\":\"${responsemessage}\",\"result\":null}"
 		response=`echo "$jsonresponsemessage" | python -mjson.tool`
 	fi
-	
-	if (($verbose)); then 
+
+	if (($verbose)); then
 		#out " \033[1;31m✖\033[0m  $response"
 		out "\033[1;31m${response}\033[0m"
 	else
-		#out " \033[1;31m✖\033[0m  $@"; 
+		#out " \033[1;31m✖\033[0m  $@";
 		out "\033[1;31m$@\033[0m"
 	fi
 } >&2
-	
-success() { 
-	#out " \033[1;32m✔\033[0m  $@"; 
-	out "\033[1;0m$@\033[0m"; 
+
+success() {
+	#out " \033[1;32m✔\033[0m  $@";
+	out "\033[1;0m$@\033[0m";
 	#out "$@"
 }
 
@@ -120,7 +120,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 disclaimer() {
 	out "Documentation on the Agave API, client libaries, and developer tools is
 available online at the Agave Developer Portal, http://agaveapi.co. For
-localized help of the various CLI commands, run any command with the -h 
+localized help of the various CLI commands, run any command with the -h
 or --help option.
 "
 }
@@ -170,12 +170,12 @@ function isxmlstring {
 
 function jsonquery {
 
-	if [[ -n $(ishtmlstring $1) ]]; then 
-		if [[ "$2" = "message" ]]; then 
+	if [[ -n $(ishtmlstring $1) ]]; then
+		if [[ "$2" = "message" ]]; then
 			echo "Unable to contact api server"
 		fi
 	elif [[ -n $(isxmlstring $1) ]]; then
-		if [[ "$2" = "message" ]]; then 
+		if [[ "$2" = "message" ]]; then
 			responsemessage=${1#*<ams:message>}
 			responsemessage=${responsemessage%</ams:message>*}
 			echo $responsemessage
@@ -187,9 +187,9 @@ function jsonquery {
 		IFS="$oIFS"
 		unset oIFS
 		#printf "> [%s]\n" "${fields[@]}"
-	
+
 		re='^[0-9]+$'
-	
+
 		for x in "${fields[@]}"; do
 			if [ "$x" == '\*' ]; then
 				patharray=${patharray}',"[^"]*"'
@@ -211,15 +211,15 @@ function jsonquery {
 
 		patharray="${patharray:1:${#patharray}-1}"
 		escpatharray="${escpatharray:1:${#escpatharray}-1}"
-	
+
 		patharray='\['${patharray}'\]'
 		escpatharray='\['${escpatharray}'\]'
-	
+
 		if [ -z "$3" ]; then
 			echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g | sed 's/^[ \t]*//g' | sed s/\"//g
 		else
 			# third argument says to leave the response quoted
-			echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g 
+			echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g
 		fi
 		unset patharray
 		unset escpatharray
@@ -230,16 +230,16 @@ function jsonquery {
 
 # Boilerplate {{{
 
-# Prompt the user to interactively enter desired variable values. 
+# Prompt the user to interactively enter desired variable values.
 prompt_options() {
   local desc=
   local val=
   if [ -f "$HOME/.agave" ]; then
 	  tokenstore=`cat $HOME/.agave`
   fi
-  
+
   for val in ${interactive_opts[@]}; do
-  	
+
 	# Skip values which already are defined
     [[ $(eval echo "\$$val") ]] && continue
 
@@ -257,12 +257,12 @@ prompt_options() {
         newval="--" val;
         # print os " " $2 " = " newval "\n"
         if ( os == "Darwin" ) {
-        	
+
         	if ($2 == newval) {
         		# Print all remaining fields, ie. the description.
 				for (i=3; i <= NF; i++) print $i
-        	} 
-        } else {        	
+        	}
+        } else {
 			if ($1 == val) {
 				# Print all remaining fields, ie. the description.
 				for (i=2; i <= NF; i++) print $i
@@ -270,42 +270,42 @@ prompt_options() {
 		}
       }
     ')
-    
+
     [[ ! "$desc" ]] && continue
 
 	#echo -n "$desc: "
-	
+
     # In case this is a password field, hide the user input
     if [[ $val == "apikey" ]]; then
-    	jsonval savedapikey "${tokenstore}" "apikey" 
+    	jsonval savedapikey "${tokenstore}" "apikey"
 		echo -n "API key [$savedapikey]: "
       	eval "read $val"
-      	if  [[ -z $apikey ]]; then 
+      	if  [[ -z $apikey ]]; then
       		apikey=$savedapikey
       	fi
       	#stty -echo; read apikey; stty echo
       	#echo
     elif [[ $val == "refresh_token" ]]; then
-    	jsonval savedrefreshtoken "${tokenstore}" "refresh_token" 
+    	jsonval savedrefreshtoken "${tokenstore}" "refresh_token"
 		echo -n "Refresh token [$savedrefreshtoken]: "
       	eval "read $val"
-      	if  [[ -z $refresh_token ]]; then 
+      	if  [[ -z $refresh_token ]]; then
       		refresh_token=$savedrefreshtoken
       	fi
       	#stty -echo; read apikey; stty echo
       	#echo
     elif [[ $val == "apisecret" ]]; then
-    	jsonval savedapisecret "${tokenstore}" "apisecret" 
+    	jsonval savedapisecret "${tokenstore}" "apisecret"
 		echo -n "API secret [$savedapisecret]: "
     	eval "read $val"
-      	if  [[ -z $apisecret ]]; then 
+      	if  [[ -z $apisecret ]]; then
       		apisecret=$savedapisecret
       	fi
     elif [[ $val == "username" ]]; then
     	jsonval savedusername "${tokenstore}" "username"
-		echo -n "API username [$savedusername]: "	
+		echo -n "API username [$savedusername]: "
     	eval "read $val"
-    	if  [[ -z $username ]]; then 
+    	if  [[ -z $username ]]; then
       		username=$savedusername
       	fi
     elif [[ $val == "password" ]]; then
@@ -339,7 +339,7 @@ get_auth_header() {
 }
 
 check_response_status() {
-	
+
 	if [[ "$?" -eq 22 ]]; then
 		jsonresponsemessage="{\"status\":\"error\",\"message\":\"Unable to contact api server\",\"result\":null}"
 		response=`echo $jsonresponsemessage | python -mjson.tool`
@@ -365,17 +365,17 @@ check_response_status() {
 }
 
 get_token_remaining_time() {
-	
+
 	auth_cache=`cat ~/.agave`
-	
-	jsonval expires_in "$auth_cache" "expires_in" 
-	jsonval created_at "$auth_cache" "created_at" 
-	
+
+	jsonval expires_in "$auth_cache" "expires_in"
+	jsonval created_at "$auth_cache" "created_at"
+
 	expiration_time=`expr $created_at + $expires_in`
 	current_time=`date +%s`
-	
+
 	time_left=`expr $expiration_time - $current_time`
-	
+
 	echo $time_left
 }
 # }}}
