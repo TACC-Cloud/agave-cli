@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # runner.sh
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # Main processing logic for the scripts
@@ -33,14 +33,16 @@ else
 		if [ -f "$HOME/.agave" ]; then
 			#echo "Found for stored credentials"
 			tokenstore=`cat ~/.agave`
-			jsonval apisecret "${tokenstore}" "apisecret" 
-			jsonval apikey "${tokenstore}" "apikey" 
-			jsonval username "${tokenstore}" "username" 
-			jsonval access_token "${tokenstore}" "access_token"
+			jsonval apisecret "${tokenstore}" "apisecret"
+			jsonval apikey "${tokenstore}" "apikey"
+			jsonval username "${tokenstore}" "username"
+			if [ -z "$access_token" ]; then
+				jsonval access_token "${tokenstore}" "access_token"
+			fi
 			jsonval refresh_token "${tokenstore}" "refresh_token"
 		fi
 	fi
-	
+
 	if [ -z "$access_token" ]; then
 		interactive=1
 	fi
