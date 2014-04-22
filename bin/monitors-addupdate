@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# notifications-addupdate
+# monitors-addupdate
 #
 # author: dooley@tacc.utexas.edu
 #
@@ -16,34 +16,41 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey filetoupload)
+interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
   echo -n "$(basename $0) [OPTION]...
-$(basename $0) [OPTION]... [NOTIFICATION_ID]
+$(basename $0) [OPTION]... [MONITOR_ID]
 
-Subscribe for a notification about an event in the API. Notifications require
-a valid, existing, Agave UUID, event, and callback in the form of a URL or
-email address. The needed information can be passed in as a file containing
-information as a JSON object or via command line arguments.
+Subscribe for a monitors about a system. A monitor must be associated with a
+valid system to which you have at lease USER role. You may include a
+notifications attribute containing an array of notification objects to subscribe
+for updates about changes in check results. You may also tell the monitor to
+update the system status accordingly if you have at least ADMIN role by
+setting the updateSystemStatus attribute to true. Monitor descriptions can be
+passed in as a file containing a JSON object or via command line arguments.
 
  Options:
-  -z, --access_token	Access token
-  -F, --filetoupload The file containing the json app description to submit
-  -U, --url 	The callback url or email address for this notification
-  -E, --event	The event about which to send notifications.
-  -P, --persistent	Whether this event should expire after the first occurance.
-  -A, --associatedUuid	The uuid of the object for which this notification applies.
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -z, --access_token        Access token
+  -F, --filetoupload        The file containing the json app description to submit
+  -S, --systemId            The system to monitor
+  -A, --active              Whether the monitor should be active. true or false.
+                            Default true.
+  -F, --frequency           How often the monitor should run in minutes.
+                            Minimum 5, default 720 (12 hours).
+  -U, --updateSystemStatus  Whether the test should update the system status.
+                            You must have an ADMIN role on the system to set this.
+                            Default false
+  -H, --hosturl             URL of the service
+  -d, --development         Run in dev mode using default dev server
+  -f, --force               Skip all user interaction
+  -i, --interactive         Prompt for values
+  -q, --quiet               Quiet (no output)
+  -v, --verbose             Verbose output
+  -V, --veryverbose         Very verbose output
+  -h, --help                Display this help and exit
+      --version             Output version information and exit
 "
 }
 
@@ -53,7 +60,7 @@ information as a JSON object or via command line arguments.
 ##################################################################
 ##################################################################
 
-source "$DIR/notifications-common.sh"
+source "$DIR/monitors-common.sh"
 
 main() {
 	#echo -n
@@ -70,29 +77,29 @@ main() {
 
 	else
 
-		if [[ -z "url" ]]; then
-			err "Please specify a url or email address to which the notification will be sent"
+		if [[ -z "$systemId" ]]; then
+			err "Please specify the id of a system to monitor"
 		fi
 
-		if [[ -z "event" ]]; then
-			err "Please specify an event upon which the notification will be sent"
+		if [[ -z "$frequency" ]]; then
+			frequency=720
 		fi
 
-		if [[ -z "associatedUuid" ]]; then
-			err "Please specify an associatedUuid for which the notification will be sent"
+		if [[ -z "$updateSystemStatus" ]]; then
+			updateSystemStatus="false"
 		fi
 
-		if [[ -z "persistent" ]]; then
-			persistent="false"
+		if [[ -z "$active" ]]; then
+			active="true"
 		fi
 
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"event=${event}&persistent=${persistent}&associatedUuid=${associatedUuid}&url=${url}\" ${hosturl}$args?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X POST -d \"frequency=${frequency}&active=${active}&updateSystemStatus=${updateSystemStatus}&target=${systemId}\" ${hosturl}$args?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X POST -d "event=${event}&persistent=${persistent}&associatedUuid=${associatedUuid}&url=${url}" "${hosturl}$args?pretty=true"`
+		response=`curl -sk -H "${authheader}" -X POST -d "requency=${frequency}&active=${active}&updateSystemStatus=${updateSystemStatus}&target=${systemId}" "${hosturl}$args?pretty=true"`
 	fi
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
@@ -113,10 +120,10 @@ format_api_json() {
 		echo "${result}" | python -mjson.tool
 	else
 		jsonval oid "$i" "id"
-		if [ -n "$args" ]; then
-      success "Successfully updated notification $oid"
+    if [ -n "$args" ]; then
+      success "Successfully updated monitor $oid"
     else
-      success "Successfully created notification $oid"
+      success "Successfully created monitor $oid"
     fi
 	fi
 }
@@ -145,10 +152,10 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
     -F|--filetoupload) shift; filetoupload=$1 ;;
-    -U|--url) shift; url=$1 ;;
-    -E|--event) shift; event=$1 ;;
-    -P|--persistent) shift; persistent=$1 ;;
-    -A|--associatedUuid) shift; associatedUuid=$1 ;;
+    -S|--systemId) shift; systemId=$1 ;;
+    -U|--updateSystemStatus) shift; updateSystemStatus=$1 ;;
+    -F|--frequency) shift; frequency=$1 ;;
+    -A|--active) shift; active=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

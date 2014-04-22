@@ -1,18 +1,18 @@
 #!/bin/bash
 #
-# notifications-common.sh
+# monitors-common.sh
 #
 # author: dooley@tacc.utexas.edu
 #
-# URL filter for notifications services
+# URL filter for monitors services
 #
 
 filter_service_url() {
 	if [[ -z $hosturl ]]; then
 		if ((development)); then
-			hosturl="$devurl/notifications/"
+			hosturl="$devurl/monitors/"
 		else
-			hosturl="$baseurl/notifications/$version/"
+			hosturl="$baseurl/monitors/$version/"
 		fi
 	fi
 }

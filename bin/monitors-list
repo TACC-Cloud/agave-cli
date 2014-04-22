@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# systems-list
+# monitors-list
 #
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It retrieves a list of one or more registered systems from the api.
-# URL querying by type, default, and scope is supported.
+# It retrieves a list of registered system monitors. Optionally, one can search
+# by systemId
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -17,32 +17,29 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(access_token)
+interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
   echo -n "$(basename $0) [OPTION]...
-$(basename $0) [OPTION]... [SYSTEM_ID]
+$(basename $0) [OPTION]... [MONITOR_ID]
 
-List all systems available to the authenticated user. URL querying by type,
-default designation, and scope is supported.
+List monitors individually or filter by systemId and active status.
 
  Options:
-  -z, --access_token	Access token
-  -S, --storageonly		Only return storage systems. Ignored if system id is given.
-  -E, --executiononly	Only return execution systems. Ignored if system id is given.
-  -D, --defaultonly		Only return default systems. Ignored if system id is given.
-  -P, --publiconly		Only return public systems. Ignored if system id is given.
-  -Q, --privateonly		Only return private systems. Ignored if system id is given.
-  -h, --hosturl     	URL of the service
-  -d, --development 	Run in dev mode using default dev server
-  -f, --force       	Skip all user interaction
-  -i, --interactive 	Prompt for values
-  -q, --quiet       	Quiet (no output)
-  -v, --verbose     	Verbose output
-  -V, --veryverbose 	Very verbose output
-  -h, --help        	Display this help and exit
-      --version     	Output version information and exit
+  -z, --access_token  Access token
+  -T, --target        Only return monitors for the target system
+  -A, --activeonly    Only return active montiors
+  -I, --inactiveonly  Only return inactive monitors
+  -H, --hosturl       URL of the service
+  -d, --development   Run in dev mode using default dev server
+  -f, --force         Skip all user interaction
+  -i, --interactive   Prompt for values
+  -q, --quiet         Quiet (no output)
+  -v, --verbose       Verbose output
+  -V, --veryverbose   Very verbose output
+  -h, --help          Display this help and exit
+      --version       Output version information and exit
 "
 }
 
@@ -52,44 +49,47 @@ default designation, and scope is supported.
 ##################################################################
 ##################################################################
 
-source "$DIR/systems-common.sh"
+source "$DIR/monitors-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 
+	hosturl=${hosturl%/}
+
 	if [ -n "$args" ]; then
-		systemsurl="${hosturl}${args}?pretty=true"
-	else
-		querystring="pretty=true"
-		if [ -n "$storageonly" ]; then
-			querystring="type=storage&${querystring}"
-		elif [ -n "$executiononly" ]; then
-			querystring="type=execution&${querystring}"
-		fi
 
-		if [ -n "$publiconly" ]; then
-			querystring="publicOnly=true&${querystring}"
-		fi
+  	monitorurl="${hosturl}/${args}?pretty=true"
 
-		if [ -n "$privateonly" ]; then
-			querystring="privateOnly=true&${querystring}"
-		fi
+  else
 
-		if [ -n "$defaultonly" ]; then
-			querystring="default=true&${querystring}"
-		fi
+    queryParams="pretty=true"
 
-		systemsurl="${hosturl}?${querystring}"
+    if [ -n "$activeonly" ]; then
+
+      queryParams="active=true&${queryParams}"
+
+    elif [ -n "$inactiveonly" ]; then
+
+      queryParams="active=false&${queryParams}"
+
+    fi
+
+    if [ -n "$target" ]; then
+		    queryParams="target=${target}&${queryParams}"
+	  fi
+
+		monitorurl="${hosturl}?${queryParams}"
+
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" ${systemsurl}"
+	cmd="curl -sk -H \"${authheader}\" ${monitorurl}"
 
 	if ((veryverbose)); then
-		log "Calling $cmd"
-	fi
+			log "Calling $cmd"
+		fi
 
-	response=`curl -sk -H "${authheader}" "${systemsurl}"`
+	response=`curl -sk -H "${authheader}" "${monitorurl}"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
@@ -107,12 +107,33 @@ format_api_json() {
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
-	elif [ -n "$args" ]; then
-		result=$(jsonquery "$1" "result.id")
-		echo "${result}"
 	else
-		result=$(jsonquery "$1" "result.[].id")
-		echo "${result}"
+
+    if [ -n "$args" ]; then
+      montarget=$(jsonquery "$1" "result.target")
+      monfreq=$(jsonquery "$1" "result.frequency")
+      echo "$args $montarget $monfreq"
+    else
+      monitors=( $(jsonquery "$1" "result.[].id") )
+
+      n=0
+      for i in $(jsonquery "$1" "result.[].target")
+      do
+        monitors[$n]="${monitors[$n]} $i"
+        n=$[n+1]
+      done
+
+      n=0
+      for i in $(jsonquery "$1" "result.[].frequency")
+      do
+        monitors[$n]="${monitors[$n]} $i"
+        n=$[n+1]
+      done
+
+      for i in "${monitors[@]}"; do
+        echo "$i"
+      done
+    fi
 	fi
 }
 
@@ -127,7 +148,6 @@ format_api_json() {
 # Parse command line options
 source "$DIR/options.sh"
 
-
 # Main loop {{{
 
 # Print help if no arguments were passed.
@@ -139,13 +159,11 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
+    -T|--target) shift; target=$1 ;;
+    -A|--activeonly) activeonly=1 ;;
+    -I|--inactiveonly) inactiveonly=1 ;;
     -H|--hosturl) shift; hosturl=$1;;
-  	-S|--storageonly) storageonly=1;;
-    -E|--executiononly) executiononly=1;;
-    -D|--defaultonly) defaultonly=1;;
-    -P|--publiconly) publiconly=1;;
-    -Q|--privateonly) privateonly=1;;
-    -d|--development) development=1 ;;
+  	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
     -V|--veryverbose) veryverbose=1; verbose=1 ;;
     -q|--quiet) quiet=1 ;;

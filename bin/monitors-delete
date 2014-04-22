@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# notifications-delete
+# monitors-delete
 #
 # author: dooley@tacc.utexas.edu
 #
@@ -20,21 +20,22 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [NOTIFICATION_ID]
+  echo -n "$(basename $0) [OPTION]... [MONITOR_ID]
 
-Delete a registered notification. The associated object will not be altered.
+Delete a registered monitor. This will delete the monitor history as well. If
+you simply want to pause the monitor, consider deactivating it instead.
 
  Options:
-  -z, --access_token	Access token
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -z, --access_token  Access token
+  -H, --hosturl       URL of the service
+  -d, --development   Run in dev mode using default dev server
+  -f, --force         Skip all user interaction
+  -i, --interactive   Prompt for values
+  -q, --quiet         Quiet (no output)
+  -v, --verbose       Verbose output
+  -V, --veryverbose   Very verbose output
+  -h, --help          Display this help and exit
+      --version       Output version information and exit
 "
 }
 
@@ -44,14 +45,14 @@ Delete a registered notification. The associated object will not be altered.
 ##################################################################
 ##################################################################
 
-source "$DIR/notifications-common.sh"
+source "$DIR/monitors-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 
 	if [ -z "$args" ]; then
-		err "Please specify a valid notification object id to delete"
+		err "Please specify a valid monitor id to delete"
 	else
 
 		cmd="curl -sk -H \"${authheader}\" -X DELETE ${hosturl}${args}?pretty=true"
@@ -80,7 +81,7 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		echo "Successfully deleted notification $args"
+		echo "Successfully deleted monitor $args"
 	fi
 }
 
