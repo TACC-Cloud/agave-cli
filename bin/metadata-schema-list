@@ -1,11 +1,11 @@
 #!/bin/bash
-# 
+#
 # metadata-schema-list
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It retrieves a list of metadata schemas. Optionally, one can search by 
+# It retrieves a list of metadata schemas. Optionally, one can search by
 # a custom search term using json dot notation
 #
 
@@ -30,7 +30,7 @@ a custom query string following MongoDB conventions.
  Options:
   -z, --access_token	Access token
   -Q, --query		Search for metadata by custom query
-  -P, --parentid	Search for metadata associated with the given parent 
+  -P, --parentid	Search for metadata associated with the given parent
   					object id
   -H, --hosturl     URL of the service
   -d, --development Run in dev mode using default dev server
@@ -55,24 +55,25 @@ source "$DIR/metadata-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	hosturl=${hosturl%/}
 	if [ -n "$args" ]; then
 		metaurl="$hosturl/schemas/${args}?pretty=true"
 	elif [ -n "$query" ]; then
-		metaurl="$hosturl/schemas/?q=${query}&pretty=true"
+    qry=`echo -ne "${query}" | hexdump -v -e '/1 "%02x"' | sed 's/\(..\)/%\1/g'`
+    metaurl="$hosturl/schemas/?q=${qry}&pretty=true"
 	elif [ -n "$parentid" ]; then
 		metaurl="$hosturl/schemas/?q=ref:${parentid}&?pretty=true"
 	else
 		metaurl="$hosturl/schemas/?pretty=true"
 	fi
-	
+
 	cmd="curl -sk -H \"${authheader}\" $metaurl"
 
 	if ((veryverbose)); then
 		log "Calling $cmd"
 	fi
-	
+
 	response=`curl -sk -H "${authheader}" "$metaurl"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
@@ -85,7 +86,7 @@ main() {
 }
 
 format_api_json() {
-	
+
 	if ((veryverbose)); then
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
@@ -146,4 +147,3 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
-
