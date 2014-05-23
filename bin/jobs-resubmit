@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # jobs-resubmit
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -51,8 +51,8 @@ source "$DIR/jobs-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
-	if [ -Z "$args" ]; then 
+
+	if [[ -z "$args" ]]; then 
 		err "Please specify a job id to resubmit"
 	else
 		cmd="curl -sk -H \"${authheader}\" -X POST -d \"action=resubmit\" $hosturl$args?pretty=true"

@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # profiles-list
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -21,6 +21,7 @@ interactive_opts=(access_token)
 # Print usage
 usage() {
   echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... USERNAME
 
 List one or more API users. Results can be filtered by partial name,
 email, or username using the appropriate options.
@@ -53,10 +54,12 @@ source "$DIR/profiles-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	#hosturl=${hosturl%/}
-	
-	if [ -n "$user" ]; then
+
+  if [ -n "$args" ]; then
+    profileurl="$hosturl$args?pretty=true"
+	elif [ -n "$user" ]; then
 		profileurl="${hosturl}?username=${user}&pretty=true"
 	elif [ -n "$email" ]; then
 		profileurl="${hosturl}?email=${email}&pretty=true"
@@ -65,15 +68,15 @@ main() {
 	else
 		profileurl="$hosturl?pretty=true"
 	fi
-	
+
 	cmd="curl -sk -H \"${authheader}\" $profileurl"
 
 	if ((veryverbose)); then
 		log "Calling $cmd"
 	fi
-		
+
 	response=`curl -sk -H "${authheader}" "${profileurl}"`
-	
+
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
 		success "$result"
@@ -84,14 +87,18 @@ main() {
 }
 
 format_api_json() {
-	
+
 	if ((veryverbose)); then
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		result=$(jsonquery "$1" "result.[].email")
+    if [ -n "$args" ]; then
+		    result=$(jsonquery "$1" "result.email")
+    else
+      result=$(jsonquery "$1" "result.[].email")
+    fi
 		success "${result}"
 	fi
 }
@@ -142,4 +149,3 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
-
