@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # files-upload
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -23,15 +23,15 @@ usage() {
   echo -n "$(basename $0) [OPTION]... [PATH]
 
 Uploads a local file or folder to a remote storage system. The upload will occur
-via HTTP. The subsequent staging will be done via the native data protocol for 
+via HTTP. The subsequent staging will be done via the native data protocol for
 the destination system. If the given file type requires import filtering, it will
 be applied prior to the callback being sent. If not system id is specified, the
 user's default storage system will be used.
 
  Options:
   -z, --access_token	Access token
-  -F, --filetoupload The file containing the json app description to submit
-  -C, --callbackurl	The email address or webhook to notify upon completion of all 
+  -F, --filetoupload The file or folder to upload
+  -C, --callbackurl	The email address or webhook to notify upon completion of all
   					import filtering
   -T, --filetype	The filetype associated with this file. See transforms-list
   					for a full list of supported file types. Defaults to 'raw'
@@ -60,40 +60,40 @@ source "$DIR/files-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	local post_options='';
-	
+
 	if [ ! -e "$filetoupload" ]; then
-		
+
 		response="Local file $filetoupload does not exist"
 		err "$response"
-	
+
 	else
-	
+
 		if [ -n "$callbackurl" ]; then
 			post_options="callbackURL=${callbackurl}"
 		fi
-	
+
 		if [ -n "$filetype" ]; then
 			post_options="fileType=${filetype}&${post_options}"
 		fi
-	
+
 		if [ -n "$systemid" ]; then
 			filesurl="${hosturl}media/system/${systemid}/"
 		else
 			filesurl="${hosturl}media/"
 		fi
-	
+
 		if [ -n "$filename" ]; then
 			post_options="fileName=${filename}&${post_options}"
-		fi	
-	
+		fi
+
 		# If the filetoupload is a file, then just copy it up.
 		if [ -f "$filetoupload" ]; then
-		
+      out "Uploading ${filetoupload}..."
 			#recursively copy the folder applying filename to the root
 			if [ -n "$post_options" ]; then
-	
+
 				post_options=${post_options%&}
 
 				cmd="curl -# -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" -F \"${post_options}\" $filesurl$args?pretty=true"
@@ -103,9 +103,9 @@ main() {
 				fi
 				#response='{"status":"success","response":{},"message":null}'
 				response=`curl -# -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" -F "${post_options}" "$filesurl$args?pretty=true"`
-			
+
 			else
-	
+
 				cmd="curl -# -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" $filesurl$args?pretty=true"
 
 				if ((veryverbose)); then
@@ -113,62 +113,70 @@ main() {
 				fi
 				#response='{"status":"success","response":{},"message":null}'
 				response=`curl -# -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$filesurl$args?pretty=true"`
-	
+
 			fi
-		
+
 		# if it is a directory, then create the remote directory, using the $filename value
 		# or the basename of the $filetoupload, then recursively uploading the contents
 		else
 			filetoupload=${filetoupload%/}
 			cliargs=''
-			
+
 			if ((development)); then
 				cliargs="${cliargs} -d"
 			fi
-	
+
 			if ((veryverbose)); then
 				cliargs="${cliargs} -V"
 			fi
-	
+
 			if ((verbose)); then
 				cliargs="${cliargs} -v"
 			fi
-	
+
 			if [ -n "$systemid" ]; then
 				cliargs="${cliargs} -S ${systemid}"
 			fi
-		
+
 			if [ -d "$filename" ]; then
 				newdirname="$filename"
 			else
 				newdirname=`basename ${filetoupload}`
-			fi	
-		
+			fi
+
 			if [[ -d "$args" ]]; then
 				args=${args%/}
 			fi
 			newdirpath="${args}/${newdirname}"
-			
-			echo "Creating directory $newdirpath ..."
-			echo "Calling $DIR/files-mkdir ${cliargs} -N ${newdirname} $args"
+
+			out "Creating directory $newdirpath ..."
+			log "Calling $DIR/files-mkdir ${cliargs} -N ${newdirname} $args"
 			# create the remote directory to which everything will be copied
-			$DIR/files-mkdir ${cliargs} -N ${newdirname} $args
-		
+			mkdir_response=$($DIR/files-mkdir ${cliargs} -N ${newdirname} $args 1>/dev/null 2>&1)
+
+      if [ ! $? ]; then
+        err "Failed to create remote directory ${args}/${newdirname}"
+        exit
+      fi
+
 			# recursively copy
 			for i in `ls $filetoupload`; do
-		
-				if [ "$i" = "." ] || [ "$i" = ".." ]; then 
-					continue; 
+
+				if [ "$i" = "." ] || [ "$i" = ".." ]; then
+					continue;
 				else
-					
+
 					childfiletoupload="$filetoupload/$i"
-					
+
 					# call out to the mkdirs command
 					#echo "Calling $DIR/files-upload $cliargs -F ${childfiletoupload} $newdirpath"
-					$DIR/files-upload $cliargs -F ${childfiletoupload} $newdirpath
-				fi			
+          upload_response=$($DIR/files-upload $cliargs -F ${childfiletoupload} $newdirpath 3>&1 1>&2 2>&3 | tee /dev/stderr)
+          if [ ! $? ]; then
+            err "$upload_response"
+          fi
+				fi
 			done
-			
+
 			if [ -n "$systemid" ]; then
 				filesurl="${hosturl}listings/system/${systemid}/${newdirpath}"
 			else
@@ -177,10 +185,12 @@ main() {
 			#echo "Calling curl -sk -H ${authheader} \"${filesurl%/}?pretty=true\""
 			response=`curl -sk -H "${authheader}"  "${filesurl%/}?pretty=true"`
 		fi
-		
+
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
-			success "$result"
+      if [ -n "$result" ]; then
+			   success "$result"
+      fi
 		else
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
@@ -191,13 +201,14 @@ main() {
 format_api_json() {
 
 	if ((veryverbose)); then
-		echo "$1"
+		out "$1"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
-		echo "${result}" | python -mjson.tool
-	else
-		local fn=`basename $filetoupload`
-		echo "Successfully uploaded ${fn}"
+		out "${result}" | python -mjson.tool
+	# else
+  #   if [ -f "$filetoupload" ]; then
+	# 	  exit
+  #   fi
 	fi
 }
 

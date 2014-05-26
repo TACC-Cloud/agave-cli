@@ -37,7 +37,10 @@ interactive=0
 development=0
 baseurl="https://agave.iplantc.org"
 devurl="http://localhost:8080"
+#devurl="https://iplant-qa.tacc.utexas.edu/v2"
 tenantid="iplantc-org"
+#tenantid="vdjserver-org"
+#tenantid="araport-org"
 disable_cache=0 # set to 1 to prevent using auth cache.
 args=()
 
@@ -68,6 +71,8 @@ err() {
 		responsemessage=${responsemessage%</ams:message>*}
 		jsonresponsemessage="{\"status\":\"error\",\"message\":\"${responsemessage}\",\"result\":null}"
 		response=`echo "$jsonresponsemessage" | python -mjson.tool`
+	else
+		response=$@
 	fi
 
 	if (($verbose)); then
@@ -382,5 +387,22 @@ get_token_remaining_time() {
 	time_left=`expr $expiration_time - $current_time`
 
 	echo $time_left
+}
+
+is_valid_url() {
+	regex='(\b(https?|ftp|file)://)?[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]'
+	if [[ "$1" =~ $regex ]]
+	then 
+		echo 1
+	fi
+}
+
+to_json_error() {
+  if ((veryverbose)); then
+	response="{ \"status\":\"error\",\"message\":\"$1\",\"result\":null }"
+	response=`echo "$response" | python -mjson.tool`
+  else
+	response="$1"
+  fi
 }
 # }}}

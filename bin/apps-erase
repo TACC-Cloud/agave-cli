@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# systems-erase
+# apps-erase
 #
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It erases the system completely. This is an admin-only action and
+# It erases the app completely. This is an admin-only action and
 # should not be used unless you completely understand what you are
 # doing.
 #
@@ -22,12 +22,12 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
+  echo -n "$(basename $0) [OPTION]... [APP_ID]
 
-Erases a system completely. This is an admin-only action and should not
+Erases an app completely. This is an admin-only action and should not
 be used unless you completely understand what you are doing. This action
-does not clean up references to itself in remote apps, files, metadata,
-etc, so it can get messy.
+removes jobs, notifications, and metadata associated with it. Use with
+caution
 
  Options:
   -z, --access_token	Access token
@@ -49,45 +49,44 @@ etc, so it can get messy.
 ##################################################################
 ##################################################################
 
-source "$DIR/systems-common.sh"
+source "$DIR/apps-common.sh"
 
 main() {
-	#echo -n
-	#set -x
+  #echo -n
+  #set -x
 
-	if [ -z "$args" ]; then
-		err "Please specify a valid system id to erase"
-	else
+  if [ -z "$args" ]; then
+    err "Please specify a valid app id to erase"
+  else
 
-		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=erase\" $hosturl$args?pretty=true"
+    cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=erase\" $hosturl$args?pretty=true"
 
-		if ((veryverbose)); then
-			log "Calling $cmd"
-		fi
+    if ((veryverbose)); then
+      log "Calling $cmd"
+    fi
 
-		response=`curl -sk -H "${authheader}" -X PUT -d "action=erase" "$hosturl$args?pretty=true"`
+    response=`curl -sk -H "${authheader}" -X PUT -d "action=erase" "$hosturl$args?pretty=true"`
 
-		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-			result=$(format_api_json "$response")
-			success "$result"
-		else
-			errorresponse=$(jsonquery "$response" "message")
-			err "$errorresponse"
-		fi
-	fi
+    if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+      result=$(format_api_json "$response")
+      success "$result"
+    else
+      errorresponse=$(jsonquery "$response" "message")
+      err "$errorresponse"
+    fi
+  fi
 }
 
 format_api_json() {
 
-	if ((veryverbose)); then
-		echo "$1"
-	elif [[ $verbose -eq 1 ]]; then
-		result=$(jsonquery "$1" "result" 1)
-		echo "${result}" | python -mjson.tool
-	else
-		system_id=$(jsonquery "$1" "result.id")
-		echo "Successfully erased system $args"
-	fi
+  if ((veryverbose)); then
+    echo "$1"
+  elif [[ $verbose -eq 1 ]]; then
+    result=$(jsonquery "$1" "result" 1)
+    echo "${result}" | python -mjson.tool
+  else
+    echo "Successfully erased app $args"
+  fi
 }
 
 ##################################################################
@@ -115,7 +114,7 @@ while [[ $1 = -?* ]]; do
     -z|--access_token) shift; access_token=$1 ;;
     -a|--action) shift; action=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
-  	-d|--development) development=1 ;;
+    -d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
     -V|--veryverbose) veryverbose=1; verbose=1 ;;
     -q|--quiet) quiet=1 ;;
