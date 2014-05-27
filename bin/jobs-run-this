@@ -32,6 +32,7 @@ from the main docker index or supply your own Dockerfile.
  Options:
   -z, --access_token  Access token
   -w, --workdir       The directory containing your exe and its dependencies
+  -S, --systemid      The system where the data will be staged and archived
   -n, --name          The name of your job, defaults to <username>-runner
   -c, --command       This is the actual executable needed to run your program in the
                       Docker container. ex. Rscript, python, java, mvn, php, sh.
@@ -78,22 +79,27 @@ main() {
         break
       done
 
-      if [ -z "$extension" ]; then
-        command="sh"
-      elif [ "$extension" == 'class' ]; then
+      if [ "$extension" == 'class' ]; then
         command="java"
+        flavor="alexeiled/java7-maven-git"
       elif [ "$extension" == 'pom' ]; then
         command="mvn"
+        flavor="alexeiled/java7-maven-git"
       elif [ "$extension" == 'php' ]; then
         command="php"
+        flavor="sysdia/docker-php-server"
       elif [ "$extension" == 'py' ]; then
         command="python"
+        flavor="scivm/scientific-python-2.7"
       elif [ "$extension" == 'r' ]; then
         command="Rscript"
+        flavor="scivm/r-project-3.0"
       elif [ "$extension" == 'sh' ]; then
         command="sh"
+        flavor="scivm/scientific-python-2.7"
       elif [ "$extension" == 'pl' ]; then
         command="perl"
+        flavor="scivm/bioperl-1.6.9"
       else
         err "Unknown file extension for $filename. Please specify the program used to invoke this file using the -c option"
         exit
@@ -125,6 +131,15 @@ main() {
   SUBMIT_TIMESTAMP=`date +%s%3N`
   PACKAGE_NAME="${name}-${SUBMIT_TIMESTAMP}.tgz"
   REMOTE_PATH="${username}/inputs"
+
+  if [ -n "$systemid" ]; then
+    archiveparam=", \"archive\": true, \"archiveSystem\": \"$systemid\""
+    stagingparm=" -S $systemid"
+    appbundleparam="agave://${systemid}/${REMOTE_PATH}/${PACKAGE_NAME}"
+  else
+    appbundleparam="${REMOTE_PATH}/${PACKAGE_NAME}"
+  fi
+
 
   # If they specified a Dockerfile to pull, retrieve that.
   if [ -n "$dockerfile" ] && [ -n $(is_valid_url $dockerfile) ]; then
@@ -186,7 +201,7 @@ main() {
       fi
     else
       # Otherwise use the default agave base image
-      dockerimageparam=", \"dockerImage\": \"agaveapi/scipyrj\""
+      dockerimageparam=", \"dockerImage\": \"${flavor}\""
     fi
   fi
 
@@ -194,11 +209,11 @@ main() {
   out "Compressing $workdir..."
   tar czf $PACKAGE_NAME -C $workdir --exclude $PACKAGE_NAME .
 
-  # if ((veryverbose)); then
-  #   PARAMS=" -V"
-  # elif ((verbose)); then
-  #   PARAMS=" -v"
-  # fi
+  if ((veryverbose)); then
+    PARAMS=" -V"
+  elif ((verbose)); then
+    PARAMS=" -v"
+  fi
   #
   # if [[ ! -n "$hosturl" ]]; then
   #   PARAMS="${PARAMS} -H \"${hosturl}\""
@@ -223,24 +238,18 @@ main() {
   # Create the remote staging directory for inputs if it does not already exist
   out "Creating remote staging directory..."
 
-  mkdir_response=$(files-mkdir ${PARAMS} -N $REMOTE_PATH . 1>/dev/null 2>&1)
+  mkdir_response=$(files-mkdir ${PARAMS} ${stagingparm} -N $REMOTE_PATH . 1>/dev/null 2>&1)
   if [[ $mkdir_response == *exists* ]]; then
     out "Directory already exists"
   elif [[ -n $mkdir_response ]]; then
-    if ((veryverbose)); then
-      response="{ \"status\":\"error\",\"message\":\"Failed to create remote folder to stage inputs.\",\"result\":null }"
-      response=`echo "$response" | python -mjson.tool`
-    else
-      response="Failed to create remote folder to stage inputs."
-    fi
-    err $response
+    err "Failed to create remote folder to stage inputs."
     rm $PACKAGE_NAME
     exit
   fi
 
   # Upload the app package to the user's default storage system
   out "Uploading compressed work directory..."
-  upload_response=$(files-upload ${PARAMS} -F $PACKAGE_NAME $REMOTE_PATH 3>&1 1>&2 2>&3 | tee /dev/stderr)
+  upload_response=$(files-upload ${PARAMS} ${stagingparm} -F $PACKAGE_NAME $REMOTE_PATH 3>&1 1>&2 2>&3 | tee /dev/stderr)
 
   if [[ ! $? ]]; then
     err "$upload_response"
@@ -250,13 +259,14 @@ main() {
 
   rm $PACKAGE_NAME
 
+
   # Create a job description and submit the job
   out "Submitting job..."
   if ((veryverbose)); then
-    log "curl -sk -H \"${authheader}\" -H \"Content-type: application/json\" -X POST --data \"{ \"appId\":\"dooley-dockerapp-0.8.2\", \"name\": \"$name\",\"inputs\": { \"appBundle\":\"$REMOTE_PATH/$PACKAGE_NAME\" }, \"parameters\": { \"unpackInputs\": true$dockerimageparam, \"command\":\"$command\", \"commandArgs\":\"${args}\" }$notifications}\" $hosturl?pretty=true"
+    log "curl -sk -H \"${authheader}\" -H \"Content-type: application/json\" -X POST --data \"{ \"appId\":\"dooley-dockerapp-0.8.2\", \"name\": \"$name\",\"inputs\": { \"appBundle\":\"$appbundleparam\" }, \"parameters\": { \"unpackInputs\": true$dockerimageparam, \"command\":\"$command\", \"commandArgs\":\"${args}\" }${notifications}${archiveparam}}\" $hosturl?pretty=true"
   fi
 
-  response=`curl -sk -H "${authheader}" -H "Content-type: application/json" -X POST --data "{ \"appId\":\"dooley-dockerapp-0.8.2\", \"name\": \"$name\",\"inputs\": { \"appBundle\":\"$REMOTE_PATH/$PACKAGE_NAME\" }, \"parameters\": { \"unpackInputs\": true$dockerimageparam, \"command\":\"$command\", \"commandArgs\":\"${args}\" }$notifications}" "$hosturl?pretty=true"`
+  response=`curl -sk -H "${authheader}" -H "Content-type: application/json" -X POST --data "{ \"appId\":\"dooley-dockerapp-0.8.2\", \"name\": \"$name\",\"inputs\": { \"appBundle\":\"$appbundleparam\" }, \"parameters\": { \"unpackInputs\": true$dockerimageparam, \"command\":\"$command\", \"commandArgs\":\"${args}\" }${notifications}${archiveparam}}" "$hosturl?pretty=true"`
 
   if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
@@ -306,6 +316,7 @@ while [[ $1 = -?* ]]; do
     -w|--workdir) shift; workdir=$1 ;;
     -n|--name) shift; name=$1 ;;
     -e|--email) shift; email=$1 ;;
+    -S|--systemid) shift; systemid=$1 ;;
     -I|--dockerimage) shift; dockerimage=$1;;
     -D|--dockerfile) shift; dockerfile=$1;;
     -H|--hosturl) shift; hosturl=$1;;
