@@ -44,6 +44,8 @@ from the main docker index or supply your own Dockerfile.
   -D, --dockerfile    URL to a Dockerfile that will be used build the Docker
                       container prior to running. If you include a Dockerfile in
                       your work directory, that will be used automatically.
+  -W, --watch         Watch the job history once it has been submitted, updating
+                      every few seconds until it completes.
   -H, --hosturl       URL of the service
   -d, --development   Run in dev mode using default dev server
   -f, --force         Skip all user interaction
@@ -90,13 +92,13 @@ main() {
         flavor="sysdia/docker-php-server"
       elif [ "$extension" == 'py' ]; then
         command="python"
-        flavor="scivm/scientific-python-2.7"
+        flavor="agaveapi/scipy-matplot-2.7"
       elif [ "$extension" == 'r' ]; then
         command="Rscript"
         flavor="scivm/r-project-3.0"
       elif [ "$extension" == 'sh' ]; then
         command="sh"
-        flavor="scivm/scientific-python-2.7"
+        flavor="agaveapi/scipy-matplot-2.7"
       elif [ "$extension" == 'pl' ]; then
         command="perl"
         flavor="scivm/bioperl-1.6.9"
@@ -125,7 +127,8 @@ main() {
   fi
 
   if [ -n "$email" ]; then
-    notifications=", \"notifications\": [ { \"url\": \"$email\",\"event\": \"FINISHED\", \"persistent\": false }, { \"url\": \"$email\",\"event\": \"FAILED\", \"persistent\": false } ]"
+    #notifications=", \"notifications\": [ { \"url\": \"$email\",\"event\": \"FINISHED\", \"persistent\": false }, { \"url\": \"$email\",\"event\": \"FAILED\", \"persistent\": false } ]"
+    notifications=", \"notifications\": [ { \"url\": \"http://requestb.in/1k8tjas1?event=${EVENT}&job_id=${JOB_ID}&job_system=${JOB_SYSTEM}\",\"event\": \"*\", \"persistent\": true }, { \"url\": \"$email\",\"event\": \"*\", \"persistent\": true } ]"
   fi
 
   SUBMIT_TIMESTAMP=`date +%s%3N`
@@ -207,7 +210,7 @@ main() {
 
   # Compress the work directory for staging
   out "Compressing $workdir..."
-  tar czf $PACKAGE_NAME -C $workdir --exclude $PACKAGE_NAME .
+  tar czf $PACKAGE_NAME -C $workdir --exclude $PACKAGE_NAME --exclude .agave.history .
 
   if ((veryverbose)); then
     PARAMS=" -V"
@@ -269,8 +272,18 @@ main() {
   response=`curl -sk -H "${authheader}" -H "Content-type: application/json" -X POST --data "{ \"appId\":\"dooley-dockerapp-0.8.2\", \"name\": \"$name\",\"inputs\": { \"appBundle\":\"$appbundleparam\" }, \"parameters\": { \"unpackInputs\": true$dockerimageparam, \"command\":\"$command\", \"commandArgs\":\"${args}\" }${notifications}${archiveparam}}" "$hosturl?pretty=true"`
 
   if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-		result=$(format_api_json "$response")
-		success "$result"
+
+    # prepend the job id to the local history file
+    jobwatchid=$(jsonquery "$response" "result.id")
+    echo "$jobwatchid" | cat - .agave.history > .agave.tmp && mv .agave.tmp .agave.history
+
+    result=$(format_api_json "$response")
+    success "$result"
+
+    if ((watch)); then
+      jobs-history -W $jobwatchid
+    fi
+    
 	else
 		errorresponse=$(jsonquery "$response" "message")
 		err "$errorresponse"
@@ -319,6 +332,7 @@ while [[ $1 = -?* ]]; do
     -S|--systemid) shift; systemid=$1 ;;
     -I|--dockerimage) shift; dockerimage=$1;;
     -D|--dockerfile) shift; dockerfile=$1;;
+    -W|--watch) watch=1;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

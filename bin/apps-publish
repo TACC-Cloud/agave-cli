@@ -1,12 +1,12 @@
 #!/bin/bash
-# 
+#
 # apps-publish
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
 # It publishes an app for public use. The new app id will be identical
-# to the previous one with the revision number appended to the end. 
+# to the previous one with the revision number appended to the end.
 # Publishing an app multiple times will result in unique snapshots of
 # the app indicated by an incrementing revision number. For example,
 # publishing an app identified as boilerplate-1.0 would produce a public
@@ -33,7 +33,7 @@ usage() {
   echo -n "$(basename $0) [OPTION]... [APP_ID]
 
 Publishes an app for public use. The new app id will be identical
-to the previous one with the revision number appended to the end. 
+to the previous one with the revision number appended to the end.
 Publishing an app multiple times will result in unique snapshots of
 the app indicated by an incrementing revision number. For example,
 publishing an app identified as boilerplate-1.0 would produce a public
@@ -69,17 +69,17 @@ source "$DIR/apps-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [ -z "$args" ]; then
 		err "Please specify a valid app id to publish"
 	else
-		
+
 		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=publish\" $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
-	
+
 		response=`curl -sk -H "${authheader}" -X PUT -d "action=publish" "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
@@ -89,7 +89,7 @@ main() {
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
 		fi
-	fi	
+	fi
 }
 
 format_api_json() {
@@ -100,8 +100,8 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		jsonval app_id "$1" "id" 
-		success "Successfully published app $args as $app_id"
+		result=$(jsonquery "$1" "result.id")
+    success "Successfully published app $args as $result"
 	fi
 }
 

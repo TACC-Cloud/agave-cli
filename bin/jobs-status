@@ -1,11 +1,11 @@
 #!/bin/bash
-# 
+#
 # jobs-list
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It retrieves an abbreviated job description containing just the job status 
+# It retrieves an abbreviated job description containing just the job status
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -22,21 +22,23 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [JOB_ID]
 Retrieve an abbreviated job description containing just the job status and id. This
-does essentially the same thing as the jobs-list script, but the URL is different 
-and the response from the Jobs service is significantly smaller. This serves as an 
+does essentially the same thing as the jobs-list script, but the URL is different
+and the response from the Jobs service is significantly smaller. This serves as an
 example of how one could query for job information when bandwidth is an issue.
 
  Options:
   -z, --access_token	Access token
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -W, --watch         Watches the job status, updating every few seconds
+                      until the job reaches a terminal state.
+  -H, --hosturl       URL of the service
+  -d, --development   Run in dev mode using default dev server
+  -f, --force         Skip all user interaction
+  -i, --interactive   Prompt for values
+  -q, --quiet         Quiet (no output)
+  -v, --verbose       Verbose output
+  -V, --veryverbose   Very verbose output
+  -h, --help          Display this help and exit
+      --version       Output version information and exit
 "
 }
 
@@ -51,35 +53,45 @@ source "$DIR/jobs-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	hosturl=${hosturl%/}
 	if [ -z "$args" ]; then
 		err "Please specify a valid app id for which to retrieve permissions"
 	else
-	
+
 		jobsurl="$hosturl/$args/status"
-	
+
 		cmd="curl -sk -H \"${authheader}\" $jobsurl?pretty=true"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
-	
+
 		response=`curl -sk -H "${authheader}" "$jobsurl?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
 			success "$result"
+
+      if ((watch)); then
+        completed=$(jsonquery "$response" "result.status" | grep "FINISHED\|FAILED" | grep -v "ARCHIVING")
+        if [[ -z "$completed" ]]; then
+          sleep 2
+          main
+        else
+          echo "Terminating watch"
+        fi
+      fi
 		else
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
 		fi
-		
+
 	fi
 }
 
 format_api_json() {
-	
+
 	if ((veryverbose)); then
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
@@ -113,6 +125,7 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
+    -W| --watch) watch=1;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
@@ -133,4 +146,3 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
-
