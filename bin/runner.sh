@@ -30,9 +30,9 @@ else
 	#echo "Loooking for stored credentials"
 	# Otherwise use the cached credentials if available
 	if [ "$disable_cache" -ne 1 ]; then
-		if [ -f "$HOME/.agave" ]; then
+		tokenstore=$(kvget current)
+		if [ -n "$tokenstore" ]; then
 			#echo "Found for stored credentials"
-			tokenstore=`cat ~/.agave`
 			jsonval apisecret "${tokenstore}" "apisecret"
 			jsonval apikey "${tokenstore}" "apikey"
 			jsonval username "${tokenstore}" "username"

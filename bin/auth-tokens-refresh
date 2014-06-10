@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # auth-tokens-create.sh
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -58,27 +58,27 @@ source "$DIR/auth-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	local post_options="grant_type=refresh_token&refresh_token=${refresh_token}&scope=PRODUCTION"
-	
+
 	# if [ -n "$tenant" ]; then
 # 		post_options="tenant=${tenant}"
 # 	fi
-# 	
+#
 # 	if [ -n "$proxyuser" ]; then
 # 		post_options="enduser=${proxyuser}&${post_options}"
 # 	fi
 	#
 	#post_options=${post_options%&}
-	
+
 	cmd="curl -sku \"$apikey:XXXXXX\" -X POST -d \"${post_options}\" -H \"Content-Type:application/x-www-form-urlencoded\" ${hosturl%/}"
 
 	if ((veryverbose)); then
 		log "Calling $cmd"
 	fi
-		
+
 	response=`curl -sku "$apikey:$apisecret" -X POST -d "${post_options}" -H "Content-Type:application/x-www-form-urlencoded" "${hosturl%/}"`
-	
+
 	if [[ $(jsonquery "$response" "token_type") = 'bearer' ]]; then
 		result=$(format_api_json "$response")
 		success "$result"
@@ -88,19 +88,19 @@ main() {
 }
 
 format_api_json() {
-	
+
 	if ((storetoken)); then
 		# if [ -n "$proxyuser" ]; then
 # 			apisecret=$apiusername;
 # 		fi
-		jsonval access_token "$1" "access_token" 
-		jsonval refresh_token "$1" "refresh_token" 
-		echo "{\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\"}" > ~/.agave
-		
+		jsonval access_token "$1" "access_token"
+		jsonval refresh_token "$1" "refresh_token"
+		kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\"}"
+
 		lifetime=$(jsonquery "$1" "expires_in")
 		echo "Token successfully refreshed and cached for ${lifetime} seconds";
-	fi	
-		
+	fi
+
 	if ((veryverbose)); then
 		echo "${1}" | python -mjson.tool
 	elif [[ $verbose -eq 1 ]]; then
@@ -158,4 +158,3 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
-

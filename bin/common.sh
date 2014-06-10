@@ -8,6 +8,16 @@
 # A lot of this is based on options.bash by Daniel Mills.
 # @see https://github.com/e36freak/tools/blob/master/options.bash
 
+# add keyvalue support
+source $DIR/kv-bash
+
+# update the old cache to the new key-value format if present
+if [ -f "$HOME/.agave" ]; then
+  oldcache=$(cat $HOME/.agave)
+  rm $HOME/.agave
+  mkdir $HOME/.agave
+  kvset current "$oldcache"
+fi
 
 # Preamble {{{
 
@@ -35,12 +45,6 @@ verbose=0
 veryverbose=0
 interactive=0
 development=0
-baseurl="https://agave.iplantc.org"
-devurl="http://localhost:8080"
-#devurl="https://iplant-qa.tacc.utexas.edu/v2"
-tenantid="iplantc-org"
-#tenantid="vdjserver-org"
-#tenantid="araport-org"
 disable_cache=0 # set to 1 to prevent using auth cache.
 args=()
 
@@ -244,9 +248,10 @@ function jsonquery {
 prompt_options() {
   local desc=
   local val=
-  if [ -f "$HOME/.agave" ]; then
-	  tokenstore=`cat $HOME/.agave`
-  fi
+  tokenstore=$(kvget current)
+  # if [ ! -z "$(kvget current)" ]; then
+	#   tokenstore=$(kvget current)
+  # fi
 
   for val in ${interactive_opts[@]}; do
 
@@ -288,32 +293,32 @@ prompt_options() {
     # In case this is a password field, hide the user input
     if [[ $val == "apikey" ]]; then
     	jsonval savedapikey "${tokenstore}" "apikey"
-		echo -n "API key [$savedapikey]: "
-      	eval "read $val"
-      	if  [[ -z $apikey ]]; then
-      		apikey=$savedapikey
-      	fi
-      	#stty -echo; read apikey; stty echo
-      	#echo
+	    echo -n "API key [$savedapikey]: "
+    	eval "read $val"
+    	if  [[ -z $apikey ]]; then
+    		apikey=$savedapikey
+    	fi
+    	#stty -echo; read apikey; stty echo
+    	#echo
     elif [[ $val == "refresh_token" ]]; then
     	jsonval savedrefreshtoken "${tokenstore}" "refresh_token"
-		echo -n "Refresh token [$savedrefreshtoken]: "
-      	eval "read $val"
-      	if  [[ -z $refresh_token ]]; then
-      		refresh_token=$savedrefreshtoken
-      	fi
-      	#stty -echo; read apikey; stty echo
-      	#echo
+	    echo -n "Refresh token [$savedrefreshtoken]: "
+    	eval "read $val"
+    	if  [[ -z $refresh_token ]]; then
+    		refresh_token=$savedrefreshtoken
+    	fi
+    	#stty -echo; read apikey; stty echo
+    	#echo
     elif [[ $val == "apisecret" ]]; then
     	jsonval savedapisecret "${tokenstore}" "apisecret"
-		echo -n "API secret [$savedapisecret]: "
+		  echo -n "API secret [$savedapisecret]: "
     	eval "read $val"
-      	if  [[ -z $apisecret ]]; then
-      		apisecret=$savedapisecret
-      	fi
+    	if  [[ -z $apisecret ]]; then
+    		apisecret=$savedapisecret
+    	fi
     elif [[ $val == "username" ]]; then
     	jsonval savedusername "${tokenstore}" "username"
-		echo -n "API username [$savedusername]: "
+		  echo -n "API username [$savedusername]: "
     	eval "read $val"
     	if  [[ -z $username ]]; then
       		username=$savedusername
@@ -331,7 +336,7 @@ prompt_options() {
 	# Otherwise just read the input
     else
     	echo -n "$desc: "
-		eval "read $val"
+		  eval "read $val"
     fi
   done
 }
@@ -340,11 +345,7 @@ get_auth_header() {
 	if [[ "$development" -ne 1 ]]; then
 		echo "Authorization: Bearer $access_token"
 	else
-		#echo " -u \"${username}:${password}\" "
-		jwtprefix="eyJ0eXAiOiJKV1QiLCJhbGciOiJTSEEyNTZ3aXRoUlNBIiwieDV0IjoiTm1KbU9HVXhNelpsWWpNMlpEUmhOVFpsWVRBMVl6ZGhaVFJpT1dFME5XSTJNMkptT1RjMVpBPT0ifQ=="
-		jwtbody=`echo "{\"iss\":\"wso2.org/products/am\",\"exp\":2384481713842,\"http://wso2.org/claims/subscriber\":\"${username}\",\"http://wso2.org/claims/applicationid\":\"5\",\"http://wso2.org/claims/applicationname\":\"DefaultApplication\",\"http://wso2.org/claims/applicationtier\":\"Unlimited\",\"http://wso2.org/claims/apicontext\":\"/apps\",\"http://wso2.org/claims/version\":\"2.0\",\"http://wso2.org/claims/tier\":\"Unlimited\",\"http://wso2.org/claims/keytype\":\"PRODUCTION\",\"http://wso2.org/claims/usertype\":\"APPLICATION_USER\",\"http://wso2.org/claims/enduser\":\"${username}\",\"http://wso2.org/claims/enduserTenantId\":\"-9999\", \"http://wso2.org/claims/emailaddress\":\"${username}@test.com\", \"http://wso2.org/claims/fullname\":\"Dev User\", \"http://wso2.org/claims/givenname\":\"Dev\", \"http://wso2.org/claims/lastname\":\"User\", \"http://wso2.org/claims/primaryChallengeQuestion\":\"N/A\", \"http://wso2.org/claims/role\":\"Internal/everyone\", \"http://wso2.org/claims/title\":\"N/A\"}" | base64 -`
-		jwtsuffix="FA6GZjrB6mOdpEkdIQL/p2Hcqdo2QRkg/ugBbal8wQt6DCBb1gC6wPDoAenLIOc+yDorHPAgRJeLyt2DutNrKRFv6czq1wz7008DrdLOtbT4EKI96+mXJNQuxrpuU9lDZmD4af/HJYZ7HXg3Hc05+qDJ+JdYHfxENMi54fXWrxs="
-		echo "x-jwt-assertion-${tenantid}: ${jwtprefix}.${jwtbody}.${jwtsuffix}"
+		echo " -u \"${username}:${password}\" "
 	fi
 }
 
@@ -376,7 +377,7 @@ check_response_status() {
 
 get_token_remaining_time() {
 
-	auth_cache=`cat ~/.agave`
+	auth_cache=`kvget current`
 
 	jsonval expires_in "$auth_cache" "expires_in"
 	jsonval created_at "$auth_cache" "created_at"
@@ -392,7 +393,7 @@ get_token_remaining_time() {
 is_valid_url() {
 	regex='(\b(https?|ftp|file)://)?[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]'
 	if [[ "$1" =~ $regex ]]
-	then 
+	then
 		echo 1
 	fi
 }
@@ -405,4 +406,37 @@ to_json_error() {
 	response="$1"
   fi
 }
+
+# load tenant-specific settings
+calling_cli_command=$(basename $0)
+currentconfig=$(kvget current)
+
+if [[ "tenants-init" != "$calling_cli_command" ]] && [[ "tenants-list" != "$calling_cli_command" ]]; then
+  if [[ -z $currentconfig ]]; then
+    err "Please run $DIR/tenants-init to initialize your client before attempting to interact with the APIs."
+    exit
+  fi
+
+  jsonval baseurl "${currentconfig}" "baseurl"
+  if  [[ -z $baseurl ]]; then
+    err "Please run $DIR/tenants-init to configure your client endpoints before attempting to interact with the APIs."
+    exit
+  else
+    baseurl="https:${baseurl%/}"
+  fi
+
+  jsonval devurl "${currentconfig}" "devurl"
+  if [[ -z "devurl" ]]; then
+    err "Please run $DIR/tenants-init to configure your development endpoints before attempting to interact with the APIs."
+    exit
+  else
+    devurl="https:${devurl%/}"
+  fi
+
+  jsonval tenantid "${currentconfig}" "tenantid"
+  if [[ -z "tenantid" ]]; then
+    err "Please run $DIR/tenants-init to configure your client id before attempting to interact with the APIs."
+    exit
+  fi
+fi
 # }}}

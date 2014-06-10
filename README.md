@@ -23,6 +23,16 @@ Just clone the repository from Bitbucket and add the bin directory to your class
 	> export PATH=$PATH:`pwd`/foundation-cli/bin
 	
 
+Configuaration
+====================
+Prior to using the CLI, you will need to initialize your environment using the `tenants-init` command and selecting your organization from the list. This is a one-time process that sets the proper URL base path for your tenant and stores it in a cache file on your system. You can configure the location of the authentication cache by setting the `$AGAVE_CACHE_DIR` environment variable. The default location is `$HOME/.agave`.
+
+
+Authentication
+====================
+Authentication with the API is done via OAuth2. The CLI will handle the authentication flow for you. Simply run the `auth-tokens-create` command and supply your client key, secret, and username & password and a bearer token will be retrieved from the auth service. Alternatively, you can specify a bearer token at the command line by providing the `-z` or `--access_token` option. If you would like to store a token for repeated use so you don't have to keep reauthenticating with every call, run the `auth-tokens-create` script with the `-S` option to store the token locally for future use. 
+
+
 Contents
 =================
 
@@ -39,6 +49,7 @@ Contents
 		- files*			manage remote files and folders, upload data
 		- transforms*		move data from one location to another
 		- metadata*			create and manage metadata
+		- monitors*			create and manage system monitors
 		- notifications*	create and manage notifications
 	+ util
 		- (synchup)			ensures that the contents of a local folder are always backed up online
@@ -56,5 +67,3 @@ All commands follow a common syntax and share many of the same flags `-h` for he
 	<command> [-hdv] [options] [target]
 	
 Each command has built in help documentation that will be displayed when the `-h` flag is specified. The help documentation will list the actions, options, and targets available for that command.
-
-Authentication with the API is done via OAuth2. The CLI will handle the authentication flow for you. Simply run the `auth-tokens-create` command and supply your client key, secret, and username & password and a bearer token will be retrieved from the auth service. Alternatively, you can specify a bearer token at the command line by providing the `-z` or `--access_token` option. If you would like to store a token for repeated use so you don't have to keep reauthenticating with every call, run the `auth-tokens-create` script with the `-S` option to store the token locally for future use.

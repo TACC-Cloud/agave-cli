@@ -1,12 +1,12 @@
 #!/bin/bash
-# 
+#
 # auth-tokens-create.sh
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
 # It retrieves an authentication token from the auth service that
-# can be used to authenticate to the rest of the api. A valid API 
+# can be used to authenticate to the rest of the api. A valid API
 # secret and key must be used to obtain a token.
 #
 
@@ -28,12 +28,12 @@ interactive_opts=(apisecret apikey username password)
 usage() {
   echo -n "$(basename $0) [OPTION]...
 
-Obtain a new oauth bearer token. Tokens can be used repeatedly until they 
-expire at which point you can simply do an oauth-renew with your API 
-username and password to refresh your token. This step is required to 
+Obtain a new oauth bearer token. Tokens can be used repeatedly until they
+expire at which point you can simply do an oauth-renew with your API
+username and password to refresh your token. This step is required to
 interact with any Agave services
 
-For ease of use, the -S option can be specified to store the new 
+For ease of use, the -S option can be specified to store the new
 credential for reuse in subsequent calls to the API.
 
  Options:
@@ -67,52 +67,52 @@ main() {
 	#echo -n
 	#set -x
 	#hosturl=https://agave.iplantc.org/token
-	local post_options="grant_type=client_credentials&username=${username}&password=${password}&scope=PRODUCTION"
-	
+	local post_options="grant_type=password&username=${username}&password=${password}&scope=PRODUCTION"
+
 	# if [ -n "$tenant" ]; then
 # 		post_options="tenant=${tenant}"
 # 	fi
-# 	
+#
 # 	if [ -n "$proxyuser" ]; then
 # 		post_options="enduser=${proxyuser}&${post_options}"
 # 	fi
 	#
 	#post_options=${post_options%&}
-	
-	cmd="curl -sku \"$apikey:XXXXXX\" -X POST -d \"grant_type=client_credentials&username=${username}&password=XXXXXX&scope=PRODUCTION\" -H \"Content-Type:application/x-www-form-urlencoded\" ${hosturl%/}"
+
+	cmd="curl -sku \"$apikey:XXXXXX\" -X POST -d \"grant_type=password&username=${username}&password=XXXXXX&scope=PRODUCTION\" -H \"Content-Type:application/x-www-form-urlencoded\" ${hosturl%/}"
 
 	if ((veryverbose)); then
 		log "Calling $cmd"
 	fi
-		
+
 	response=`curl -sku "$apikey:$apisecret" -X POST -d "$post_options" -H "Content-Type:application/x-www-form-urlencoded" "${hosturl%/}" | python -mjson.tool`
-	
+
 	if [[ $(jsonquery "$response" "token_type") = 'bearer' ]]; then
 		result=$(format_api_json "$response")
 		success "$result"
 	else
 		err "$response"
 	fi
-	
-	
+
+
 }
 
 format_api_json() {
-	
+
 	if ((storetoken)); then
 		# if [ -n "$proxyuser" ]; then
 # 			apisecret=$apiusername;
 # 		fi
-		jsonval access_token "$1" "access_token" 
-		jsonval refresh_token "$1" "refresh_token" 
-		jsonval expires_in "$1" "expires_in" 
+		jsonval access_token "$1" "access_token"
+		jsonval refresh_token "$1" "refresh_token"
+		jsonval expires_in "$1" "expires_in"
 		created_at=`date +%s`
-		echo "{\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\"}" > ~/.agave
-		
+		kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\"}"
+
 		lifetime=$(jsonquery "$1" "expires_in")
 		echo "Token successfully refreshed and cached for ${lifetime} seconds";
-	fi	
-		
+	fi
+
 	if ((veryverbose)); then
 		echo "${1}"
 	elif [[ $verbose -eq 1 ]]; then
@@ -146,12 +146,12 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -u|--username) shift; username=$1 ;;
-  	-p|--password) shift; password=$1 ;;  	
-	-s|--apisecret) shift; apisecret=$1 ;;
+  	-p|--password) shift; password=$1 ;;
+	  -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
     -x|--proxyuser) shift; proxyuser=$1;;
-	-S|--storetoken) storetoken=1 ;;
-	-H|--hosturl) shift; hosturl=$1;;
+	  -S|--storetoken) storetoken=1 ;;
+    -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
     -V|--veryverbose) veryverbose=1; verbose=1 ;;
@@ -171,4 +171,3 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
-
