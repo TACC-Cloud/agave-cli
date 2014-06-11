@@ -58,16 +58,38 @@ main() {
 	#set -x
 
   if ((restore)); then
-    kvset current $(kvget backup)
-    kvdel backup
+
+    if [ -z "$(kvget backup)" ]; then
+      tenantid=$(jsonquery "$(kvget current)" "tenantid")
+      err "No backup configuration to swap. You are still using $tenantid"
+    else
+      kvset current $(kvget backup)
+      kvdel backup
+      tenantid=$(jsonquery "$(kvget current)" "tenantid")
+      success "Configuration swapped. Now using $tenantid"
+    fi
+
+    exit
 
   elif ((swap)); then
-    kvset backup2 $(kvget current)
-    kvset current $(kvget backup)
-    kvset backup $(kvget backup2)
-    kvdel backup2
+
+    if [ -z "$(kvget backup)" ]; then
+      tenantid=$(jsonquery "$(kvget current)" "tenantid")
+      err "No backup configuration to swap. You are still using $tenantid"
+    else
+      kvset backup2 $(kvget current)
+      kvset current $(kvget backup)
+      kvset backup $(kvget backup2)
+      kvdel backup2
+
+      tenantid=$(jsonquery "$(kvget current)" "tenantid")
+      success "Configuration swapped. Now using $tenantid" 
+    fi
+
+    exit
 
   elif [ -z "$tenant" ]; then
+
     tenantresponse=$(curl -sk ${hosturl%/}/)
     oldIFS="$IFS"
     #tenantids=$(jsonquery "${tenantresponse}" "result.[].tenantId")
@@ -170,8 +192,8 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -t|--tenant) shift; tenant=$1 ;;
     -b|--backup) backup=1 ;;
-    -r|--restore) restore=1;;
-    -s|--swap) swap=1;;
+    -r|--restore) restore=1 ;;
+    -s|--swap) swap=1 ;;
     -d|--developmenturl) shift; developmenturl=$1 ;;
     -v|--verbose) verbose=1 ;;
     -q|--quiet) quiet=1 ;;

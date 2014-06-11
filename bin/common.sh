@@ -45,6 +45,7 @@ verbose=0
 veryverbose=0
 interactive=0
 development=0
+
 disable_cache=0 # set to 1 to prevent using auth cache.
 args=()
 
@@ -345,7 +346,8 @@ get_auth_header() {
 	if [[ "$development" -ne 1 ]]; then
 		echo "Authorization: Bearer $access_token"
 	else
-		echo " -u \"${username}:${password}\" "
+    echo " -u \"${username}:${password}\" "
+		
 	fi
 }
 
@@ -382,12 +384,16 @@ get_token_remaining_time() {
 	jsonval expires_in "$auth_cache" "expires_in"
 	jsonval created_at "$auth_cache" "created_at"
 
-	expiration_time=`expr $created_at + $expires_in`
-	current_time=`date +%s`
+  if [[ -z "$expires_in" ]] || [[ -z "$created_at" ]]; then
+    echo 0
+  else
+  	expiration_time=`expr $created_at + $expires_in`
+  	current_time=`date +%s`
 
-	time_left=`expr $expiration_time - $current_time`
+  	time_left=`expr $expiration_time - $current_time`
 
-	echo $time_left
+  	echo $time_left
+  fi
 }
 
 is_valid_url() {
@@ -417,23 +423,23 @@ if [[ "tenants-init" != "$calling_cli_command" ]] && [[ "tenants-list" != "$call
     exit
   fi
 
-  jsonval baseurl "${currentconfig}" "baseurl"
+  baseurl=$(jsonquery "$currentconfig" "baseurl")
   if  [[ -z $baseurl ]]; then
     err "Please run $DIR/tenants-init to configure your client endpoints before attempting to interact with the APIs."
     exit
   else
-    baseurl="https:${baseurl%/}"
+    baseurl="${baseurl%/}"
   fi
 
-  jsonval devurl "${currentconfig}" "devurl"
+  devurl=$(jsonquery "$currentconfig" "devurl")
   if [[ -z "devurl" ]]; then
     err "Please run $DIR/tenants-init to configure your development endpoints before attempting to interact with the APIs."
     exit
   else
-    devurl="https:${devurl%/}"
+    devurl="${devurl%/}"
   fi
 
-  jsonval tenantid "${currentconfig}" "tenantid"
+  tenantid=$(jsonquery "$currentconfig" "tenantid")
   if [[ -z "tenantid" ]]; then
     err "Please run $DIR/tenants-init to configure your client id before attempting to interact with the APIs."
     exit

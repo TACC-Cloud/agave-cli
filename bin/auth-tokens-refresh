@@ -79,8 +79,9 @@ main() {
 
 	response=`curl -sku "$apikey:$apisecret" -X POST -d "${post_options}" -H "Content-Type:application/x-www-form-urlencoded" "${hosturl%/}"`
 
-	if [[ $(jsonquery "$response" "token_type") = 'bearer' ]]; then
+  if [[ $(jsonquery "$response" "token_type") = 'bearer' ]]; then
 		result=$(format_api_json "$response")
+    #format_api_json "$response"
 		success "$result"
 	else
 		err "$response"
@@ -90,15 +91,18 @@ main() {
 format_api_json() {
 
 	if ((storetoken)); then
-		# if [ -n "$proxyuser" ]; then
-# 			apisecret=$apiusername;
-# 		fi
+
+    jsonval username "$(kvget current)" "username"
 		jsonval access_token "$1" "access_token"
 		jsonval refresh_token "$1" "refresh_token"
-		kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\"}"
+    jsonval expires_in "$1" "expires_in"
+    created_at=$(date +%s)
+    expires_at=`date -r $(expr $created_at + $expires_in)`
 
-		lifetime=$(jsonquery "$1" "expires_in")
-		echo "Token successfully refreshed and cached for ${lifetime} seconds";
+    kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
+
+		echo "Token successfully refreshed and cached for ${expires_in} seconds";
+
 	fi
 
 	if ((veryverbose)); then
