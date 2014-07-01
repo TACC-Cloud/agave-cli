@@ -28,15 +28,17 @@ a new job id is assigned.
 
  Options:
   -z, --access_token	Access token
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -W, --watch         Watch the job history after it has been submitted, updating
+                      every few seconds until the job reaches a terminal state.
+  -H, --hosturl       URL of the service
+  -d, --development   Run in dev mode using default dev server
+  -f, --force         Skip all user interaction
+  -i, --interactive   Prompt for values
+  -q, --quiet         Quiet (no output)
+  -v, --verbose       Verbose output
+  -V, --veryverbose   Very verbose output
+  -h, --help          Display this help and exit
+      --version       Output version information and exit
 "
 }
 
@@ -52,7 +54,7 @@ main() {
 	#echo -n
 	#set -x
 
-	if [[ -z "$args" ]]; then 
+	if [[ -z "$args" ]]; then
 		err "Please specify a job id to resubmit"
 	else
 		cmd="curl -sk -H \"${authheader}\" -X POST -d \"action=resubmit\" $hosturl$args?pretty=true"
@@ -64,8 +66,31 @@ main() {
 		response=`curl -sk -H "${authheader}" -X POST -d "action=resubmit" "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-			result=$(format_api_json "$response")
-			success "$result"
+
+      if ((development)); then
+        jobwatchid=$(jsonquery "$response" "result.id")
+
+        result=$(format_api_json "$response")
+        success "$result"
+
+        if ((debug)); then
+          jhparams=" -d "
+        fi
+
+        if ((veryverbose)); then
+
+          jhparams="$jhparams -V "
+
+        elif ((verbos)); then
+
+          jhparams="$jhparams -v "
+        fi
+
+        jobs-history $jhparams -W $jobwatchid
+      else
+        result=$(format_api_json "$response")
+			  success "$result"
+      fi
 		else
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
@@ -109,6 +134,7 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
+    -W| --watch) watch=1;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

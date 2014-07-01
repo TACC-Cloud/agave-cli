@@ -185,7 +185,11 @@ function isxmlstring {
 
 function jsonquery {
 
-	if [[ -n $(ishtmlstring $1) ]]; then
+  if [[ -z "$1" ]]; then
+    if [[ "$2" = "message" ]]; then
+      echo "Unable to contact api server at $hosturl"
+    fi
+  elif [[ -n $(ishtmlstring $1) ]]; then
 		if [[ "$2" = "message" ]]; then
 			echo "Unable to contact api server"
 		fi
@@ -347,7 +351,7 @@ get_auth_header() {
 		echo "Authorization: Bearer $access_token"
 	else
     echo " -u \"${username}:${password}\" "
-		
+
 	fi
 }
 

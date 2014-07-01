@@ -68,7 +68,20 @@ main() {
       result=$(format_api_json "$response")
       success "$result"
 
-      jobs-history -W $jobwatchid
+      if ((development)); then
+        jhparams=" -d "
+      fi
+
+      if ((veryverbose)); then
+
+        jhparams="$jhparams -V "
+
+      elif ((verbos)); then
+
+        jhparams="$jhparams -v "
+      fi
+
+      jobs-history $jhparams -W $jobwatchid
     else
       result=$(format_api_json "$response")
 		  success "$result"

@@ -73,7 +73,7 @@ main() {
       if ((watch)); then
         completed=$(jsonquery "$response" "result.[].status" | grep "FINISHED\|FAILED" | grep -v "ARCHIVING")
         if [[ -z "$completed" ]]; then
-          sleep 2
+          sleep 5
           main
         else
           echo "Terminating watch"
