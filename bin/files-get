@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # files-get
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -22,11 +22,11 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [PATH]
 
-Downloads a remote file. Regardless of the remote protocol used to access the 
-system, the file will be downloaded over HTTP. Keep this in mind for larger 
-files. If no system is specified, your default storage system will be used. 
-By specifying a system, the path given will be resolved on that remote system. 
-Note that the system id, not hostname must be given. 
+Downloads a remote file. Regardless of the remote protocol used to access the
+system, the file will be downloaded over HTTP. Keep this in mind for larger
+files. If no system is specified, your default storage system will be used.
+By specifying a system, the path given will be resolved on that remote system.
+Note that the system id, not hostname must be given.
 
  Options:
   -z, --access_token	Access token
@@ -57,17 +57,17 @@ source "$DIR/files-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [  -z "$args" ]; then
 		err "Please specify a valid file path to download. Directory downloads are not yet supported."
 	else
-		
+
 		if [ -n "$systemId" ]; then
 			filesurl="${hosturl}media/system/${systemId}/${args}"
 		else
 			filesurl="${hosturl}media/${args}"
 		fi
-	
+
 		if [ -n "$print" ]; then
 			outputarg=" "
 		elif [ -n "$filename" ]; then
@@ -75,13 +75,13 @@ main() {
 		else
 			outputarg="-O"
 		fi
-		
+
 		if [ -n "$range" ]; then
 			filerange="-r ${range} "
 		else
 			filerange=""
 		fi
-	
+
 		cmd="curl -k -H \"${authheader}\" ${filerange} ${outputarg} ${filesurl}"
 
 		if ((veryverbose)); then
@@ -89,6 +89,17 @@ main() {
 		fi
 
 		curl -k -H "${authheader}" ${filerange} ${outputarg} "${filesurl}"
+
+    if [[ -z "$filename" ]]; then
+      filename=$(basename $args)
+    fi
+
+    response=$(grep '"status":"error"' $filename)
+
+    if [[ -n "$response" ]]; then
+      err "$response"
+    fi
+
 	fi
 }
 
@@ -138,4 +149,3 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
-

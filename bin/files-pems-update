@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # files-pems-list
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -22,19 +22,19 @@ interactive_opts=(apisecret apikey username permission)
 usage() {
   echo -n "$(basename $0) [OPTION]... [JOB_ID]
 
-Edit user permissions on a file or folder. For all but iRODS systems, these 
-permissions are set at the API level and do not reflect *nix or other file 
-system ACL. On iRODS systems, if the system.storageConfig.mirror attribute 
-is set to true then any permissions set via the API will be mirrored onto 
-the remote system. 
+Edit user permissions on a file or folder. For all but iRODS systems, these
+permissions are set at the API level and do not reflect *nix or other file
+system ACL. On iRODS systems, if the system.storageConfig.mirror attribute
+is set to true then any permissions set via the API will be mirrored onto
+the remote system.
 
 Also remember that no permissions can be set on public files and folders.
 
  Options:
   -z, --access_token	Access token
   -U, --username	The user whose permissions should be listed
-  -P, --permission	The permission to set. Valid values are READ, 
-  			WRITE, EXECUTE, READ_WRITE, READ_EXECUTE, 
+  -P, --permission	The permission to set. Valid values are READ,
+  			WRITE, EXECUTE, READ_WRITE, READ_EXECUTE,
   			WRITE_EXECUTE, ALL, and NONE
   -S, --systemId	Specify the system id
   -H, --hosturl     	URL of the service
@@ -60,25 +60,25 @@ source "$DIR/files-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [ -z "$args" ]; then
 		err "Please specify a valid file path for which to retrieve permissions"
 	else
-	
+
 		if [ -n "$systemId" ]; then
 			filesurl="${hosturl}pems/system/${systemId}/${args}?pretty=true"
 		else
 			filesurl="${hosturl}pems/${args}?pretty=true"
 		fi
-		
+
 		cmd="curl -sk -H \"${authheader}\" -X POST -d \"username=${pemusername}&permission=${permission}\" ${filesurl}"
 
 		if ((veryverbose)); then
 			log "Calling $cmd"
 		fi
-		
+
 		response=`curl -sk -H "${authheader}" -X POST -d "username=${pemusername}&permission=${permission}" "${filesurl}"`
-	
+
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
 			success "$result"
@@ -86,8 +86,8 @@ main() {
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
 		fi
-	fi	
-	
+	fi
+
 }
 
 format_api_json() {
@@ -98,7 +98,7 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		echo "Successfully updated permission for $username"
+		echo "Successfully updated permission for $pemusername"
 	fi
 }
 
@@ -148,4 +148,3 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
-

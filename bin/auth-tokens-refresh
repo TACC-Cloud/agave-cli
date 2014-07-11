@@ -97,7 +97,11 @@ format_api_json() {
 		jsonval refresh_token "$1" "refresh_token"
     jsonval expires_in "$1" "expires_in"
     created_at=$(date +%s)
-    expires_at=`date -r $(expr $created_at + $expires_in)`
+    if date --version >/dev/null 2>&1 ; then
+      expires_at=`date -d @$(expr $created_at + $expires_in)`
+    else
+      expires_at=`date -r $(expr $created_at + $expires_in)`
+    fi
 
     kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
 

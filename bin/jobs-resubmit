@@ -67,13 +67,13 @@ main() {
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 
-      if ((development)); then
+      if ((watch)); then
         jobwatchid=$(jsonquery "$response" "result.id")
 
         result=$(format_api_json "$response")
         success "$result"
 
-        if ((debug)); then
+        if ((development)); then
           jhparams=" -d "
         fi
 
