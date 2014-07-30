@@ -67,7 +67,7 @@ main() {
 		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=rename&path=${name}\" ${filesurl}"
 
 		if ((veryverbose)); then
-			log "Calling $cmd"
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 	
 		response=`curl -sk -H "${authheader}" -X PUT -d "action=rename&path=${name}" "${filesurl}"`

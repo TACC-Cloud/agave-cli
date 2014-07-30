@@ -74,7 +74,7 @@ main() {
 	cmd="curl -sku \"$apikey:XXXXXX\" -X POST -d \"${post_options}\" -H \"Content-Type:application/x-www-form-urlencoded\" ${hosturl%/}"
 
 	if ((veryverbose)); then
-		log "Calling $cmd"
+		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 
 	response=`curl -sku "$apikey:$apisecret" -X POST -d "${post_options}" -H "Content-Type:application/x-www-form-urlencoded" "${hosturl%/}"`

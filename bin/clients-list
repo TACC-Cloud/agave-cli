@@ -62,7 +62,7 @@ main() {
 	cmd="curl -sku \"${apiusername}:xxxx\" ${clientsurl}"
 	
 	if ((veryverbose)); then
-		log "Calling $cmd"
+		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 		
 	response=`curl -sku "${apiusername}:${apipassword}" "${clientsurl}"`

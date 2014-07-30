@@ -62,7 +62,7 @@ main() {
 		cmd="curl -sk -H \"${authheader}\" -X POST -d \"permission=$permission\" ${hosturl}/data/$args/pems/$pemusername?pretty=true"
 
 		if ((veryverbose)); then
-			log "Calling $cmd"
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 	
 		response=`curl -sk -H "${authheader}" -X POST -d "permission=$permission" "${hosturl}/data/$args/pems/$pemusername?pretty=true"`

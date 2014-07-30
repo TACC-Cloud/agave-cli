@@ -74,7 +74,7 @@ main() {
 		cmd="curl -sk -H \"${authheader}\" -X POST -d \"username=${pemusername}&permission=${permission}\" ${filesurl}"
 
 		if ((veryverbose)); then
-			log "Calling $cmd"
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
 		response=`curl -sk -H "${authheader}" -X POST -d "username=${pemusername}&permission=${permission}" "${filesurl}"`

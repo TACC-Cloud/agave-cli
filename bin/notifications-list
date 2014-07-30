@@ -65,7 +65,7 @@ main() {
 	cmd="curl -sk -H \"${authheader}\" ${notificationurl}"
 
 	if ((veryverbose)); then
-			log "Calling $cmd"
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
 	response=`curl -sk -H "${authheader}" "${notificationurl}"`

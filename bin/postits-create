@@ -103,7 +103,7 @@ main() {
 	cmd="curl -sk -H \"${authheader}\" -X POST -d \"$post_options\" -d \"url=${args}\" ${hosturl}?pretty=true"
 
 	if ((veryverbose)); then
-		log "Calling $cmd"
+		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 
 	response=`curl -sk -H "${authheader}" -X POST -d "${post_options}" -d "url=${args}" "${hosturl}?pretty=true"`

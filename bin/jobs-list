@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # jobs-list
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -54,7 +54,7 @@ source "$DIR/jobs-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	hosturl=${hosturl%/}
 	if [ -n "$args" ]; then
 		jobsurl="$hosturl/$args"
@@ -67,13 +67,13 @@ main() {
 	else
 		jobsurl="$hosturl/"
 	fi
-	
+
 	cmd="curl -sk -H \"${authheader}\" $jobsurl?pretty=true"
 
 	if ((veryverbose)); then
-			log "Calling $cmd"
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-	
+
 	response=`curl -sk -H "${authheader}" "$jobsurl?pretty=true"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
@@ -86,7 +86,7 @@ main() {
 }
 
 format_api_json() {
-	
+
 	if ((veryverbose)); then
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
@@ -98,14 +98,14 @@ format_api_json() {
 			echo "$args $jobstatus"
 		else
 			jobids=( $(jsonquery "$1" "result.[].id") )
-			
+
 			n=0
 			for i in $(jsonquery "$1" "result.[].status")
 			do
 				jobids[$n]="${jobids[$n]} $i"
 				n=$[n+1]
 			done
-			
+
 			for i in "${jobids[@]}"; do
 				echo "$i"
 			done
@@ -158,4 +158,3 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
-

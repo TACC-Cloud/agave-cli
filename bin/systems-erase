@@ -62,7 +62,7 @@ main() {
 		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=erase\" $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
-			log "Calling $cmd"
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
 		response=`curl -sk -H "${authheader}" -X PUT -d "action=erase" "$hosturl$args?pretty=true"`

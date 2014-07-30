@@ -59,7 +59,7 @@ main() {
 	cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl$args?pretty=true"
 
 	if ((veryverbose)); then
-		log "Calling $cmd"
+		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 
 	response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$hosturl$args?pretty=true"`

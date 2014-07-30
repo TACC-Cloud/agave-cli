@@ -62,7 +62,7 @@ main() {
 
 	
 	if ((veryverbose)); then
-		log "Calling $cmd"
+		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 	
 	

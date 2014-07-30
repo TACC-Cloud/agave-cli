@@ -99,7 +99,7 @@ main() {
 				cmd="curl -# -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" -F \"${post_options}\" $filesurl$args?pretty=true"
 
 				if ((veryverbose)); then
-					log "Calling $cmd"
+					[ "$piped" -eq 0 ] && log "Calling $cmd"
 				fi
 				#response='{"status":"success","response":{},"message":null}'
 				response=`curl -# -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" -F "${post_options}" "$filesurl$args?pretty=true"`
@@ -109,7 +109,7 @@ main() {
 				cmd="curl -# -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" $filesurl$args?pretty=true"
 
 				if ((veryverbose)); then
-					log "Calling $cmd"
+					[ "$piped" -eq 0 ] && log "Calling $cmd"
 				fi
 				#response='{"status":"success","response":{},"message":null}'
 				response=`curl -# -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$filesurl$args?pretty=true"`

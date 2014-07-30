@@ -71,7 +71,7 @@ main() {
 		cmd="curl -sku \"${apiusername}:xxxx\" -X POST -d \"apiName=${apiName}&tier=${tier}&apiVersion=${apiVersion}&apiProvider=${apiProvider}\" ${hosturl}${args}?pretty=true"
 
 		if ((veryverbose)); then
-			log "Calling $cmd"
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
 		response=`curl -sku "${apiusername}:${apipassword}" -X POST -d "apiName=${apiName}&tier=${tier}&apiVersion=${apiVersion}&apiProvider=${apiProvider}" "${hosturl}${args}?pretty=true"`

@@ -77,7 +77,7 @@ main() {
 				cmd="curl -k -H \"${authheader}\" -o \"$name\" $hosturl${jobid}/outputs/media/${path}"
 
 				if ((veryverbose)); then
-					log "Calling $cmd"
+					[ "$piped" -eq 0 ] && log "Calling $cmd"
 				fi
 	
 				eval response=`curl -k -H "${authheader}" -o "${name}" "${hosturl}${jobid}/outputs/media/${path}"`
@@ -93,7 +93,7 @@ main() {
 			cmd="curl -sk -H \"${authheader}\" ${hosturl}${jobid}/outputs/listings/${path}?pretty=true"
 
 			if ((veryverbose)); then
-				log "Calling $cmd"
+				[ "$piped" -eq 0 ] && log "Calling $cmd"
 			fi
 	
 			response=`curl -sk -H "${authheader}" "${hosturl}${jobid}/outputs/listings/${path}?pretty=true"`
