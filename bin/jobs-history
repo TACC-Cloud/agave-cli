@@ -91,6 +91,7 @@ format_api_json() {
 
   if ((watch)); then
     clear
+    echo "Watching job $args" 
     date
   fi
 

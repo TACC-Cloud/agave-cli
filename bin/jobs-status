@@ -92,7 +92,13 @@ main() {
 
 format_api_json() {
 
-	if ((veryverbose)); then
+  if ((watch)); then
+    clear
+    echo "Watching job $args" 
+    date
+  fi
+
+  if ((veryverbose)); then
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)

@@ -93,7 +93,7 @@ main() {
       elif [ "$extension" == 'py' ]; then
         command="python"
         flavor="agaveapi/scipy-matplot-2.7"
-      elif [ "$extension" == 'r' ]; then
+      elif [ "$extension" == 'r' ] || [ "$extension" == 'R' ]; then
         command="Rscript"
         flavor="scivm/r-project-3.0"
       elif [ "$extension" == 'sh' ]; then
@@ -281,9 +281,27 @@ main() {
     success "$result"
 
     if ((watch)); then
-      jobs-history -W $jobwatchid
+
+      if ((development)); then
+        jhparams=" -d "
+      fi
+
+      if ((veryverbose)); then
+
+        jhparams="$jhparams -V "
+
+      elif ((verbos)); then
+
+        jhparams="$jhparams -v "
+      fi
+
+      jobs-history $jhparams -W $jobwatchid
+      
+    else
+      result=$(format_api_json "$response")
+      success "$result"
     fi
-    
+
 	else
 		errorresponse=$(jsonquery "$response" "message")
 		err "$errorresponse"
@@ -326,6 +344,7 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
+    -c|--command) shift; command=$1 ;;
     -w|--workdir) shift; workdir=$1 ;;
     -n|--name) shift; name=$1 ;;
     -e|--email) shift; email=$1 ;;
