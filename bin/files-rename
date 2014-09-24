@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # files-rename
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -22,24 +22,24 @@ interactive_opts=(apisecret apikey, name)
 usage() {
   echo -n "$(basename $0) [OPTION]... [PATH]
 
-Renames a file or folder on a remote system. If no system is specified, your 
-default storage system will be used. By specifying a system, the path given 
-will be resolved on that remote system. Note that the system id, not hostname 
+Renames a file or folder on a remote system. If no system is specified, your
+default storage system will be used. By specifying a system, the path given
+will be resolved on that remote system. Note that the system id, not hostname
 must be given.
 
  Options:
-  -z, --access_token	Access token
-  -S, --systemId	Specify the system id
-  -N, --name		Name of the new folder
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -z, --access_token  Access token
+  -S, --systemId      Specify the system id
+  -N, --name          Name of the new folder
+  -H, --hosturl       URL of the service
+  -d, --development   Run in dev mode using default dev server
+  -f, --force         Skip all user interaction
+  -i, --interactive   Prompt for values
+  -q, --quiet         Quiet (no output)
+  -v, --verbose       Verbose output
+  -V, --veryverbose   Very verbose output
+  -h, --help          Display this help and exit
+      --version       Output version information and exit
 "
 }
 
@@ -54,7 +54,7 @@ source "$DIR/files-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [  -z "$args" ]; then
 		err "Please specify a valid path to rename"
 	else
@@ -63,15 +63,15 @@ main() {
 		else
 			filesurl="${hosturl}media/${args}?pretty=true"
 		fi
-	
+
 		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=rename&path=${name}\" ${filesurl}"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-	
+
 		response=`curl -sk -H "${authheader}" -X PUT -d "action=rename&path=${name}" "${filesurl}"`
-	
+
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
 			success "$result"
@@ -79,14 +79,14 @@ main() {
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
 		fi
-	fi	
-	
+	fi
+
 }
 
 format_api_json() {
-	
+
 	if ((verbose)); then
-		echo "$1" 
+		echo "$1"
 	else
 		success "Successfully renamed ${args}"
 	fi
@@ -136,4 +136,3 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
-

@@ -189,23 +189,23 @@ main() {
         fi
 
     else
-
+      
       cmd="curl -k -H \"${authheader}\" ${filerange} ${outputarg} ${filesurl}"
 
     	if ((veryverbose)); then
        [ "$piped" -eq 0 ] && log "Calling $cmd"
       fi
 
-      if ((verbose)); then
-        if [ -z "$filename" ]; then
-          filename=$(basename "$args")
-          if [ -n "$filename" ]; then
-            filename=$(basename "${args}")
-          fi
+      if [ -z "$filename" ]; then
+        filename=$(basename "$args")
+        if [ -n "$filename" ]; then
+          filename=$(basename "${args}")
         fi
       fi
 
-      [ "$piped" -eq 0 ] && out "Downloading $args ..."
+      if ((verbose)); then
+        [ "$piped" -eq 0 ] && out "Downloading $args ..."
+      fi
 
       curl -# -k -H "${authheader}" ${filerange} ${outputarg} "${filesurl}"
 

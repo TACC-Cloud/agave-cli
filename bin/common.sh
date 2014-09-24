@@ -163,6 +163,10 @@ rollback() {
 	die
 }
 
+getIpAddress() {
+    curl http://myip.dnsomatic.com
+}
+
 function jsonval {
 	local __resultvar=$1
 	local __temp=`echo "$2" | sed 's/\\\\\//\//g' | sed 's/[{}]//g' | awk -v k="text" '{n=split($0,a,","); for (i=1; i<=n; i++) print a[i]}' | sed 's/\"\:\"/\|/g' | sed 's/[\,]/ /g' | sed 's/\"//g' | grep -w $3| cut -d":" -f2| sed -e 's/^ *//g' -e 's/ *$//g'`
@@ -351,7 +355,6 @@ get_auth_header() {
 		echo "Authorization: Bearer $access_token"
 	else
     echo " -u \"${username}:${password}\" "
-
 	fi
 }
 

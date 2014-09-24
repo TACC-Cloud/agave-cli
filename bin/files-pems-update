@@ -31,21 +31,22 @@ the remote system.
 Also remember that no permissions can be set on public files and folders.
 
  Options:
-  -z, --access_token	Access token
-  -U, --username	The user whose permissions should be listed
-  -P, --permission	The permission to set. Valid values are READ,
-  			WRITE, EXECUTE, READ_WRITE, READ_EXECUTE,
-  			WRITE_EXECUTE, ALL, and NONE
-  -S, --systemId	Specify the system id
-  -H, --hosturl     	URL of the service
-  -d, --development 	Run in dev mode using default dev server
-  -f, --force       	Skip all user interaction
-  -i, --interactive 	Prompt for values
-  -q, --quiet       	Quiet (no output)
-  -v, --verbose     	Verbose output
-  -V, --veryverbose 	Very verbose output
-  -h, --help        	Display this help and exit
-      --version     	Output version information and exit
+  -z, --access_token	 Access token
+  -U, --username	     The user whose permissions should be listed
+  -P, --permission	   The permission to set. Valid values are READ,
+  			               WRITE, EXECUTE, READ_WRITE, READ_EXECUTE,
+  			               WRITE_EXECUTE, ALL, and NONE
+  -R, --recursive      Recursively apply permissions to folder contents.
+  -S, --systemId	     Specify the system id
+  -H, --hosturl     	 URL of the service
+  -d, --development 	 Run in dev mode using default dev server
+  -f, --force       	 Skip all user interaction
+  -i, --interactive 	 Prompt for values
+  -q, --quiet       	 Quiet (no output)
+  -v, --verbose     	 Verbose output
+  -V, --veryverbose 	 Very verbose output
+  -h, --help        	 Display this help and exit
+      --version     	 Output version information and exit
 "
 }
 
@@ -71,13 +72,19 @@ main() {
 			filesurl="${hosturl}pems/${args}?pretty=true"
 		fi
 
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"username=${pemusername}&permission=${permission}\" ${filesurl}"
+    if ((recursive)); then
+      recursive="true";
+    else
+      recursive="false";
+    fi
+
+		cmd="curl -sk -H \"${authheader}\" -X POST -d \"username=${pemusername}&permission=${permission}&recursive=${recursive}\" ${filesurl}"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X POST -d "username=${pemusername}&permission=${permission}" "${filesurl}"`
+		response=`curl -sk -H "${authheader}" -X POST -d "username=${pemusername}&permission=${permission}&recursive=${recursive}" "${filesurl}"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
@@ -127,6 +134,7 @@ while [[ $1 = -?* ]]; do
     -z|--access_token) shift; access_token=$1 ;;
     -U|--pemusername) shift; pemusername=$1 ;;
     -P|--permission) shift; permission=$1 ;;
+    -R|--recursive) recursive=1 ;;
     -S|--systemId) shift; systemId=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;

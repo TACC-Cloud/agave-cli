@@ -60,13 +60,13 @@ main() {
 		filesurl="${hosturl}listings/${args}"
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" ${filesurl%/}?pretty=true"
+	cmd="curl -sk -H \"${authheader}\" ${filesurl}?pretty=true"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 
-	response=`curl -sk -H "${authheader}" "${filesurl%/}"`
+	response=`curl -sk -H "${authheader}" "${filesurl}"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
