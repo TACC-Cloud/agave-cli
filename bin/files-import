@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # files-import
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -22,31 +22,31 @@ interactive_opts=(apisecret apikey urltoingest)
 usage() {
   echo -n "$(basename $0) [OPTION]... [PATH]
 
-Imports a remote URI to a remote storage system. The subsequent staging will be  
-done via a proxy between the native data protocol of the remote system and the URL. 
-When possible, 3rd party transfer will take place. If the given file type requires 
-import filtering, it will be applied prior to the callback being sent. If not 
+Imports a remote URI to a remote storage system. The subsequent staging will be
+done via a proxy between the native data protocol of the remote system and the URL.
+When possible, 3rd party transfer will take place. If the given file type requires
+import filtering, it will be applied prior to the callback being sent. If not
 system id is specified, the user's default storage system will be used. This action
 is non-blocking.
 
  Options:
-  -z, --access_token	Access token
-  -U, --urltoingest The url to be imported
-  -W, --webhook		The email address or webhook to notify upon completion of all 
-  					import filtering
-  -T, --filetype	The filetype associated with this file. See transforms-list
-  					for a full list of supported file types. Defaults to 'raw'
-  -N, --filename	The name of the file once uploaded
-  -S, --systemid	The system to which the file or folder will be uploaded
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -z, --access_token    Access token
+  -U, --urltoingest     The url to be imported
+  -W, --webhook         The email address or webhook to notify upon completion
+                        of all import filtering
+  -T, --filetype        The filetype associated with this file. See transforms-list
+                        for a full list of supported file types. Defaults to 'raw'
+  -N, --filename        The name of the file once uploaded
+  -S, --systemid        The system to which the file or folder will be uploaded
+  -H, --hosturl         URL of the service
+  -d, --development     Run in dev mode using default dev server
+  -f, --force           Skip all user interaction
+  -i, --interactive     Prompt for values
+  -q, --quiet           Quiet (no output)
+  -v, --verbose         Verbose output
+  -V, --veryverbose     Very verbose output
+  -h, --help            Display this help and exit
+      --version         Output version information and exit
 "
 }
 
@@ -61,48 +61,48 @@ source "$DIR/files-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	local post_options='';
-	
+
 	if [ -n "$webhook" ]; then
 		post_options="notification=${webhook}"
 	fi
-	
+
 	if [ -n "$filetype" ]; then
 		post_options="fileType=${filetype}&${post_options}"
 	fi
-	
+
 	if [ -n "$filename" ]; then
 		post_options="fileName=${filename}&${post_options}"
 	fi
-	
+
 	if [ -n "$systemid" ]; then
 		hosturl="${hosturl}media/system/${systemid}/"
 	else
 		hosturl="${hosturl}media/"
 	fi
-	
+
 	if [ -n "$post_options" ]; then
-	
+
 		cmd="curl -sk -H \"${authheader}\" -X POST -d \"urlToIngest=$urltoingest\" -d \"${post_options}\" $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-	
+
 		response=`curl -sk -H "${authheader}" -X POST -d "urlToIngest=$urltoingest" -d "${post_options}" "$hosturl$args?pretty=true"`
 	else
-		
+
 		cmd="curl -sk -H \"${authheader}\" -X POST -d \"urlToIngest=$urltoingest\" $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-	
+
 		response=`curl -sk -H "${authheader}" -X POST -d "urlToIngest=$urltoingest" "$hosturl$args?pretty=true"`
-		
+
 	fi
-	
+
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
 		success "$result"

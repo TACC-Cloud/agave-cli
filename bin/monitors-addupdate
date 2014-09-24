@@ -37,7 +37,7 @@ passed in as a file containing a JSON object or via command line arguments.
   -S, --systemId            The system to monitor
   -A, --active              Whether the monitor should be active. true or false.
                             Default true.
-  -F, --frequency           How often the monitor should run in minutes.
+  -I, --interval            How often the monitor should run in minutes.
                             Minimum 5, default 720 (12 hours).
   -U, --updateSystemStatus  Whether the test should update the system status.
                             You must have an ADMIN role on the system to set this.
@@ -81,12 +81,14 @@ main() {
 			err "Please specify the id of a system to monitor"
 		fi
 
-		if [[ -z "$frequency" ]]; then
+		if [[ -z "$interval" ]]; then
 			frequency=720
-		fi
+		else
+      frequency="$interval"
+    fi
 
 		if [[ -z "$updateSystemStatus" ]]; then
-			updateSystemStatus="false"
+			updateSystemStatus=0
 		fi
 
 		if [[ -z "$active" ]]; then
@@ -99,7 +101,7 @@ main() {
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X POST -d "requency=${frequency}&active=${active}&updateSystemStatus=${updateSystemStatus}&target=${systemId}" "${hosturl}$args?pretty=true"`
+		response=`curl -sk -H "${authheader}" -X POST -d "frequency=${frequency}&active=${active}&updateSystemStatus=${updateSystemStatus}&target=${systemId}" "${hosturl}$args?pretty=true"`
 	fi
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
@@ -154,7 +156,7 @@ while [[ $1 = -?* ]]; do
     -F|--filetoupload) shift; filetoupload=$1 ;;
     -S|--systemId) shift; systemId=$1 ;;
     -U|--updateSystemStatus) shift; updateSystemStatus=$1 ;;
-    -F|--frequency) shift; frequency=$1 ;;
+    -I|--interval) shift; interval=$1 ;;
     -A|--active) shift; active=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
