@@ -96,7 +96,7 @@ main() {
     IFS='
     '
     IFS=${IFS:0:1} # this is useful to format your code with tabs
-    tenantids=( $(jsonquery "${tenantresponse}" "result.[].tenantId") )
+    tenantids=( $(jsonquery "${tenantresponse}" "result.[].code") )
     tenanturls=( $(jsonquery "${tenantresponse}" "result.[].baseUrl") )
     IFS="$oldIFS"
 
