@@ -150,22 +150,20 @@ main() {
                 err "${filename} is a directory (not copied)"
                 exit
               elif [ -d "$filename" ]; then
-                echo "Directory $filename exists. Skipping mkdir..."
+                #echo "Directory $filename exists. Skipping mkdir..."
                 #basefilename=$(basename "$filename");
                 #targetpath=$(printf "%s/%s" ${filename%/} "$basefilename")
                 targetpath="$filename"
               else
-                echo "Creating directory $targetpath..."
+                echo "Creating directory $filename..."
                 targetpath="$filename"
               fi
 
-              echo "Creating directory $targetpath..."
               mkdir -p "$targetpath"
 
             elif [ "${types[i]}" == "file" ] && [ "${names[i]}" == "." ]; then
 
               # the target was a file, not a folder
-              echo "Downloading file $args..."
               if [ -z "$filename" ]; then
                 files-get -${fgrparams} -S $systemId -N $filename $args
               else
@@ -175,13 +173,12 @@ main() {
             else
 
               if [ "${formats[i]}" == "folder" ]; then
-                echo "Descending into directory $args/${names[i]}..."
                 files-get -r ${fgrparams} -S $systemId -N $targetpath/${names[i]} $args/${names[i]}
               elif [ "${lengths[i]}" -gt "0" ]; then
-                echo "Downloading file $args/${names[i]}..."
                 files-get ${fgrparams} -S $systemId -N $targetpath/${names[i]} $args/${names[i]}
               else
                 echo "Downloading empty file $args/${names[i]}..."
+                echo "######################################################################## 100.0%"
                 touch $targetpath/${names[i]}
               fi
 
