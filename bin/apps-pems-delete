@@ -1,11 +1,12 @@
 #!/bin/bash
 #
-# apps-pems-update
+# apps-pems-delete
 #
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It provides a mechanism for managing share permissions on an application.
+# It provides a mechanism for deleting one or more share permissions
+# on an application.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -22,15 +23,13 @@ interactive_opts=(apisecret apikey username permission)
 usage() {
   echo -n "$(basename $0) [OPTION]... [APP_ID]
 
-Update the user permissions on this application. This will impact who can
-view and run this application. Valid permissions are READ, WRITE, and EXECUTE.
+Remove the user permissions on this application. This will impact who can
+view and run this application. If no user is specified, all permissions
+on this app are removed.
 
  Options:
   -z, --access_token    Access token
-  -u, --pemusername     The user whose permissions should be set
-  -p, --permission      The permission to set. Valid permissions are READ,
-                        WRITE, EXECUTE, READ_WRITE, READ_EXECUTE,
-                        WRITE_EXECUTE, ALL, and NONE
+  -u, --pemusername     The user whose permissions should be removed
   -h, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
@@ -58,13 +57,13 @@ main() {
 	if [ -z "$args" ]; then
 		err "Please specify an app id for which to set the permissions"
 	else
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"permission=$permission\" $hosturl$args/pems/$pemusername?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X DELETE $hosturl$args/pems/$pemusername?pretty=true"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X POST -d "permission=$permission" "$hosturl$args/pems/$pemusername?pretty=true"`
+		response=`curl -sk -H "${authheader}" -X DELETE "$hosturl$args/pems/$pemusername?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
@@ -84,7 +83,11 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		success "Successfully updated permission for $pemusername"
+    if [[ -z "$pemusername" ]]; then
+        success "Successfully removed all share permissions on app $args"
+    else
+		    success "Successfully removed permission for $pemusername on app $args"
+    fi
 	fi
 }
 
@@ -112,7 +115,6 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
     -u|--pemusername) shift; pemusername=$1 ;;
-    -p|--permission) shift; permission=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
