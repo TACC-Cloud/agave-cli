@@ -135,6 +135,7 @@ main() {
           fi
 
           # skip the first index in the array in this for loop
+          #echo "${!names[@]}" | xargs -P 5 -n 1 -I "%%FILE%%" files-get -v $args
           for i in `echo "${!names[@]}"`; do
 
             if [ "${formats[i]}" == "folder" ] && [ "${names[i]}" == "." ]; then
@@ -175,7 +176,7 @@ main() {
               if [ "${formats[i]}" == "folder" ]; then
                 files-get -r ${fgrparams} -S $systemId -N $targetpath/${names[i]} $args/${names[i]}
               elif [ "${lengths[i]}" -gt "0" ]; then
-                files-get ${fgrparams} -S $systemId -N $targetpath/${names[i]} $args/${names[i]}
+                files-get -v ${fgrparams} -S $systemId -N $targetpath/${names[i]} $args/${names[i]}
               else
                 echo "Downloading empty file $args/${names[i]}..."
                 echo "######################################################################## 100.0%"
@@ -186,13 +187,13 @@ main() {
           done
 
           #I'm doing breadth first, but it would be slightly more compact to do depth first
-          for i in `echo "${!names[@]}"`; do
-            if [ "${formats[i]}" == "folder" ] && [ "${names[i]}" != "." ]; then
-
-              files-get ${fgrparams} -r -S $systemId -N $targetpath/${names[i]} $args/${names[i]}
-
-            fi
-          done
+          # for i in `echo "${!names[@]}"`; do
+          #   if [ "${formats[i]}" == "folder" ] && [ "${names[i]}" != "." ]; then
+          #
+          #     files-get ${fgrparams} -r -S $systemId -N $targetpath/${names[i]} $args/${names[i]}
+          #
+          #   fi
+          # done
 
         else
           errorresponse=$(jsonquery "$response" "message")
@@ -221,7 +222,9 @@ main() {
       curl -# -k -H "${authheader}" ${filerange} ${outputarg} "${filesurl}"
 
       if [ "$?" -eq 0 ] && [ ! -f "$filename" ]; then
-        echo "Creating empty file $filename..."
+        if ((verbose)); then
+          echo "Creating empty file $filename..."
+        fi
         touch $filename
       else
         response=$(grep '"status":"error"' $filename)
