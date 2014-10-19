@@ -80,18 +80,30 @@ err() {
 		response=$@
 	fi
 
-	if (($verbose)); then
-		#out " \033[1;31m✖\033[0m  $response"
-		out "\033[1;31m${response}\033[0m"
+  if (($verbose)); then
+		if ((piped)); then
+      out "${response}"
+    else
+      #out " \033[1;31m✖\033[0m  $response"
+		  out "\033[1;31m${response}\033[0m"
+    fi
 	else
-		#out " \033[1;31m✖\033[0m  $@";
-		out "\033[1;31m$@\033[0m"
+		if ((piped)); then
+      out "$@"
+    else
+      #out " \033[1;31m✖\033[0m  $@";
+		  out "\033[1;31m$@\033[0m"
+    fi
 	fi
 } >&2
 
 success() {
 	#out " \033[1;32m✔\033[0m  $@";
-	out "\033[1;0m$@\033[0m";
+  if ((piped)); then
+    out "$@"
+  else
+	   out "\033[1;0m$@\033[0m";
+  fi
 	#out "$@"
 }
 
@@ -453,3 +465,7 @@ if [[ "tenants-init" != "$calling_cli_command" ]] && [[ "tenants-list" != "$call
   fi
 fi
 # }}}
+
+function join {
+  local IFS="$1"; shift; echo "$*";
+}

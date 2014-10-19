@@ -81,16 +81,16 @@ main() {
     # job template.
     if ((allfields)); then
 
-      if ((verbose)); then
-        [ "$piped" -eq 0 ] && log "Fetching execution system description..."
-      fi
+      execution_system_id=$(jsonquery "${app_description}" "executionSystem")
 
-      execution_system_id=$(jsonquery "$app_description" "executionSystem")
+      if ((verbose)); then
+        [ "$piped" -eq 0 ] && log "Fetching system description for execution system $execution_system_id..."
+      fi
       execution_system=$(systems-list $debug_flag -v $execution_system_id)
-      queue_names=(`jsonquery "$execution_system" "queues.[].name"`)
-      queue_defaults=(`jsonquery "$execution_system" "queues.[].default"`)
-      queue_memories=(`jsonquery "$execution_system" "queues.[].maxMemoryPerNode"`)
-      queue_ppns=(`jsonquery "$execution_system" "queues.[].maxProcessorsPerNode"`)
+      queue_names=(`jsonquery "${execution_system}" "queues.[].name"`)
+      queue_defaults=(`jsonquery "${execution_system}" "queues.[].default"`)
+      queue_memories=(`jsonquery "${execution_system}" "queues.[].maxMemoryPerNode"`)
+      queue_ppns=(`jsonquery "${execution_system}" "queues.[].maxProcessorsPerNode"`)
 
       for i in "${queue_defaults[@]}"; do
         if [[ "$i" ==  'rue' ]] || [[ "$i" ==  'true' ]]; then
@@ -101,27 +101,27 @@ main() {
         fi
       done
 
-      queue=$(jsonquery "$app_description" "defaultQueue")
+      queue=$(jsonquery "${app_description}" "defaultQueue")
       if [[ -z "$queue" ]] || [[ "$queue" == "null" ]]; then
         queue=$system_default_queue_name
       fi
 
-      memoryPerNode=$(jsonquery "$app_description" "defaultMemoryPerNode")
+      memoryPerNode=$(jsonquery "${app_description}" "defaultMemoryPerNode")
       if [[ -z "$memoryPerNode" ]] || [[ "$memoryPerNode" == "null" ]]; then
         memoryPerNode=$system_default_queue_memory
       fi
 
-      nodeCount=$(jsonquery "$app_description" "defaultNodeCount")
+      nodeCount=$(jsonquery "${app_description}" "defaultNodeCount")
       if [[ -z "$nodeCount" ]] || [[ "$nodeCount" == "null" ]]; then
         nodeCount=1
       fi
 
-      processorsPerNode=$(jsonquery "$app_description" "defaultProcessorsPerNode")
+      processorsPerNode=$(jsonquery "${app_description}" "defaultProcessorsPerNode")
       if [[ -z "$processorsPerNode" ]] || [[ "$processorsPerNode" == "null" ]]; then
-        processorsPerNode=$system_default_queue_ppn
+        processorsPerNode=${system_default_queue_ppn}
       fi
 
-      maxRunTime=$(jsonquery "$app_description" "defaultMaxRunTime")
+      maxRunTime=$(jsonquery "${app_description}" "defaultMaxRunTime")
       if [[ -z "$maxRunTime" ]] || [[ "$maxRunTime" == "null" ]]; then
         maxRunTime="01:00:00"
       fi
@@ -151,10 +151,10 @@ main() {
     if ((verbose)); then
       [ "$piped" -eq 0 ] && log "Parsing app inputs..."
     fi
-    input_ids=(`jsonquery "$app_description" "inputs.[].id"`)
-    input_defaults=(`jsonquery "$app_description" "inputs.[].value.default"`)
-    input_requireds=(`jsonquery "$app_description" "inputs.[].value.required"`)
-    input_visibles=(`jsonquery "$app_description" "inputs.[].value.visible"`)
+    input_ids=(`jsonquery "${app_description}" "inputs.[].id"`)
+    input_defaults=(`jsonquery "${app_description}" "inputs.[].value.default"`)
+    input_requireds=(`jsonquery "${app_description}" "inputs.[].value.required"`)
+    input_visibles=(`jsonquery "${app_description}" "inputs.[].value.visible"`)
     input_count=${#input_ids[@]}
 
     n=0
@@ -167,8 +167,8 @@ main() {
         trailingcomma=','
       fi
 
-      if [[ "${input_visibles[$n]}" == "rue" ]]; then
-        if [[ "${input_requireds[$n]}" == "rue" ]] || [[ "$allfields" == 1 ]]; then
+      if [[ "${input_visibles[$n]}" == "rue" ]] || [[ "${input_visibles[$n]}" == "true" ]]; then
+        if [[ "${input_requireds[$n]}" == "rue" ]] || [[ "${input_requireds[$n]}" == "true" ]] || [[ "$allfields" == 1 ]]; then
           if [[ "${input_defaults[$n]}" == "null" ]]; then
             inputs=$(printf "%s\n    \"%s\": %s%s" "$inputs" "$i" "null" "$trailingcomma")
           else
@@ -205,8 +205,8 @@ main() {
         trailingcomma=','
       fi
 
-      if [[ "${parameter_visibles[$n]}" == "rue" ]]; then
-        if [[ "${parameter_requireds[$n]}" == "rue" ]] || [[ "$allfields" == 1 ]]; then
+      if [[ "${parameter_visibles[$n]}" == "rue" ]] || [[ "${parameter_visibles[$n]}" == "true" ]]; then
+        if [[ "${parameter_requireds[$n]}" == "rue" ]] || [[ "${parameter_requireds[$n]}" == "true" ]] || [[ "$allfields" == 1 ]]; then
           if [[ "${parameter_defaults[$n]}" == "null" ]]; then
             if [[ "${parameter_types[$n]}" == "string" ]]; then
               parameters=$(printf "%s\n    \"%s\": \"\"%s" "$parameters" "$i" "$trailingcomma")
