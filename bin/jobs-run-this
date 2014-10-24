@@ -263,19 +263,23 @@ main() {
 
   rm $PACKAGE_NAME
 
+  sleep 5
 
   # Create a job description and submit the job
   out "Submitting job..."
   if ((veryverbose)); then
-    log "curl -sk -H \"${authheader}\" -H \"Content-type: application/json\" -X POST --data \"{ \"appId\":\"dooley-dockerapp-0.8.2\", \"name\": \"$name\",\"inputs\": { \"appBundle\":\"$appbundleparam\" }, \"parameters\": { \"unpackInputs\": true$dockerimageparam, \"command\":\"$command\", \"commandArgs\":\"${args}\" }${notifications}${archiveparam}}\" $hosturl?pretty=true"
+    log "curl -sk -H \"${authheader}\" -H \"Content-type: application/json\" -X POST --data \"{ \"appId\":\"cloud-runner-0.1.0u1\", \"name\": \"$name\",\"inputs\": { \"appBundle\":\"$appbundleparam\" }, \"parameters\": { \"unpackInputs\": true$dockerimageparam, \"command\":\"$command\", \"commandArgs\":\"${args[@]}\" }${notifications}${archiveparam}}\" $hosturl?pretty=true"
   fi
 
-  response=`curl -sk -H "${authheader}" -H "Content-type: application/json" -X POST --data "{ \"appId\":\"dooley-dockerapp-0.8.2\", \"name\": \"$name\",\"inputs\": { \"appBundle\":\"$appbundleparam\" }, \"parameters\": { \"unpackInputs\": true$dockerimageparam, \"command\":\"$command\", \"commandArgs\":\"${args}\" }${notifications}${archiveparam}}" "$hosturl?pretty=true"`
+  response=`curl -sk -H "${authheader}" -H "Content-type: application/json" -X POST --data "{ \"appId\":\"cloud-runner-0.1.0u1\", \"name\": \"$name\",\"inputs\": { \"appBundle\":\"$appbundleparam\" }, \"parameters\": { \"unpackInputs\": true$dockerimageparam, \"command\":\"$command\", \"commandArgs\":\"${args[@]}\" }${notifications}${archiveparam}}" "$hosturl?pretty=true"`
 
   if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 
     # prepend the job id to the local history file
     jobwatchid=$(jsonquery "$response" "result.id")
+    if [[ ! -e .agave.history ]]; then
+      touch .agave.history
+    fi
     echo "$jobwatchid" | cat - .agave.history > .agave.tmp && mv .agave.tmp .agave.history
 
     result=$(format_api_json "$response")

@@ -244,7 +244,7 @@ main() {
       if ((verbose)); then
         [ "$piped" -eq 0 ] && log "Creating notifications..."
       fi
-      notifications=$(printf "    {\n      \"url\":\"%s\",\n      \"event\":\"FINISHED\",\n      \"persistent\":false\n    },\n    {\n      \"url\":\"%s\",\n      \"event\":\"FINISHED\",\n      \"persistent\":false\n    }" "$user_email" "$user_email")
+      notifications=$(printf "    {\n      \"url\":\"%s\",\n      \"event\":\"FINISHED\",\n      \"persistent\":false\n    },\n    {\n      \"url\":\"%s\",\n      \"event\":\"FAILED\",\n      \"persistent\":false\n    }" "$user_email" "$user_email")
     fi
 
     # Allow the user to pass in a job name by default. Otherwise, generate one
