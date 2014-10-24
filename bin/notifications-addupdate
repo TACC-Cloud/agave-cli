@@ -70,19 +70,21 @@ main() {
 
 	else
 
-		if [[ -z "url" ]]; then
+		if [[ -z "$url" ]]; then
 			err "Please specify a url or email address to which the notification will be sent"
-		fi
+		else
+      url=$(echo "$url" | sed 's/\&/%26/g' )
+    fi
 
-		if [[ -z "event" ]]; then
+		if [[ -z "$event" ]]; then
 			err "Please specify an event upon which the notification will be sent"
 		fi
 
-		if [[ -z "associatedUuid" ]]; then
+		if [[ -z "$associatedUuid" ]]; then
 			err "Please specify an associatedUuid for which the notification will be sent"
 		fi
 
-		if [[ -z "persistent" ]]; then
+		if [[ -z "$persistent" ]]; then
 			persistent="false"
 		fi
 

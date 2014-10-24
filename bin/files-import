@@ -65,7 +65,8 @@ main() {
 	local post_options='';
 
 	if [ -n "$webhook" ]; then
-		post_options="notification=${webhook}"
+    webhook=$(echo "$webhook" | sed 's/\&/%26/g' )
+    post_options="notifications=${webhook}"
 	fi
 
 	if [ -n "$filetype" ]; then
@@ -91,6 +92,7 @@ main() {
 		fi
 
 		response=`curl -sk -H "${authheader}" -X POST -d "urlToIngest=$urltoingest" -d "${post_options}" "$hosturl$args?pretty=true"`
+    
 	else
 
 		cmd="curl -sk -H \"${authheader}\" -X POST -d \"urlToIngest=$urltoingest\" $hosturl$args?pretty=true"

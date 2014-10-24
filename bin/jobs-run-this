@@ -127,8 +127,9 @@ main() {
   fi
 
   if [ -n "$email" ]; then
-    #notifications=", \"notifications\": [ { \"url\": \"$email\",\"event\": \"FINISHED\", \"persistent\": false }, { \"url\": \"$email\",\"event\": \"FAILED\", \"persistent\": false } ]"
-    notifications=", \"notifications\": [ { \"url\": \"http://requestb.in/1k8tjas1?event=${EVENT}&job_id=${JOB_ID}&job_system=${JOB_SYSTEM}\",\"event\": \"*\", \"persistent\": true }, { \"url\": \"$email\",\"event\": \"*\", \"persistent\": true } ]"
+    email=$(echo "$email" | sed 's/\&/%26/g' )
+    notifications=", \"notifications\": [ { \"url\": \"$email\",\"event\": \"FINISHED\", \"persistent\": false }, { \"url\": \"$email\",\"event\": \"FAILED\", \"persistent\": false } ]"
+    #notifications=", \"notifications\": [ { \"url\": \"http://requestb.in/1k8tjas1?event=${EVENT}&job_id=${JOB_ID}&job_system=${JOB_SYSTEM}\",\"event\": \"*\", \"persistent\": true }, { \"url\": \"$email\",\"event\": \"*\", \"persistent\": true } ]"
   fi
 
   SUBMIT_TIMESTAMP=`date +%s%3N`
@@ -296,7 +297,7 @@ main() {
       fi
 
       jobs-history $jhparams -W $jobwatchid
-      
+
     else
       result=$(format_api_json "$response")
       success "$result"
