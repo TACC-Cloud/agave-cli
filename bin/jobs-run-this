@@ -102,7 +102,7 @@ main() {
       elif [ "$extension" == 'pl' ]; then
         command="perl"
         flavor="scivm/bioperl-1.6.9"
-      else
+      elif [ -e "$extension" ]; then
         err "Unknown file extension for $filename. Please specify the program used to invoke this file using the -c option"
         exit
       fi
@@ -115,7 +115,8 @@ main() {
     exit
   fi
 
-  if [ ! -e "$workdir/$args" ]; then
+
+  if [ -n "$args" ] && [ "$args" != " " ] && [ ! -e "$workdir/$args" ]; then
     err "File $workdir/$args does not exist. Please specify an executable within your work directory."
     exit
   fi
