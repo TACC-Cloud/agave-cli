@@ -88,7 +88,7 @@ main() {
 
     exit
 
-  elif [ -z "$tenant" ]; then
+  else
 
     tenantresponse=$(curl -sk ${hosturl%/}/)
     oldIFS="$IFS"
@@ -103,24 +103,30 @@ main() {
     #tenanturls=$(jsonquery "${tenantresponse}" "result.[].baseUrl")
     #IFS=', ' read -a tenanturls <<< ${tenanturls[@]}
 
-    echo "Please select a tenant from the following list:"
-    for i in "${!tenantids[@]}"
-    do
-      echo "[$i] ${tenantids[$i]}"
-    done
+    if [ -z "$tenant" ]; then
 
-    echo -n "Your choice [2]: "
-    eval "read tenant"
+      echo "Please select a tenant from the following list:"
+      for i in "${!tenantids[@]}"
+      do
+        echo "[$i] ${tenantids[$i]}"
+        if [[ "${tenantids[$i]}" == 'iplantc.org' ]]; then
+          tenantid=$i
+        fi
+      done
 
-    if [[ -z "$tenant" ]]; then
-      tenant="iplantc.org"
+      echo -n "Your choice [$tenantid]: "
+      eval "read tenant"
+
+      # use the default tenant id
+      if [[ -z "$tenant" ]]; then
+        tenant="iplantc.org"
+      fi
     fi
 
-    # echo "$tenantids"
     re='^[0-9]+$'
     if [[ "$tenant" =~ $re ]] ; then
       if [ $tenant -ge ${#tenantids[@]} ]; then
-        err "Invalid choice. Please select a valid number from 1-${#tenantids[@]}";
+        err "Invalid choice. Please select a valid number from 1-${#tenantids[@]} or provide a valid tenant id (ie. iplantc.org)";
         exit
       else
         tenant="${tenantids[$tenant]}"
