@@ -65,13 +65,13 @@ main() {
 		tier='Unlimited'
 	fi
 
-	cmd="curl -sku \"${apiusername}:xxxx\" -X POST -d \"clientName=${client_name}&tier=${tier}&description=${description}&callbackUrl=${callbackUrl}\" ${hosturl}${args}?pretty=true"
+	cmd="curl -sku \"${apiusername}:xxxx\" -X POST -d "clientName=${client_name}" -d \"tier=${tier}\" -d \"description=${description}\" -d \"callbackUrl=${callbackUrl}\" ${hosturl}${args}?pretty=true"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 
-	response=`curl -sku "${apiusername}:${apipassword}" -X POST -d "clientName=${client_name}&tier=${tier}&description=${description}&callbackUrl=${callbackUrl}" "${hosturl}${args}?pretty=true"`
+	response=`curl -sku "${apiusername}:${apipassword}" -X POST -d "clientName=${client_name}" -d "tier=${tier}" -d "description=${description}" -d "callbackUrl=${callbackUrl}" "${hosturl}${args}?pretty=true"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
@@ -83,7 +83,7 @@ main() {
 }
 
 format_api_json() {
-  
+
 	if ((storeclient)); then
 
 		formatted_response=`echo "$1" | python -mjson.tool`

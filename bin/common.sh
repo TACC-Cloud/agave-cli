@@ -314,36 +314,52 @@ prompt_options() {
     # In case this is a password field, hide the user input
     if [[ $val == "apikey" ]]; then
     	jsonval savedapikey "${tokenstore}" "apikey"
-	    echo -n "API key [$savedapikey]: "
-    	eval "read $val"
-    	if  [[ -z $apikey ]]; then
-    		apikey=$savedapikey
-    	fi
-    	#stty -echo; read apikey; stty echo
-    	#echo
+      if [[ -n "$force" ]]; then
+        apikey=$savedapikey
+      else
+  	    echo -n "API key [$savedapikey]: "
+      	eval "read $val"
+      	if  [[ -z $apikey ]]; then
+      		apikey=$savedapikey
+      	fi
+      	#stty -echo; read apikey; stty echo
+      	#echo
+      fi
     elif [[ $val == "refresh_token" ]]; then
     	jsonval savedrefreshtoken "${tokenstore}" "refresh_token"
-	    echo -n "Refresh token [$savedrefreshtoken]: "
-    	eval "read $val"
-    	if  [[ -z $refresh_token ]]; then
-    		refresh_token=$savedrefreshtoken
-    	fi
-    	#stty -echo; read apikey; stty echo
-    	#echo
+      if [[ -n "$force" ]]; then
+        refresh_token=$savedrefreshtoken
+      else
+        echo -n "Refresh token [$savedrefreshtoken]: "
+      	eval "read $val"
+      	if  [[ -z $refresh_token ]]; then
+      		refresh_token=$savedrefreshtoken
+      	fi
+      	#stty -echo; read apikey; stty echo
+      	#echo
+      fi
     elif [[ $val == "apisecret" ]]; then
     	jsonval savedapisecret "${tokenstore}" "apisecret"
-		  echo -n "API secret [$savedapisecret]: "
-    	eval "read $val"
-    	if  [[ -z $apisecret ]]; then
-    		apisecret=$savedapisecret
-    	fi
+      if [[ -n "$force" ]]; then
+        apisecret=$savedapisecret
+      else
+  		  echo -n "API secret [$savedapisecret]: "
+      	eval "read $val"
+      	if  [[ -z $apisecret ]]; then
+      		apisecret=$savedapisecret
+      	fi
+      fi
     elif [[ $val == "username" ]]; then
     	jsonval savedusername "${tokenstore}" "username"
-		  echo -n "API username [$savedusername]: "
-    	eval "read $val"
-    	if  [[ -z $username ]]; then
-      		username=$savedusername
+		  if [[ -n "$force" ]]; then
+        username=$savedusername
+      else
+        echo -n "API username [$savedusername]: "
+      	eval "read $val"
+      	if  [[ -z $username ]]; then
+        		username=$savedusername
       	fi
+      fi
     elif [[ $val == "password" ]]; then
     	echo -n "API password: "
     	stty -echo; read password; stty echo
@@ -366,7 +382,11 @@ get_auth_header() {
 	if [[ "$development" -ne 1 ]]; then
 		echo "Authorization: Bearer $access_token"
 	else
-    echo " -u \"${username}:${password}\" "
+    if [[ -f "$DIR/auth-filter.sh" ]]; then
+      echo $(source $DIR/auth-filter.sh);
+    else
+      echo " -u \"${username}:${password}\" "
+    fi
 	fi
 }
 

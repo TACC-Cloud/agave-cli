@@ -31,6 +31,6 @@ Icon
 .Trashes
 
 # Dev scripts
-bin/common.sh
 notifications-fire
 monitors-fire
+auth-filter.sh
