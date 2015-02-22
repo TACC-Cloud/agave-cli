@@ -115,11 +115,11 @@ main() {
 
           if ((veryverbose)); then
 
-            fgrparams="$jhparams -V "
+            fgrparams="$fgrparams -V "
 
           elif ((verbose)); then
 
-            fgrparams="$jhparams -v "
+            fgrparams="$fgrparams -v "
           fi
 
           read -a names <<< $(jsonquery "$response" "result.[].name")
@@ -142,7 +142,7 @@ main() {
 
               if [ -z "$filename" ]; then
                 filename=$(basename "$args")
-                if [ -n "$filename" ]; then
+                if [ -z "$filename" ]; then
                   filename=$(basename "${paths[i]}")
                 fi
               fi
@@ -165,7 +165,7 @@ main() {
             elif [ "${types[i]}" == "file" ] && [ "${names[i]}" == "." ]; then
 
               # the target was a file, not a folder
-              if [ -z "$filename" ]; then
+              if [ -n "$filename" ]; then
                 files-get -${fgrparams} -S $systemId -N $filename $args
               else
                 files-get ${fgrparams} -S $systemId $args

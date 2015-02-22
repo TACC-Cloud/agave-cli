@@ -1,15 +1,13 @@
 #!/bin/bash
 #
-# jobs-output
+# jobs-output-list
 #
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
 # It retrieves a listing of the job output. If the job completed
 # normally and archived, the listing will be on the archive directory.
-# Otherwise, it will be on the work folder if it still exists. By
-# specifying the --download flag, the remote file will be downloaded
-# to the specified directory
+# Otherwise, it will be on the work folder if it still exists.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -26,31 +24,27 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [JOB_ID] [PATH]
 
-**DEPRECATED**
-Please use the jobs-output-get and jobs-output-list commands instead
-for better download performance, recursive directory downloads, and
-range support.
+It retrieves a listing of the job output. If the job completed normally and
+archived, the listing will be on the archive directory. Otherwise, it will
+be on the work folder if it still exists.
 
  Options:
   -z, --access_token	Access token
-  -D, --download      Download the output file to the local folder
-  -N, --filename      Name to give the downloaded file
-  -P, --path		      Path to desired output file relative to job output folder
-  -H, --hosturl       URL of the service
-  -d, --development   Run in dev mode using default dev server
-  -f, --force         Skip all user interaction
-  -i, --interactive   Prompt for values
-  -q, --quiet         Quiet (no output)
-  -v, --verbose       Verbose output
-  -V, --veryverbose   Very verbose output
-  -h, --help          Display this help and exit
-      --version       Output version information and exit
+  -H, --hosturl     URL of the service
+  -d, --development Run in dev mode using default dev server
+  -f, --force       Skip all user interaction
+  -i, --interactive Prompt for values
+  -q, --quiet       Quiet (no output)
+  -v, --verbose     Verbose output
+  -V, --veryverbose Very verbose output
+  -h, --help        Display this help and exit
+      --version     Output version information and exit
 "
 }
 
 ##################################################################
 ##################################################################
-#						Begin Script Logic						                       #
+#						Begin Script Logic						 #
 ##################################################################
 ##################################################################
 
@@ -63,34 +57,23 @@ main() {
 	if [ -z "$args" ]; then
 		err "Please specify a job id for which to view the output"
 	else
-		jobid=$args
+		jobid=${args[0]}
+		path=${args[1]}
 
-    commonparams="-z $access_token "
+    cmd="curl -sk -H \"${authheader}\" ${hosturl}${jobid}/outputs/listings/${path}?pretty=true"
 
-    if ((development)); then
-      commonparams="$commonparams -d "
-    fi
+		if ((veryverbose)); then
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
+		fi
 
-    if ((veryverbose)); then
-      commonparams="$commonparams -V "
-    elif ((verbose)); then
-      commonparams="$commonparams -v "
-    fi
+		response=`curl -sk -H "${authheader}" "${hosturl}${jobid}/outputs/listings/${path}?pretty=true"`
 
-    if [ -n "$download" ]; then
-
-      getparams=''
-
-      if [ -n "$filename" ]; then
-        getparams="$getparams -N $filename "
-			fi
-
-      jobs-output-get $commonparams $getparams $jobid $path
-
+		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+			result=$(format_api_json "$response")
+			success "$result"
 		else
-
-			jobs-output-list $commonparams $listparams $jobid $path
-
+			errorresponse=$(jsonquery "$response" "message")
+			err "$errorresponse"
 		fi
 	fi
 }
@@ -131,9 +114,6 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
-    -P|--path) shift; path=$1 ;;
-    -D|--download) download=1 ;;
-    -N|--filename) shift; filename=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
