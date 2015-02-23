@@ -324,12 +324,12 @@ main() {
               tmpEnums=( $(echo "$tmpEnums" | sed 's/:\([a-zA-Z0-9 \-_]*\)}/}/g' | sed 's/\]//g' | sed 's/\[//g' | sed 's/}/"/g' | sed 's/{/"/g' | sed 's/,/ /g' ) )
             fi
 
-            tmp_min_cardinality=${parameter_min_cardinality[$n]}
+            tmp_min_cardinality="${parameter_min_cardinality[$n]}"
             if [[ -z "$tmp_min_cardinality" ]]; then
               tmp_min_cardinality=1
             fi
 
-            tmp_max_cardinality=${parameter_max_cardinality[$n]}
+            tmp_max_cardinality="${parameter_max_cardinality[$n]}"
             if [[ -z "$tmp_max_cardinality" ]]; then
               tmp_max_cardinality=1
             fi
@@ -362,8 +362,8 @@ main() {
             elif [[ "${parameter_types[$n]}" == "string" ]]; then
               parameters=$(printf "%s\n    \"%s\": \"%s\"%s" "$parameters" "$i" "$tmpDefaults" "$trailingcomma")
             elif [[ "${parameter_types[$n]}" == "enumeration" ]]; then
-              tmpEnum=$(echo "$tmpDefaults" | sed 's/"//g')
-              parameters=$(printf "%s\n    \"%s\": %s%s" "$parameters" "$i" "$tmpEnum" "$trailingcomma")
+              tmpEnum=$(echo "$tmpDefaults" | sed 's///g')
+              parameters=$(printf "%s\n    \"%s\": %s%s" "$parameters" "$i" "$tmpDefaults" "$trailingcomma")
             elif [[ "${parameter_types[$n]}" == "bool" ]] || [[ "${parameter_types[$n]}" == "flag" ]]; then
               parameters=$(printf "%s\n    \"%s\": %s%s" "$parameters" "$i" "true" "$trailingcomma")
             else
@@ -411,7 +411,7 @@ main() {
                   parameters=$(printf "%s\n      \"%s\"%s" "$parameters" "$z" "$tc")
                 elif [[ "${parameter_types[$n]}" == "enumeration" ]]; then
                   tmpEnum=$(echo "$z" | sed 's/"//g')
-                  parameters=$(printf "%s\n      %s%s" "$parameters" "$tmpEnum" "$tc")
+                  parameters=$(printf "%s\n      \"%s\"%s" "$parameters" "$tmpEnum" "$tc")
                 else
                   parameters=$(printf "%s\n      %s%s" "$parameters" "$z" "$tc")
                 fi
