@@ -28,7 +28,8 @@ fi
 [[ -t 1 ]] && piped=0 || piped=1
 
 # versioning info
-version="2.1.0"
+version="v2"
+release="2.1.0"
 if [ -e "$DIR/../.git/refs/heads/master" ];
 then
   revision="${version}-r$(head -c 5 $DIR/../.git/refs/heads/master)"
@@ -108,7 +109,7 @@ success() {
 }
 
 version() {
-	out "iPlant Agave API ${version}
+	out "iPlant Agave API ${release}
 Agave CLI (revision ${revision})
 "
 }
