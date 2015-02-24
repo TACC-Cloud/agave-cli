@@ -29,23 +29,24 @@ be applied prior to the callback being sent. If not system id is specified, the
 user's default storage system will be used.
 
  Options:
-  -z, --access_token	Access token
-  -F, --filetoupload The file or folder to upload
-  -C, --callbackurl	The email address or webhook to notify upon completion of all
-  					import filtering
-  -T, --filetype	The filetype associated with this file. See transforms-list
-  					for a full list of supported file types. Defaults to 'raw'
-  -N, --filename	The name of the file once uploaded
-  -S, --systemid	The system to which the file or folder will be uploaded
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -z, --access_token	  Access token
+  -F, --filetoupload    The file or folder to upload. Use - to read from stdin
+                        and when piping.
+  -C, --callbackurl     The email address or webhook to notify upon completion
+                        of all import filtering
+  -T, --filetype	      The filetype associated with this file. See transforms-list
+                        for a full list of supported file types. Defaults to 'raw'
+  -N, --filename	      The name of the file once uploaded
+  -S, --systemid        The system to which the file or folder will be uploaded
+  -H, --hosturl         URL of the service
+  -d, --development     Run in dev mode using default dev server
+  -f, --force           Skip all user interaction
+  -i, --interactive     Prompt for values
+  -q, --quiet           Quiet (no output)
+  -v, --verbose         Verbose output
+  -V, --veryverbose     Very verbose output
+  -h, --help            Display this help and exit
+      --version         Output version information and exit
 "
 }
 
@@ -63,7 +64,7 @@ main() {
 
 	local post_options='';
 
-	if [ ! -e "$filetoupload" ]; then
+	if [ ! -e "$filetoupload" -a "$filetoupload" != "-" ]; then
 
 		response="Local file $filetoupload does not exist"
 		err "$response"
@@ -90,9 +91,11 @@ main() {
 
 		# If the filetoupload is a file, then just copy it up.
 		if [ -f "$filetoupload" ]; then
+
       out "Uploading ${filetoupload}..."
 			#recursively copy the folder applying filename to the root
-			if [ -n "$post_options" ]; then
+
+      if [ -n "$post_options" ]; then
 
 				post_options=${post_options%&}
 
@@ -106,7 +109,7 @@ main() {
 
 			else
 
-				cmd="curl -# -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" $filesurl$args?pretty=true"
+      	cmd="curl -# -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" $filesurl$args?pretty=true"
 
 				if ((veryverbose)); then
 					[ "$piped" -eq 0 ] && log "Calling $cmd"
@@ -115,10 +118,46 @@ main() {
 				response=`curl -# -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$filesurl$args?pretty=true"`
 
 			fi
+    # if the file is coming from stdin, verify we have a filename and feed it to curl
+    elif [[ "$filetoupload" == "-" ]]; then
+
+      if [[ -z "$filename" ]]; then
+
+        response="Please provide a filename for the piped file"
+        err "$response"
+
+      else
+
+        if [ -n "$post_options" ]; then
+
+          post_options=${post_options%&}
+
+          cmd="curl -# -k -H \"${authheader}\" -X POST -F \"fileToUpload=@-\" -F \"${post_options}\" $filesurl$args?pretty=true"
+
+          if ((veryverbose)); then
+            [ "$piped" -eq 0 ] && log "Calling $cmd"
+          fi
+          #response='{"status":"success","response":{},"message":null}'
+          response=`curl -# -k -H "${authheader}" -X POST -F "fileToUpload=@-" -F "${post_options}" "$filesurl$args?pretty=true"`
+
+        else
+
+          cmd="curl -# -k -H \"${authheader}\" -X POST -F \"fileToUpload=@-\" $filesurl$args?pretty=true"
+
+          if ((veryverbose)); then
+            [ "$piped" -eq 0 ] && log "Calling $cmd"
+          fi
+          #response='{"status":"success","response":{},"message":null}'
+          response=`curl -# -k -H "${authheader}" -X POST -F "fileToUpload=@-" "$filesurl$args?pretty=true"`
+
+        fi
+
+      fi
 
 		# if it is a directory, then create the remote directory, using the $filename value
 		# or the basename of the $filetoupload, then recursively uploading the contents
 		else
+
 			filetoupload=${filetoupload%/}
 			cliargs=''
 

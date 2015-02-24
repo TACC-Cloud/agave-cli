@@ -59,51 +59,80 @@ main() {
 	#echo -n
 	#set -x
 
-	if [[ -n "$filetoupload" ]]; then
-		cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}$args?pretty=true"
+  if [[ -d "$filetoupload" ]]; then
 
-		if ((veryverbose)); then
-			[ "$piped" -eq 0 ] && log "Calling $cmd"
-		fi
+    response="Directory input is not supported"
+    err "$response"
 
-		response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}$args?pretty=true"`
+  elif [[ ! -e "$filetoupload" ]] && [[ "$filetoupload" != "-" ]]; then
 
-	else
+    response="No JSON monitor object found at $filetoupload"
+    err "$response"
 
-		if [[ -z "$url" ]]; then
-			err "Please specify a url or email address to which the notification will be sent"
-		else
-      url=$(echo "$url" | sed 's/\&/%26/g' )
-    fi
+  else
 
-		if [[ -z "$event" ]]; then
-			err "Please specify an event upon which the notification will be sent"
-		fi
+  	if [[ -z "$filetoupload" ]]; then
 
-		if [[ -z "$associatedUuid" ]]; then
-			err "Please specify an associatedUuid for which the notification will be sent"
-		fi
+  		if [[ -z "$url" ]]; then
+  			err "Please specify a url or email address to which the notification will be sent"
+  		else
+        url=$(echo "$url" | sed 's/\&/%26/g' )
+      fi
 
-		if [[ -z "$persistent" ]]; then
-			persistent="false"
-		fi
+  		if [[ -z "$event" ]]; then
+  			err "Please specify an event upon which the notification will be sent"
+  		fi
 
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"event=${event}&persistent=${persistent}&associatedUuid=${associatedUuid}&url=${url}\" ${hosturl}$args?pretty=true"
+  		if [[ -z "$associatedUuid" ]]; then
+  			err "Please specify an associatedUuid for which the notification will be sent"
+  		fi
 
-		if ((veryverbose)); then
-			[ "$piped" -eq 0 ] && log "Calling $cmd"
-		fi
+  		if [[ -z "$persistent" ]]; then
+  			persistent="false"
+  		fi
 
-		response=`curl -sk -H "${authheader}" -X POST -d "event=${event}&persistent=${persistent}&associatedUuid=${associatedUuid}&url=${url}" "${hosturl}$args?pretty=true"`
-	fi
+  		cmd="curl -sk -H \"${authheader}\" -X POST -d \"event=${event}&persistent=${persistent}&associatedUuid=${associatedUuid}&url=${url}\" ${hosturl}$args?pretty=true"
 
-	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-		result=$(format_api_json "$response")
-		success "$result"
-	else
-		errorresponse=$(jsonquery "$response" "message")
-		err "$errorresponse"
-	fi
+  		if ((veryverbose)); then
+  			[ "$piped" -eq 0 ] && log "Calling $cmd"
+  		fi
+
+  		response=`curl -sk -H "${authheader}" -X POST -d "event=${event}&persistent=${persistent}&associatedUuid=${associatedUuid}&url=${url}" "${hosturl}$args?pretty=true"`
+
+    # reading from stdin
+    elif [[ "$filetoupload" == "-"  ]]; then
+
+      cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- ${hosturl}${args}?pretty=true"
+
+      if ((veryverbose)); then
+        [ "$piped" -eq 0 ] && log "Calling $cmd"
+      fi
+
+      # make sure we specify content type as application/json
+      response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary @- "${hosturl}${args}?pretty=true"`
+
+    # standard file upload
+    elif [[ -f "$filetoupload" ]]; then
+
+  		cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}$args?pretty=true"
+
+  		if ((veryverbose)); then
+  			[ "$piped" -eq 0 ] && log "Calling $cmd"
+  		fi
+
+  		response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}$args?pretty=true"`
+
+  	fi
+
+  	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+  		result=$(format_api_json "$response")
+  		success "$result"
+  	else
+  		errorresponse=$(jsonquery "$response" "message")
+  		err "$errorresponse"
+  	fi
+
+  fi
 }
 
 format_api_json() {
@@ -114,7 +143,7 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		jsonval oid "$i" "id"
+		oid=$(jsonquery "$response" "result.id")
 		if [ -n "$args" ]; then
       success "Successfully updated notification $oid"
     else

@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # metadata-addupdate
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -27,16 +27,17 @@ Add a metadata record.
 
  Options:
   -z, --access_token	Access token
-  -F, --filetoupload The file containing the json app description to submit
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -F, --filetoupload  The file containing the json metadata description to submit
+                      Use - to read from stdin and when piping.
+  -H, --hosturl       URL of the service
+  -d, --development   Run in dev mode using default dev server
+  -f, --force         Skip all user interaction
+  -i, --interactive   Prompt for values
+  -q, --quiet         Quiet (no output)
+  -v, --verbose       Verbose output
+  -V, --veryverbose   Very verbose output
+  -h, --help          Display this help and exit
+      --version       Output version information and exit
 "
 }
 
@@ -51,35 +52,62 @@ source "$DIR/metadata-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
-	if [ -n "$filetoupload" ]; then
-		metadatasource="  "
-	else
-		err "Please specify either a file to upload or the raw json data to post"
-	fi
-	
-	cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@${filetoupload}\" ${hosturl}data/${args}?pretty=true"
 
-	
-	if ((veryverbose)); then
-		[ "$piped" -eq 0 ] && log "Calling $cmd"
-	fi
-	
-	
-	response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@${filetoupload}" "${hosturl}data/${args}?pretty=true"`
-	
-	
-	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-		result=$(format_api_json "$response")
-		success "$result"
-	else
-		errorresponse=$(jsonquery "$response" "message")
-		err "$errorresponse"
-	fi
+  if [[ -z "$filetoupload" ]]; then
+
+    response="Please provide a valid JSON metadata object with the -F option."
+    err "$response"
+
+  elif [[ -d "$filetoupload" ]]; then
+
+    response="Directory input is not supported"
+    err "$response"
+
+  elif [[ ! -e "$filetoupload" ]] && [[ "$filetoupload" != "-" ]]; then
+
+    response="No JSON metadata object found at $filetoupload"
+    err "$response"
+
+  else
+
+    # reading from stdin
+    if [[ "$filetoupload" == "-"  ]]; then
+
+      cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- ${hosturl}data/${args}?pretty=true"
+
+      if ((veryverbose)); then
+        [ "$piped" -eq 0 ] && log "Calling $cmd"
+      fi
+
+      # make sure we specify content type as application/json
+      response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary @- "${hosturl}data/${args}?pretty=true"`
+
+    # standard file upload
+    else
+
+      cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@${filetoupload}\" ${hosturl}data/${args}?pretty=true"
+
+      if ((veryverbose)); then
+        [ "$piped" -eq 0 ] && log "Calling $cmd"
+      fi
+
+      response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@${filetoupload}" "${hosturl}data/${args}?pretty=true"`
+
+    fi
+
+  	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+  		result=$(format_api_json "$response")
+  		success "$result"
+  	else
+  		errorresponse=$(jsonquery "$response" "message")
+  		err "$errorresponse"
+  	fi
+
+  fi
 }
 
 format_api_json() {
-	
+
 	if ((veryverbose)); then
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then

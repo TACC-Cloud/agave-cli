@@ -34,6 +34,7 @@ passed in as a file containing a JSON object or via command line arguments.
  Options:
   -z, --access_token        Access token
   -F, --filetoupload        The file containing the json app description to submit
+                            Use - to read from stdin and when piping.
   -S, --systemId            The system to monitor
   -A, --active              Whether the monitor should be active. true or false.
                             Default true.
@@ -66,51 +67,81 @@ main() {
 	#echo -n
 	#set -x
 
-	if [[ -n "$filetoupload" ]]; then
-		cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}$args?pretty=true"
+  if [[ -d "$filetoupload" ]]; then
 
-		if ((veryverbose)); then
-			[ "$piped" -eq 0 ] && log "Calling $cmd"
-		fi
+    response="Directory input is not supported"
+    err "$response"
 
-		response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}$args?pretty=true"`
+  elif [[ ! -e "$filetoupload" ]] && [[ "$filetoupload" != "-" ]]; then
 
-	else
+    response="No JSON monitor object found at $filetoupload"
+    err "$response"
 
-		if [[ -z "$systemId" ]]; then
-			err "Please specify the id of a system to monitor"
-		fi
+  else
 
-		if [[ -z "$interval" ]]; then
-			frequency=720
-		else
-      frequency="$interval"
+    # no file input, using builder arguments instead
+    if [[ -z "$filetoupload" ]]; then
+
+      if [[ -z "$systemId" ]]; then
+        err "Please specify the id of a system to monitor"
+      fi
+
+      if [[ -z "$interval" ]]; then
+        frequency=720
+      else
+        frequency="$interval"
+      fi
+
+      if [[ -z "$updateSystemStatus" ]]; then
+        updateSystemStatus=0
+      fi
+
+      if [[ -z "$active" ]]; then
+        active="true"
+      fi
+
+      cmd="curl -sk -H \"${authheader}\" -X POST -d \"frequency=${frequency}&active=${active}&updateSystemStatus=${updateSystemStatus}&target=${systemId}\" ${hosturl}$args?pretty=true"
+
+      if ((veryverbose)); then
+        [ "$piped" -eq 0 ] && log "Calling $cmd"
+      fi
+
+      response=`curl -sk -H "${authheader}" -X POST -d "frequency=${frequency}&active=${active}&updateSystemStatus=${updateSystemStatus}&target=${systemId}" "${hosturl}$args?pretty=true"`
+
+    # reading from stdin
+    elif [[ "$filetoupload" == "-"  ]]; then
+
+      cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- ${hosturl}${args}?pretty=true"
+
+      if ((veryverbose)); then
+        [ "$piped" -eq 0 ] && log "Calling $cmd"
+      fi
+
+      # make sure we specify content type as application/json
+      response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary @- "${hosturl}${args}?pretty=true"`
+
+    # standard file upload
+    else
+
+      cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}$args?pretty=true"
+
+      if ((veryverbose)); then
+        [ "$piped" -eq 0 ] && log "Calling $cmd"
+      fi
+
+      response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}$args?pretty=true"`
+
     fi
 
-		if [[ -z "$updateSystemStatus" ]]; then
-			updateSystemStatus=0
-		fi
+  	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+  		result=$(format_api_json "$response")
+  		success "$result"
+  	else
+  		errorresponse=$(jsonquery "$response" "message")
+  		err "$errorresponse"
+  	fi
 
-		if [[ -z "$active" ]]; then
-			active="true"
-		fi
-
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"frequency=${frequency}&active=${active}&updateSystemStatus=${updateSystemStatus}&target=${systemId}\" ${hosturl}$args?pretty=true"
-
-		if ((veryverbose)); then
-			[ "$piped" -eq 0 ] && log "Calling $cmd"
-		fi
-
-		response=`curl -sk -H "${authheader}" -X POST -d "frequency=${frequency}&active=${active}&updateSystemStatus=${updateSystemStatus}&target=${systemId}" "${hosturl}$args?pretty=true"`
-	fi
-
-	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-		result=$(format_api_json "$response")
-		success "$result"
-	else
-		errorresponse=$(jsonquery "$response" "message")
-		err "$errorresponse"
-	fi
+  fi
 }
 
 format_api_json() {

@@ -26,7 +26,8 @@ Submit a new job request.
 
  Options:
   -z, --access_token  Access token
-  -F, --filetoupload  The file containing the json app description to submit
+  -F, --filetoupload  The file containing the json job description to submit.
+                      Use - to read from stdin and when piping.
   -W, --watch         Watch the job history after it has been submitted, updating
                       every few seconds until the job reaches a terminal state.
   -H, --hosturl       URL of the service
@@ -53,43 +54,87 @@ main() {
 	#echo -n
 	#set -x
 
-	cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl?pretty=true"
+  if [[ -z "$filetoupload" ]]; then
 
-	if ((veryverbose)); then
-		[ "$piped" -eq 0 ] && log "Calling $cmd"
-	fi
+    response="Please provide a valid job request with the -F option."
+    err "$response"
 
-	response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$hosturl?pretty=true"`
+  elif [[ -d "$filetoupload" ]]; then
 
-	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-    if ((watch)); then
-	    jobwatchid=$(jsonquery "$response" "result.id")
+    response="Directory input is not supported"
+    err "$response"
 
-      result=$(format_api_json "$response")
-      success "$result"
+  elif [[ ! -e "$filetoupload" ]] && [[ "$filetoupload" != "-" ]]; then
 
-      if ((development)); then
-        jhparams=" -d "
-      fi
+    response="No job request found at $filetoupload"
+    err "$response"
+
+  else
+
+    # reading from stdin
+    if [[ "$filetoupload" == "-"  ]]; then
+
+      cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- $hosturl?pretty=true"
 
       if ((veryverbose)); then
-
-        jhparams="$jhparams -V "
-
-      elif ((verbos)); then
-
-        jhparams="$jhparams -v "
+        [ "$piped" -eq 0 ] && log "Calling $cmd"
       fi
 
-      jobs-history $jhparams -W $jobwatchid
+      # make sure we specify content type as application/json
+      response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary @- "$hosturl?pretty=true"`
+
+    # standard file upload
     else
-      result=$(format_api_json "$response")
-		  success "$result"
+
+      cmd="curl -sk -H \"${authheader}\" -X POST -d \"fileToUpload=@$filetoupload\" $hosturl?pretty=true"
+
+      if ((veryverbose)); then
+        [ "$piped" -eq 0 ] && log "Calling $cmd"
+      fi
+
+      response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$hosturl?pretty=true"`
+
     fi
-	else
-		errorresponse=$(jsonquery "$response" "message")
-		err "$errorresponse"
-	fi
+
+  	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+
+      if ((watch)); then
+
+        jobwatchid=$(jsonquery "$response" "result.id")
+
+        result=$(format_api_json "$response")
+        success "$result"
+
+        if ((development)); then
+          jhparams=" -d "
+        fi
+
+        if ((veryverbose)); then
+
+          jhparams="$jhparams -V "
+
+        elif ((verbos)); then
+
+          jhparams="$jhparams -v "
+        fi
+
+        jobs-history $jhparams -W $jobwatchid
+
+      else
+
+        result=$(format_api_json "$response")
+  		  success "$result"
+
+      fi
+
+    else
+
+      errorresponse=$(jsonquery "$response" "message")
+  		err "$errorresponse"
+
+  	fi
+
+  fi
 }
 
 format_api_json() {

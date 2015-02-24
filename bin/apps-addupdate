@@ -1,11 +1,11 @@
 #!/bin/bash
-# 
+#
 # apps-addupdate
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It registers or updates an existing registered application. If 
+# It registers or updates an existing registered application. If
 # registering a new application, no app_id should be provided. If
 # updating an existing application, an app_id must be provided.
 #
@@ -25,22 +25,23 @@ usage() {
   echo -n "$(basename $0) [OPTION]...
 $(basename $0) [OPTION]... [APP_ID]
 
-Registers or updates an existing registered application. If registering a 
-new application, no application id should be provided. If updating an 
+Registers or updates an existing registered application. If registering a
+new application, no application id should be provided. If updating an
 existing application, an application id must be provided.
 
  Options:
   -z, --access_token	Access token
-  -F, --filetoupload The file containing the json app description to submit
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -F, --filetoupload  The file containing the json app description to submit
+                      Use - to read from stdin and when piping.
+  -H, --hosturl       URL of the service
+  -d, --development   Run in dev mode using default dev server
+  -f, --force         Skip all user interaction
+  -i, --interactive   Prompt for values
+  -q, --quiet         Quiet (no output)
+  -v, --verbose       Verbose output
+  -V, --veryverbose   Very verbose output
+  -h, --help          Display this help and exit
+      --version       Output version information and exit
 "
 }
 
@@ -55,22 +56,59 @@ source "$DIR/apps-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
-	cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl$args?pretty=true"
 
-	if ((veryverbose)); then
-		[ "$piped" -eq 0 ] && log "Calling $cmd"
-	fi
+  if [[ -z "$filetoupload" ]]; then
 
-	response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$hosturl$args?pretty=true"`
-	
-	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-		result=$(format_api_json "$response")
-		success "$result"
-	else
-		jsonval response_message "$response" "message" 
-		err "$response_message"
-	fi
+    response="Please provide a valid app description with the -F option."
+    err "$response"
+
+  elif [[ -d "$filetoupload" ]]; then
+
+    response="Directory input is not supported"
+    err "$response"
+
+  elif [[ ! -e "$filetoupload" ]] && [[ "$filetoupload" != "-" ]]; then
+
+    response="No app description found at $filetoupload"
+    err "$response"
+
+  else
+
+    # reading from stdin
+    if [[ "$filetoupload" == "-"  ]]; then
+
+      cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- ${hosturl}${args}?pretty=true"
+
+      if ((veryverbose)); then
+        [ "$piped" -eq 0 ] && log "Calling $cmd"
+      fi
+
+      # make sure we specify content type as application/json
+      response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary @- "${hosturl}${args}?pretty=true"`
+
+    # standard file upload
+    else
+
+      cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}${args}?pretty=true"
+
+      if ((veryverbose)); then
+          [ "$piped" -eq 0 ] && log "Calling $cmd"
+        fi
+
+      response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}${args}?pretty=true"`
+
+    fi
+
+
+  	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+  		result=$(format_api_json "$response")
+  		success "$result"
+  	else
+  		jsonval response_message "$response" "message"
+  		err "$response_message"
+  	fi
+
+  fi
 }
 
 format_api_json() {
