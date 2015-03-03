@@ -35,6 +35,7 @@ available from this script.
   -N, --filename      Name to give the downloaded file/folder
   -r, --recursive     Recursively download all data from the remote path.
   -R, --range		      Byte range to retrieve in <start>-<end> format
+  -P, --print		      Print contents to stdout
   -H, --hosturl       URL of the service
   -d, --development   Run in dev mode using default dev server
   -f, --force         Skip all user interaction
@@ -302,6 +303,7 @@ while [[ $1 = -?* ]]; do
     -S|--systemId) shift; systemId=$1 ;;
     -N|--filename) shift; filename=$1 ;;
     -r|--recursive) recursive=1 ;;
+    -P|--print) print=1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
