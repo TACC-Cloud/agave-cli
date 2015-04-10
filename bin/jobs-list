@@ -28,18 +28,19 @@ tag, or start date.
 
  Options:
   -z, --access_token	Access token
-  -n, --name		Search for app by name
-  -t, --tag			Search for app by tag
-  -S, --startdate   Start date of the job in yyyy-mm-dd format
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -n, --name		      Search for job by name
+  -t, --tag			      Search for job by tag
+  -s, --status			  Search for job by status
+  -S, --startdate     Start date of the job in yyyy-mm-dd format
+  -H, --hosturl       URL of the service
+  -d, --development   Run in dev mode using default dev server
+  -f, --force         Skip all user interaction
+  -i, --interactive   Prompt for values
+  -q, --quiet         Quiet (no output)
+  -v, --verbose       Verbose output
+  -V, --veryverbose   Very verbose output
+  -h, --help          Display this help and exit
+      --version       Output version information and exit
 "
 }
 
@@ -64,6 +65,8 @@ main() {
 		jobsurl="$hosturl/tag/$tag"
 	elif [ -n "$startdate" ]; then
 		jobsurl="$hosturl/startDate/$startdate"
+  elif [ -n "$status" ]; then
+		jobsurl="$hosturl/search/status/$status"
 	else
 		jobsurl="$hosturl/"
 	fi
@@ -137,6 +140,7 @@ while [[ $1 = -?* ]]; do
     -z|--access_token) shift; access_token=$1 ;;
     -n|--name) shift; name=$1 ;;
     -t|--tag) shift; tag=$1 ;;
+    -s|--status) shift; status=$1 ;;
     -S|--startdate) shift; startdate=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;

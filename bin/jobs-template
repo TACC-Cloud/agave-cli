@@ -546,9 +546,9 @@ function generateDefaults {
       elif [[ "$value_type" == "number" ]]; then
         tmp_val=$(( ( RANDOM % 100000 )  + 1 ))
       elif [[ "$value_type" == "input" ]]; then
-        seed=$(grep -m1 -ao '[0-2]' /dev/urandom | head -n1)
+        seed=$(( ( RANDOM % 2 ) + 1 ))
         # get a random agave url for the user
-        tmp_fname=`head -c 10 /dev/random | base64`
+        tmp_fname=`head -c 10 /dev/urandom | base64`
         tmp_fname=${tmp_fname%\/}
         if [[ "$seed" -eq 1 ]]; then
           # get a random meme url from imgur
@@ -562,7 +562,7 @@ function generateDefaults {
         enumindex=$(( ( RANDOM % $enum_count ) ))
         tmp_val=${enum_values[$enumindex]}
       else
-        tmp_val=`head -c 10 /dev/random | base64`
+        tmp_val=`head -c 10 /dev/urandom | base64`
         tmp_val=${tmp_val%\/}
         tmp_val="${tmp_val:0:7}"
       fi

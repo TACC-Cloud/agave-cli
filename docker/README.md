@@ -40,11 +40,6 @@ You need to initialize your environment prior to using the CLI. This will create
 
   > docker run -i -t --rm -v `$HOME`/.agave:/root/.agave agaveapi/agave-cli bash
 
-Now your session information will be persisted between invocations of a container or image. If you mount your local directory to a different location, you can specify the cache directory by setting the `$AGAVE_CACHE_DIR` environment variable.
-
-  > docker run -i -t --rm -v `$HOME`/.agave:/var/cache/agave -e AGAVE_CACHE_DIR=/var/cache/agave agaveapi/agave-cli bash
-
-
 ## Getting started
 
 From here on, we assume you are running an interactive container with the following command. All future commands are given inside the container's interactive shell. We will start the container with a local cache directory attached as a volume.
