@@ -30,6 +30,8 @@ that occurred in the submission process.
   -z, --access_token  Access token
   -W, --watch         Watches the job history, updating every few seconds
                       until the job reaches a terminal state.
+  -l, --limit         Maximum number of results to return
+  -o, --offset        Number of results to skip from the start
   -H, --hosturl       URL of the service
   -d, --development   Run in dev mode using default dev server
   -f, --force         Skip all user interaction
@@ -57,13 +59,14 @@ main() {
 	if [ -z "$args" ]; then
 		err "Please specify a job for which to set the permissions"
 	else
-		cmd="curl -sk -H \"${authheader}\" $hosturl$args/history?pretty=true"
+
+    cmd="curl -sk -H \"${authheader}\" $hosturl$args/history?pretty=true$(pagination)"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" "${hosturl}${args}/history?pretty=true"`
+		response=`curl -sk -H "${authheader}" "${hosturl}${args}/history?pretty=true$(pagination)"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 
@@ -91,7 +94,7 @@ format_api_json() {
 
   if ((watch)); then
     clear
-    echo "Watching job $args" 
+    echo "Watching job $args"
     date
   fi
 
@@ -129,6 +132,8 @@ while [[ $1 = -?* ]]; do
     --version) out "Agave (cli) v${api_release}.${version}"; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
     -W| --watch) watch=1;;
+    -l|--limit) shift; limit=$1;;
+    -o|--offset) shift; offset=$1;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

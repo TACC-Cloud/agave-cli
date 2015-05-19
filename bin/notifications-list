@@ -28,16 +28,18 @@ List notifications individually or search by object uuid.
 
  Options:
   -z, --access_token	Access token
-  -U, --uuid		Search for uuid of another api object
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -U, --uuid		      Search for uuid of another api object
+  -l, --limit         Maximum number of results to return
+  -o, --offset        Number of results to skip from the start
+  -H, --hosturl       URL of the service
+  -d, --development   Run in dev mode using default dev server
+  -f, --force         Skip all user interaction
+  -i, --interactive   Prompt for values
+  -q, --quiet         Quiet (no output)
+  -v, --verbose       Verbose output
+  -V, --veryverbose   Very verbose output
+  -h, --help          Display this help and exit
+      --version       Output version information and exit
 "
 }
 
@@ -62,7 +64,7 @@ main() {
 		notificationurl="${hosturl}?pretty=true"
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" ${notificationurl}"
+	cmd="curl -sk -H \"${authheader}\" ${notificationurl}$(pagination)"
 
 	if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
@@ -115,6 +117,8 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
     -U|--uuid) shift; uuid=$1 ;;
+    -l|--limit) shift; limit=$1;;
+    -o|--offset) shift; offset=$1;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

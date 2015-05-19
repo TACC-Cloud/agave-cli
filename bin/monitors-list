@@ -31,6 +31,8 @@ List monitors individually or filter by systemId and active status.
   -T, --target        Only return monitors for the target system
   -A, --activeonly    Only return active montiors
   -I, --inactiveonly  Only return inactive monitors
+  -l, --limit         Maximum number of results to return
+  -o, --offset        Number of results to skip from the start
   -H, --hosturl       URL of the service
   -d, --development   Run in dev mode using default dev server
   -f, --force         Skip all user interaction
@@ -59,11 +61,11 @@ main() {
 
 	if [ -n "$args" ]; then
 
-  	monitorurl="${hosturl}/${args}?pretty=true"
+  	monitorurl="${hosturl}/${args}?pretty=true$(pagination)"
 
   else
 
-    queryParams="pretty=true"
+    queryParams="pretty=true$(pagination)"
 
     if [ -n "$activeonly" ]; then
 
@@ -162,6 +164,8 @@ while [[ $1 = -?* ]]; do
     -T|--target) shift; target=$1 ;;
     -A|--activeonly) activeonly=1 ;;
     -I|--inactiveonly) inactiveonly=1 ;;
+    -l|--limit) shift; limit=$1;;
+    -o|--offset) shift; offset=$1;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

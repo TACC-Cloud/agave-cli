@@ -200,6 +200,24 @@ function isxmlstring {
 	fi
 }
 
+function getpagination {
+  pagination=''
+  re='^[0-9]+$'
+  if [[ $1 =~ $re ]] ; then
+    pagination="&limit=$1"
+  fi
+
+  if [[ $2 =~ $re ]] ; then
+    pagination="${pagination}&offset=$2"
+  fi
+
+  echo $pagination
+}
+
+function pagination {
+  getpagination $limit $offset
+}
+
 function jsonquery {
 
   if [[ -z "$1" ]]; then

@@ -25,15 +25,17 @@ usage() {
 Retrieves a list of available tenants from the agave central
 
  Options:
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -l, --limit         Maximum number of results to return
+  -o, --offset        Number of results to skip from the start
+  -H, --hosturl       URL of the service
+  -d, --development   Run in dev mode using default dev server
+  -f, --force         Skip all user interaction
+  -i, --interactive   Prompt for values
+  -q, --quiet         Quiet (no output)
+  -v, --verbose       Verbose output
+  -V, --veryverbose   Very verbose output
+  -h, --help          Display this help and exit
+      --version       Output version information and exit
 "
 }
 
@@ -49,13 +51,13 @@ main() {
 	#echo -n
 	#set -x
 
-	cmd="curl -sk ${hosturl%/}/?pretty=true"
+	cmd="curl -sk ${hosturl%/}/?pretty=true$(pagination)"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 
-	response=`curl -sk "${hosturl%/}/"`
+	response=`curl -sk "${hosturl%/}/?pretty=true$(pagination)"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
@@ -102,6 +104,8 @@ while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
+    -l|--limit) shift; limit=$1;;
+    -o|--offset) shift; offset=$1;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

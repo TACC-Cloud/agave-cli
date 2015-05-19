@@ -32,6 +32,8 @@ tag, or start date.
   -t, --tag			      Search for job by tag
   -s, --status			  Search for job by status
   -S, --startdate     Start date of the job in yyyy-mm-dd format
+  -l, --limit         Maximum number of results to return
+  -o, --offset        Number of results to skip from the start
   -H, --hosturl       URL of the service
   -d, --development   Run in dev mode using default dev server
   -f, --force         Skip all user interaction
@@ -71,13 +73,13 @@ main() {
 		jobsurl="$hosturl/"
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" $jobsurl?pretty=true"
+  cmd="curl -sk -H \"${authheader}\" $jobsurl?pretty=true$(pagination)"
 
 	if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-	response=`curl -sk -H "${authheader}" "$jobsurl?pretty=true"`
+	response=`curl -sk -H "${authheader}" "$jobsurl?pretty=true$(pagination)"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
@@ -142,6 +144,8 @@ while [[ $1 = -?* ]]; do
     -t|--tag) shift; tag=$1 ;;
     -s|--status) shift; status=$1 ;;
     -S|--startdate) shift; startdate=$1 ;;
+    -l|--limit) shift; limit=$1;;
+    -o|--offset) shift; offset=$1;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

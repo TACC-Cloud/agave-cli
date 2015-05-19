@@ -34,7 +34,9 @@ default designation, and scope is supported.
   -D, --defaultonly		Only return default systems. Ignored if system id is given.
   -P, --publiconly		Only return public systems. Ignored if system id is given.
   -Q, --privateonly		Only return private systems. Ignored if system id is given.
-  -h, --hosturl     	URL of the service
+  -l, --limit         Maximum number of results to return
+  -o, --offset        Number of results to skip from the start
+  -H, --hosturl     	URL of the service
   -d, --development 	Run in dev mode using default dev server
   -f, --force       	Skip all user interaction
   -i, --interactive 	Prompt for values
@@ -59,9 +61,9 @@ main() {
 	#set -x
 
 	if [ -n "$args" ]; then
-		systemsurl="${hosturl}${args}?pretty=true"
+		systemsurl="${hosturl}${args}?pretty=true$(pagination)"
 	else
-		querystring="pretty=true"
+		querystring="pretty=true$(pagination)"
 		if [ -n "$storageonly" ]; then
 			querystring="type=storage&${querystring}"
 		elif [ -n "$executiononly" ]; then
@@ -139,6 +141,8 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
+    -l|--limit) shift; limit=$1;;
+    -o|--offset) shift; offset=$1;;
     -H|--hosturl) shift; hosturl=$1;;
   	-S|--storageonly) storageonly=1;;
     -E|--executiononly) executiononly=1;;

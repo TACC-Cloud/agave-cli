@@ -28,18 +28,20 @@ email, or username using the appropriate options.
 
  Options:
   -z, --access_token	Access token
-  -N, --name        Search for profiles by first and/or last name
-  -E, --email       Search by email address
-  -U, --user       Search by email address
-  -h, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -N, --name          Search for profiles by first and/or last name
+  -E, --email         Search by email address
+  -U, --user          Search by email address
+  -l, --limit         Maximum number of results to return
+  -o, --offset        Number of results to skip from the start
+  -H, --hosturl       URL of the service
+  -d, --development   Run in dev mode using default dev server
+  -f, --force         Skip all user interaction
+  -i, --interactive   Prompt for values
+  -q, --quiet         Quiet (no output)
+  -v, --verbose       Verbose output
+  -V, --veryverbose   Very verbose output
+  -h, --help          Display this help and exit
+      --version       Output version information and exit
 "
 }
 
@@ -69,13 +71,13 @@ main() {
 		profileurl="$hosturl?pretty=true"
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" $profileurl"
+	cmd="curl -sk -H \"${authheader}\" $profileurl$(pagination)"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 
-	response=`curl -sk -H "${authheader}" "${profileurl}"`
+	response=`curl -sk -H "${authheader}" "${profileurl}$(pagination)"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
@@ -129,6 +131,8 @@ while [[ $1 = -?* ]]; do
     -N|--name) shift; name=$1 ;;
     -E|--email) shift; email=$1 ;;
     -U|--user) shift; user=$1 ;;
+    -l|--limit) shift; limit=$1;;
+    -o|--offset) shift; offset=$1;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

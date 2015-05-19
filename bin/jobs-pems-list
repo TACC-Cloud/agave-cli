@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # jobs-pems-list
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -26,16 +26,18 @@ List the user permissions associated with a job.
 
  Options:
   -z, --access_token	Access token
-  -u, --apiusername	The user whose permissions should be listed
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -u, --apiusername	  The user whose permissions should be listed
+  -l, --limit         Maximum number of results to return
+  -o, --offset        Number of results to skip from the start
+  -H, --hosturl       URL of the service
+  -d, --development   Run in dev mode using default dev server
+  -f, --force         Skip all user interaction
+  -i, --interactive   Prompt for values
+  -q, --quiet         Quiet (no output)
+  -v, --verbose       Verbose output
+  -V, --veryverbose   Very verbose output
+  -h, --help          Display this help and exit
+      --version       Output version information and exit
 "
 }
 
@@ -50,19 +52,19 @@ source "$DIR/jobs-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [ -z "$args" ]; then
 		err "Please specify a valid app id for which to retrieve permissions"
 	else
-	
-		cmd="curl -sk -H \"${authheader}\" $hosturl$args/pems/$apiusername?pretty=true"
+
+		cmd="curl -sk -H \"${authheader}\" $hosturl$args/pems/$apiusername?pretty=true$(pagination)"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-		
-		response=`curl -sk -H "${authheader}" "$hosturl$args/pems/$apiusername?pretty=true"`
-	
+
+		response=`curl -sk -H "${authheader}" "$hosturl$args/pems/$apiusername?pretty=true$(pagination)"`
+
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
 			success "$result"
@@ -70,12 +72,12 @@ main() {
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
 		fi
-	fi	
-	
+	fi
+
 }
 
 format_api_json() {
-	
+
 	if ((veryverbose)); then
 		echo "$1" | python -mjson.tool
 	elif [[ $verbose -eq 1 ]]; then
@@ -84,7 +86,7 @@ format_api_json() {
 	else
 		if [[ -z "$apiusername" ]]; then
 			pemusers=( $(jsonquery "$1" "result.[].username") )
-			
+
 			n=0
 			for i in $(jsonquery "$1" "result.[].permission.read")
 			do
@@ -96,7 +98,7 @@ format_api_json() {
 				pemusers[$n]="${pemusers[$n]} $canread"
 				n=$[n+1]
 			done
-			
+
 			n=0
 			for i in $(jsonquery "$1" "result.[].permission.write")
 			do
@@ -108,11 +110,11 @@ format_api_json() {
 				pemusers[$n]="${pemusers[$n]}$canwrite"
 				n=$[n+1]
 			done
-			
+
 			for i in "${pemusers[@]}"; do
 				echo "$i"
 			done
-		
+
 		else
 			userpem=$(jsonquery "$1" "result.permission.read")
 			if [[ "$userpem" = 'rue' ]]; then
@@ -120,13 +122,13 @@ format_api_json() {
 			else
 				canread=''
 			fi
-		
+
 			userpem=$(jsonquery "$1" "result.permission.write")
 			if [[ "$userpem" = 'rue' ]]; then
 				canwrite='WRITE '
 			else
 				canwrite=''
-			fi				
+			fi
 
 			echo "$apiusername $canread$canwrite"
 		fi
@@ -157,6 +159,8 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
     -u|--apiusername) shift; apiusername=$1 ;;
+    -l|--limit) shift; limit=$1;;
+    -o|--offset) shift; offset=$1;;
     -H|--hosturl) shift; hosturl=$1;;
     -d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
@@ -177,4 +181,3 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
-
