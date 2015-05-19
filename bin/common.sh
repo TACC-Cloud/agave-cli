@@ -29,7 +29,7 @@ fi
 
 # versioning info
 version="v2"
-release="2.1.0"
+release="2.1.1"
 if [ -e "$DIR/../.git/refs/heads/master" ];
 then
   revision="${version}-r$(head -c 5 $DIR/../.git/refs/heads/master)"
