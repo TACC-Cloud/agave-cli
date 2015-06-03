@@ -122,23 +122,18 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		if [ -n "$args" ]; then
-			jobstatus=$(jsonquery "$1" "result.status")
-			echo "$args $jobstatus"
-		else
-			jobids=( $(jsonquery "$1" "result.[].id") )
+		jobids=( $(jsonquery "$1" "result.[].id") )
 
-			n=0
-			for i in $(jsonquery "$1" "result.[].status")
-			do
-				jobids[$n]="${jobids[$n]} $i"
-				n=$[n+1]
-			done
+		n=0
+		for i in $(jsonquery "$1" "result.[].status")
+		do
+			jobids[$n]="${jobids[$n]} $i"
+			n=$[n+1]
+		done
 
-			for i in "${jobids[@]}"; do
-				echo "$i"
-			done
-		fi
+		for i in "${jobids[@]}"; do
+			echo "$i"
+		done
 	fi
 }
 
