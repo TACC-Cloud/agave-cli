@@ -1,12 +1,11 @@
 #!/bin/bash
 #
-# jobs-list
+# jobs-search
 #
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It retrieves a list jobs. Optionally, one can search by name, tag,
-# ontology, or start date
+# It retrieves a list jobs based on search criteria.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -21,14 +20,50 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]...
-$(basename $0) [OPTION]... [JOB_ID]
-List past, current, or a specific job. Results may be paginated.
-For more query options, see the jobs-search command.
+  echo -n "$(basename $0) [OPTIONS]... [QUERY_TERMS]
+
+Search for jobs based on job attribute values. Valid values should be
+specified in key pairs such as appid=foo-1.0.0 or archive=true. Multiple
+search terms should be provided as a URL query string. For example,
+batchqueue=normal&system=compute.example.com&status=RUNNING.
+
+ Query parameters:
+  appid               The id of the app run by the job.
+  archive		          Boolean flag stating whether the job output
+                      was archived.
+  archivepath		      Path on the archive system where the job output
+                      was archived if the archive flag was true.
+  archivesystem	      The id of the system where the job output was
+  	                  archived if the archive flag was true.
+  batchqueue          The system queue in which the job ran.
+  executionsystem		  The execution system where the job ran.
+  id		              The id of the job.
+  inputs		          The job inputs. Note, this is currently a
+                      full text match.
+  localid		          The local job id of the job on the execution system.
+  maxruntime		      The maximum run time of the job in HH:mm:ss format.
+  memorypernode		    The memory requested by the job specified in GB.
+  name		            The name of the job.
+  nodecount		        The number of nodes requested for the job.
+  outputpath		      The remote work directory path of the job.
+  parameters		      The job parameters. Note, this is currently a
+                      full text match.
+  processorspernode		The number of processors per node requested
+                      by the job.
+  retries		          The number of retry attempts made on this job.
+  starttime		        The date the job began running. Results are rounded by
+                      day. You may specify using YYYY-MM-DD format or free
+                      form timeframes such as 'yesterday' or '3 days ago'.
+  status		          The job status.
+  submittime		      The date the job was submitted to the remote execution
+                      system to run. Results are rounded by day. You may
+                      specify using YYYY-MM-DD format or free form timeframes
+                      such as 'yesterday' or '3 days ago'.
+  visible             Boolean flag indicating whether or not to show deleted
+                      jobs. Defaults to false.
 
  Options:
   -z, --access_token	Access token
-  -s, --status			  Search for job by status
   -l, --limit         Maximum number of results to return
   -o, --offset        Number of results to skip from the start
   -H, --hosturl       URL of the service
@@ -55,16 +90,11 @@ main() {
 	#echo -n
 	#set -x
 
-	hosturl=${hosturl%/}
-	if [ -n "$args" ]; then
-		jobsurl="$hosturl/$args"
-	else
-		jobsurl="$hosturl/"
-	fi
+	jobsurl=${hosturl%/}
 
   querystring="pretty=true"
-  if [ -n "$status" ]; then
-    querystring="${querystring}&status=$status"
+  if [ -n "$args" ]; then
+    querystring="${querystring}&${args}"
   fi
 
   cmd="curl -sk -H \"${authheader}\" $jobsurl?${querystring}$(pagination)"
@@ -134,7 +164,6 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
-    -s|--status) shift; status=$1 ;;
     -l|--limit) shift; limit=$1;;
     -o|--offset) shift; offset=$1;;
     -H|--hosturl) shift; hosturl=$1;;
