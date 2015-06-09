@@ -1,21 +1,11 @@
 #!/bin/bash
 #
-# apps-publish
+# apps-disable
 #
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It publishes an app for public use. The new app id will be identical
-# to the previous one with the revision number appended to the end.
-# Publishing an app multiple times will result in unique snapshots of
-# the app indicated by an incrementing revision number. For example,
-# publishing an app identified as boilerplate-1.0 would produce a public
-# app with id boilerplate-1.0u1. Publishing boilerplate-1.0 again would
-# produce a new public app with id boilerplate-1.0u2. Both boilerplate-1.0u1
-# and boilerplate-1.0u2 would be available. It is up to the publisher to
-# disable previously published apps when appropriate.
-#
-# Global admin privileges are required to publish a system.
+# Disables an app by settings its available flag to false
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -32,25 +22,12 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [APP_ID]
 
-Publishes an app for public use. The new app id will be identical
-to the previous one with the revision number appended to the end.
-Publishing an app multiple times will result in unique snapshots of
-the app indicated by an incrementing revision number. For example,
-publishing an app identified as boilerplate-1.0 would produce a public
-app with id boilerplate-1.0u1. Publishing boilerplate-1.0 again would
-produce a new public app with id boilerplate-1.0u2. Both boilerplate-1.0u1
-and boilerplate-1.0u2 would be available. It is up to the publisher to
-disable previously published apps when appropriate.
+Makes an app unavailable by setting the available flag to false
 
-Global admin privileges are required to publish a system.
+Proper app permissions are required
 
  Options:
   -z, --access_token	    Access token
-  -s, --deploymentSystem    The system where the public app bundle will be archived and stored
-  -p, --deploymentPath      The deployment path on on the deploymentSystem where the app bundle will be stored.
-  -e, --executionSystem     The target execution system for the public app
-  -n, --name                The new name of the public app
-  -x, --appVersion         The new version of the public app
   -H, --hosturl             URL of the service
   -d, --development         Run in dev mode using default dev server
   -f, --force               Skip all user interaction
@@ -76,38 +53,16 @@ main() {
 	#set -x
 
 	if [ -z "$args" ]; then
-		err "Please specify a valid app id to publish"
+		err "Please specify a valid app id to enable"
 	else
-        publicAppparams=''
 
-        if [ -n "$deploymentSystem" ]; then
-            publicAppparams="${publicAppparams}&deploymentSystem=${deploymentSystem}"
-        fi
-
-        if [ -n "$deploymentPath" ]; then
-            publicAppparams="${publicAppparams}&deploymentPath=${deploymentPath}"
-        fi
-
-        if [ -n "$executionSystem" ]; then
-            publicAppparams="${publicAppparams}&executionSystem=${executionSystem}"
-        fi
-
-        if [ -n "$name" ]; then
-            publicAppparams="${publicAppparams}&name=${name}"
-        fi
-
-        if [ -n "$appVersion" ]; then
-            publicAppparams="${publicAppparams}&version=${appVersion}"
-        fi
-
-
-		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=publish${publicAppparams}\" $hosturl$args?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=disable\" $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X PUT -d "action=publish${publicAppparams}" "$hosturl$args?pretty=true"`
+		response=`curl -sk -H "${authheader}" -X PUT -d "action=disable" "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
@@ -128,7 +83,7 @@ format_api_json() {
 		echo "${result}" | python -mjson.tool
 	else
 		result=$(jsonquery "$1" "result.id")
-    success "Successfully published app $args as $result"
+    success "Successfully enabled app $args"
 	fi
 }
 
