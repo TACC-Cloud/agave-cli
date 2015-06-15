@@ -203,12 +203,12 @@ function isxmlstring {
 function getpagination {
   pagination=''
   re='^[0-9]+$'
-  if [[ $1 =~ $re ]] ; then
-    pagination="&limit=$1"
+  if [[ $limit =~ $re ]] ; then
+    pagination="&limit=$limit"
   fi
 
-  if [[ $2 =~ $re ]] ; then
-    pagination="${pagination}&offset=$2"
+  if [[ $offset =~ $re ]] ; then
+    pagination="${pagination}&offset=$offset"
   fi
 
   echo $pagination
