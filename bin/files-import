@@ -86,27 +86,13 @@ main() {
 		hosturl="${hosturl}media/"
 	fi
 
-	# if [ -n "$post_options" ]; then
+	cmd="curl -sk -H \"${authheader}\" -X POST --data-urlencode \"urlToIngest=${urltoingest}\" --data-urlencode \"notifications=${webhook}\" --data-urlencode \"fileType=${filetype}\" --data-urlencode \"fileName=${filename}\" $hosturl$args?pretty=true"
 
-		cmd="curl -sk -H \"${authheader}\" -X POST --data-urlencode \"urlToIngest=${urltoingest}\" --data-urlencode \"notifications=${webhook}\" --data-urlencode \"fileType=${filetype}\" --data-urlencode \"fileName=${filename}\" $hosturl$args?pretty=true"
+    if ((veryverbose)); then
+        [ "$piped" -eq 0 ] && log "Calling $cmd"
+    fi
 
-		if ((veryverbose)); then
-			[ "$piped" -eq 0 ] && log "Calling $cmd"
-		fi
-
-		response=`curl -sk -H "${authheader}" -X POST --data-urlencode "urlToIngest=${urltoingest}" --data-urlencode "notifications=${webhook}" --data-urlencode "fileName=${filename}" --data-urlencode "fileType=${filetype}" --data-urlencode "fileName=${filename}" "$hosturl$args?pretty=true"`
-
-	# else
-  #
-	# 	cmd="curl -sk -H \"${authheader}\" -X POST --data-urlencode \"urlToIngest=${urltoingest}\" $hosturl$args?pretty=true"
-  #
-	# 	if ((veryverbose)); then
-	# 		[ "$piped" -eq 0 ] && log "Calling $cmd"
-	# 	fi
-  #
-	# 	response=`curl -sk -H "${authheader}" -X POST --data-urlencode "urlToIngest="${urltoingest}" "$hosturl$args?pretty=true"`
-  #
-	# fi
+    response=`curl -sk -H "${authheader}" -X POST --data-urlencode "urlToIngest=${urltoingest}" --data-urlencode "notifications=${webhook}" --data-urlencode "fileName=${filename}" --data-urlencode "fileType=${filetype}" --data-urlencode "fileName=${filename}" "$hosturl$args?pretty=true"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
