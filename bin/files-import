@@ -67,17 +67,17 @@ main() {
   webhook_post_options=''
 	if [ -n "$webhook" ]; then
     webhook=$(echo "$webhook" | sed 's/\&/%26/g' )
-    webhook_post_options="--data-urlencode \"notifications=${webhook}\""
+    webhook_post_options="--data-urlencode 'notifications=${webhook}'"
 	fi
 
   filetype_post_options=''
 	if [ -n "$filetype" ]; then
-		filetype_post_options="--data-urlencode \"fileType=${filetype}\""
+		filetype_post_options="--data-urlencode 'fileType=${filetype}'"
 	fi
 
   filename_post_options=''
 	if [ -n "$filename" ]; then
-		filename_post_options="--data-urlencode \"fileName=${filename}\""
+		filename_post_options=$"--data-urlencode "fileName=${filename}""
 	fi
 
 	if [ -n "$systemid" ]; then
@@ -88,13 +88,13 @@ main() {
 
 	# if [ -n "$post_options" ]; then
 
-		cmd="curl -sk -H \"${authheader}\" -X POST --data-urlencode \"urlToIngest=${urltoingest}\" ${webhook_post_options} ${filetype_post_options} ${filename_post_options} $hosturl$args?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X POST --data-urlencode \"urlToIngest=${urltoingest}\" --data-urlencode \"notifications=${webhook}\" --data-urlencode \"fileType=${filetype}\" --data-urlencode \"fileName=${filename}\" $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X POST --data-urlencode "urlToIngest=${urltoingest}" ${webhook_post_options} ${filetype_post_options} ${filename_post_options} "$hosturl$args?pretty=true"`
+		response=`curl -sk -H "${authheader}" -X POST --data-urlencode "urlToIngest=${urltoingest}" --data-urlencode "notifications=${webhook}" --data-urlencode "fileName=${filename}" --data-urlencode "fileType=${filetype}" --data-urlencode "fileName=${filename}" "$hosturl$args?pretty=true"`
 
 	# else
   #
