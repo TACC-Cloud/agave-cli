@@ -64,17 +64,20 @@ main() {
 
 	local post_options='';
 
+  webhook_post_options=''
 	if [ -n "$webhook" ]; then
     webhook=$(echo "$webhook" | sed 's/\&/%26/g' )
-    post_options="notifications=${webhook}"
+    webhook_post_options="--data-urlencode \"notifications=${webhook}\""
 	fi
 
+  filetype_post_options=''
 	if [ -n "$filetype" ]; then
-		post_options="fileType=${filetype}&${post_options}"
+		filetype_post_options="--data-urlencode \"fileType=${filetype}\""
 	fi
 
+  filename_post_options=''
 	if [ -n "$filename" ]; then
-		post_options="fileName=${filename}&${post_options}"
+		filename_post_options="--data-urlencode \"fileName=${filename}\""
 	fi
 
 	if [ -n "$systemid" ]; then
@@ -83,27 +86,27 @@ main() {
 		hosturl="${hosturl}media/"
 	fi
 
-	if [ -n "$post_options" ]; then
+	# if [ -n "$post_options" ]; then
 
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"urlToIngest=$urltoingest\" -d \"${post_options}\" $hosturl$args?pretty=true"
-
-		if ((veryverbose)); then
-			[ "$piped" -eq 0 ] && log "Calling $cmd"
-		fi
-
-		response=`curl -sk -H "${authheader}" -X POST -d "urlToIngest=$urltoingest" -d "${post_options}" "$hosturl$args?pretty=true"`
-    
-	else
-
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"urlToIngest=$urltoingest\" $hosturl$args?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X POST --data-urlencode \"urlToIngest=${urltoingest}\" ${webhook_post_options} ${filetype_post_options} ${filename_post_options} $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X POST -d "urlToIngest=$urltoingest" "$hosturl$args?pretty=true"`
+		response=`curl -sk -H "${authheader}" -X POST --data-urlencode "urlToIngest=${urltoingest}" ${webhook_post_options} ${filetype_post_options} ${filename_post_options} "$hosturl$args?pretty=true"`
 
-	fi
+	# else
+  #
+	# 	cmd="curl -sk -H \"${authheader}\" -X POST --data-urlencode \"urlToIngest=${urltoingest}\" $hosturl$args?pretty=true"
+  #
+	# 	if ((veryverbose)); then
+	# 		[ "$piped" -eq 0 ] && log "Calling $cmd"
+	# 	fi
+  #
+	# 	response=`curl -sk -H "${authheader}" -X POST --data-urlencode "urlToIngest="${urltoingest}" "$hosturl$args?pretty=true"`
+  #
+	# fi
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
