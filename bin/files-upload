@@ -89,70 +89,75 @@ main() {
 			post_options="fileName=${filename}&${post_options}"
 		fi
 
+		quietarg="-#"
+		if ((quiet)); then
+			quietarg="-s"
+		fi
+
 		# If the filetoupload is a file, then just copy it up.
 		if [ -f "$filetoupload" ]; then
 
-      out "Uploading ${filetoupload}..."
+      		out "Uploading ${filetoupload}..."
 			#recursively copy the folder applying filename to the root
 
-      if [ -n "$post_options" ]; then
+      		if [ -n "$post_options" ]; then
 
 				post_options=${post_options%&}
 
-				cmd="curl -# -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" -F \"${post_options}\" $filesurl$args?pretty=true"
+				cmd="curl $quietarg -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" -F \"${post_options}\" $filesurl$args?pretty=true"
 
 				if ((veryverbose)); then
 					[ "$piped" -eq 0 ] && log "Calling $cmd"
 				fi
 				#response='{"status":"success","response":{},"message":null}'
-				response=`curl -# -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" -F "${post_options}" "$filesurl$args?pretty=true"`
+				response=`curl $quietarg -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" -F "${post_options}" "$filesurl$args?pretty=true"`
 
 			else
 
-      	cmd="curl -# -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" $filesurl$args?pretty=true"
+				cmd="curl $quietarg -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" $filesurl$args?pretty=true"
 
 				if ((veryverbose)); then
 					[ "$piped" -eq 0 ] && log "Calling $cmd"
 				fi
 				#response='{"status":"success","response":{},"message":null}'
-				response=`curl -# -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$filesurl$args?pretty=true"`
+				response=`curl $quietarg -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$filesurl$args?pretty=true"`
 
 			fi
-    # if the file is coming from stdin, verify we have a filename and feed it to curl
-    elif [[ "$filetoupload" == "-" ]]; then
+		# if the file is coming from stdin, verify we have a filename and feed it to curl
+		elif [[ "$filetoupload" == "-" ]]; then
 
-      if [[ -z "$filename" ]]; then
+      		if [[ -z "$filename" ]]; then
 
-        response="Please provide a filename for the piped file"
-        err "$response"
+				response="Please provide a filename for the piped file"
+				err "$response"
 
-      else
+      		else
 
-        if [ -n "$post_options" ]; then
+				if [ -n "$post_options" ]; then
 
-          post_options=${post_options%&}
+				  post_options=${post_options%&}
 
-          cmd="curl -# -k -H \"${authheader}\" -X POST -F \"fileToUpload=@-\" -F \"${post_options}\" $filesurl$args?pretty=true"
+				  cmd="curl $quietarg -k -H \"${authheader}\" -X POST -F \"fileToUpload=@-\" -F \"${post_options}\" $filesurl$args?pretty=true"
 
-          if ((veryverbose)); then
-            [ "$piped" -eq 0 ] && log "Calling $cmd"
-          fi
-          #response='{"status":"success","response":{},"message":null}'
-          response=`curl -# -k -H "${authheader}" -X POST -F "fileToUpload=@-" -F "${post_options}" "$filesurl$args?pretty=true"`
+				  if ((veryverbose)); then
+					[ "$piped" -eq 0 ] && log "Calling $cmd"
+				  fi
+				  #response='{"status":"success","response":{},"message":null}'
+				  response=`curl $quietarg -k -H "${authheader}" -X POST -F "fileToUpload=@-" -F "${post_options}" "$filesurl$args?pretty=true"`
 
-        else
+				else
 
-          cmd="curl -# -k -H \"${authheader}\" -X POST -F \"fileToUpload=@-\" $filesurl$args?pretty=true"
+				  cmd="curl $quietarg -k -H \"${authheader}\" -X POST -F \"fileToUpload=@-\" $filesurl$args?pretty=true"
 
-          if ((veryverbose)); then
-            [ "$piped" -eq 0 ] && log "Calling $cmd"
-          fi
-          #response='{"status":"success","response":{},"message":null}'
-          response=`curl -# -k -H "${authheader}" -X POST -F "fileToUpload=@-" "$filesurl$args?pretty=true"`
+				  if ((veryverbose)); then
+					[ "$piped" -eq 0 ] && log "Calling $cmd"
+				  fi
+				  #response='{"status":"success","response":{},"message":null}'
+				  response=`curl $quietarg -k -H "${authheader}" -X POST -F "fileToUpload=@-" "$filesurl$args?pretty=true"`
 
-        fi
+				fi
 
-      fi
+      		fi
 
 		# if it is a directory, then create the remote directory, using the $filename value
 		# or the basename of the $filetoupload, then recursively uploading the contents
@@ -171,6 +176,10 @@ main() {
 
 			if ((verbose)); then
 				cliargs="${cliargs} -v"
+			fi
+
+			if ((quiet)); then
+				cliargs="${cliargs} -q"
 			fi
 
 			if [ -n "$systemid" ]; then
@@ -193,10 +202,10 @@ main() {
 			# create the remote directory to which everything will be copied
 			mkdir_response=$($DIR/files-mkdir ${cliargs} -N ${newdirname} $args 1>/dev/null 2>&1)
 
-      if [ ! $? ]; then
-        err "Failed to create remote directory ${args}/${newdirname}"
-        exit
-      fi
+			if [ ! $? ]; then
+				err "Failed to create remote directory ${args}/${newdirname}"
+				exit
+			fi
 
 			# recursively copy
 			for i in `ls $filetoupload`; do
@@ -209,10 +218,10 @@ main() {
 
 					# call out to the mkdirs command
 					#echo "Calling $DIR/files-upload $cliargs -F ${childfiletoupload} $newdirpath"
-          upload_response=$($DIR/files-upload $cliargs -F ${childfiletoupload} $newdirpath 3>&1 1>&2 2>&3 | tee /dev/stderr)
-          if [ ! $? ]; then
-            err "$upload_response"
-          fi
+					upload_response=$($DIR/files-upload $cliargs -F ${childfiletoupload} $newdirpath 3>&1 1>&2 2>&3 | tee /dev/stderr)
+					if [ ! $? ]; then
+						err "$upload_response"
+					fi
 				fi
 			done
 
@@ -227,9 +236,9 @@ main() {
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
-      if [ -n "$result" ]; then
-			   success "$result"
-      fi
+			if [ -n "$result" ]; then
+				   success "$result"
+			fi
 		else
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
