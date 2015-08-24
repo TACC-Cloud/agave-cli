@@ -105,7 +105,7 @@ format_api_json() {
 
     kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
 
-		echo "Token successfully refreshed and cached for ${expires_in} seconds";
+		echo "Token for ${tenantid}:${username} successfully refreshed and cached for ${expires_in} seconds";
 
 	fi
 
