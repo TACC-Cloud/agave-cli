@@ -83,7 +83,7 @@ format_api_json() {
 		echo "${result}" | python -mjson.tool
 	else
 		result=$(jsonquery "$1" "result.id")
-    success "Successfully enabled app $args"
+    success "Successfully disabled app $args"
 	fi
 }
 
