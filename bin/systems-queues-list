@@ -1,13 +1,11 @@
 #!/bin/bash
 #
-# jobs-output-list
+# systems-queues-list
 #
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It retrieves a listing of the job output. If the job completed
-# normally and archived, the listing will be on the archive directory.
-# Otherwise, it will be on the work folder if it still exists.
+# It provides a mechanism for discovering batch queues on a system.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -22,25 +20,24 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [JOB_ID] [PATH]
+  echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
 
-It retrieves a listing of the job output. If the job completed normally and
-archived, the listing will be on the archive directory. Otherwise, it will
-be on the work folder if it still exists.
+Lists batch queues on a system.
 
  Options:
   -z, --access_token	Access token
-  -l, --limit         Maximum number of results to return
-  -o, --offset        Number of results to skip from the start
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -n, --queuename	  	The name of the queue to query
+  -l, --limit         	Maximum number of results to return
+  -o, --offset        	Number of results to skip from the start
+  -H, --hosturl       	URL of the service
+  -d, --development   	Run in dev mode using default dev server
+  -f, --force         	Skip all user interaction
+  -i, --interactive   	Prompt for values
+  -q, --quiet         	Quiet (no output)
+  -v, --verbose       	Verbose output
+  -V, --veryverbose   	Very verbose output
+  -h, --help          	Display this help and exit
+      --version       	Output version information and exit
 "
 }
 
@@ -50,25 +47,23 @@ be on the work folder if it still exists.
 ##################################################################
 ##################################################################
 
-source "$DIR/jobs-common.sh"
+source "$DIR/systems-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 
 	if [ -z "$args" ]; then
-		err "Please specify a job id for which to view the output"
+		err "Please specify a valid system id for which to retrieve queue list"
 	else
-		jobid=${args[0]}
-		path=${args[1]}
 
-        cmd="curl -sk -H \"${authheader}\" ${hosturl}${jobid}/outputs/listings/${path}?pretty=true$(pagination)"
+		cmd="curl -sk -H \"${authheader}\" $hosturl$args/queues/$queuename?pretty=true$(pagination)"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" "${hosturl}${jobid}/outputs/listings/${path}?pretty=true$(pagination)"`
+		response=`curl -sk -H "${authheader}" "$hosturl$args/queues/$queuename?pretty=true$(pagination)"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
@@ -78,18 +73,24 @@ main() {
 			err "$errorresponse"
 		fi
 	fi
+
 }
 
 format_api_json() {
 
 	if ((veryverbose)); then
 		echo "$1"
-	elif [[ $verbose -eq 1 ]]; then
+	elif ((verbose)); then
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		result=$(jsonquery "$1" "result.[].name")
-		echo "${result}"
+		if [[ -z "$roleusername" ]]; then
+			queuenames=$(jsonquery "$1" "result.[].name")
+			echo $queuenames
+		else
+			systemrole=$(jsonquery "$1" "result.name")
+			 echo "$roleusername $systemrole"
+		fi
 	fi
 }
 
@@ -116,6 +117,7 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
+    -n|--queuename) shift; queuename=$1 ;;
     -l|--limit) shift; limit=$1;;
     -o|--offset) shift; offset=$1;;
     -H|--hosturl) shift; hosturl=$1;;

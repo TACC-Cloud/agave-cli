@@ -29,7 +29,7 @@ fi
 
 # versioning info
 version="v2"
-release="2.1.1"
+release="2.1.4"
 if [ -e "$DIR/../.git/refs/heads/master" ];
 then
   revision="${version}-r$(head -c 5 $DIR/../.git/refs/heads/master)"
@@ -81,29 +81,32 @@ err() {
 		response=$@
 	fi
 
-  if (($verbose)); then
+  	if (($verbose)); then
 		if ((piped)); then
-      out "${response}"
-    else
-      #out " \033[1;31m✖\033[0m  $response"
-		  out "\033[1;31m${response}\033[0m"
-    fi
+      		out "${response}"
+    	else
+      		#out " \033[1;31m✖\033[0m  $response"
+		  	out "\033[1;31m${response}\033[0m"
+    	fi
 	else
 		if ((piped)); then
-      out "$@"
-    else
-      #out " \033[1;31m✖\033[0m  $@";
-		  out "\033[1;31m$@\033[0m"
-    fi
+      		out "$@"
+    	else
+      		#out " \033[1;31m✖\033[0m  $@";
+		  	out "\033[1;31m$@\033[0m"
+    	fi
 	fi
+
+	exit 1;
+
 } >&2
 
 success() {
 	#out " \033[1;32m✔\033[0m  $@";
   if ((piped)); then
-    out "$@"
+	  out "$@"
   else
-	   out "\033[1;0m$@\033[0m";
+	  out "\033[1;0m$@\033[0m";
   fi
 	#out "$@"
 }

@@ -32,8 +32,8 @@ in subsequent calls to the API.
 
  Options:
   -u, --username        Agave tenant username
-  -d, --devurl          URL to the development server
-  -b, --baseurl         URL to the production API server
+  -d, --dev             URL to the development server
+  -p, --prod            URL to the production API server
   -t, --tenantid        Current tenant id. ex. iplantc.org
   -s, --apisecret       Consumer secret
   -k, --apikey          Consumer Key
@@ -154,7 +154,7 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -u|--user) shift; user=$1 ;;
-  	-d|--dev) shift; dev=$1 ;;
+    -d|--dev) shift; dev=$1 ;;
     -p|--prod) shift; prod=$1 ;;
     -t|--tenant) shift; tenant=$1 ;;
     -s|--apisecret) shift; apisecret=$1 ;;

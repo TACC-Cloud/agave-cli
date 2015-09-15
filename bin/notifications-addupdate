@@ -64,74 +64,65 @@ main() {
     response="Directory input is not supported"
     err "$response"
 
-  elif [[ ! -e "$filetoupload" ]] && [[ "$filetoupload" != "-" ]]; then
+  elif [[ -z "$filetoupload" ]]; then
 
-    response="No JSON monitor object found at $filetoupload"
-    err "$response"
-
-  else
-
-  	if [[ -z "$filetoupload" ]]; then
-
-  		if [[ -z "$url" ]]; then
-  			err "Please specify a url or email address to which the notification will be sent"
-  		else
+    if [[ -z "$url" ]]; then
+        err "Please specify a url or email address to which the notification will be sent"
+    else
         url=$(echo "$url" | sed 's/\&/%26/g' )
-      fi
+    fi
 
-  		if [[ -z "$event" ]]; then
-  			err "Please specify an event upon which the notification will be sent"
-  		fi
+    if [[ -z "$event" ]]; then
+        err "Please specify an event upon which the notification will be sent"
+    fi
 
-  		if [[ -z "$associatedUuid" ]]; then
-  			err "Please specify an associatedUuid for which the notification will be sent"
-  		fi
+    if [[ -z "$associatedUuid" ]]; then
+        err "Please specify an associatedUuid for which the notification will be sent"
+    fi
 
-  		if [[ -z "$persistent" ]]; then
-  			persistent="false"
-  		fi
+    if [[ -z "$persistent" ]]; then
+        persistent="false"
+    fi
 
-  		cmd="curl -sk -H \"${authheader}\" -X POST -d \"event=${event}&persistent=${persistent}&associatedUuid=${associatedUuid}&url=${url}\" ${hosturl}$args?pretty=true"
+    cmd="curl -sk -H \"${authheader}\" -X POST -d \"event=${event}&persistent=${persistent}&associatedUuid=${associatedUuid}&url=${url}\" ${hosturl}$args?pretty=true"
 
-  		if ((veryverbose)); then
-  			[ "$piped" -eq 0 ] && log "Calling $cmd"
-  		fi
-
-  		response=`curl -sk -H "${authheader}" -X POST -d "event=${event}&persistent=${persistent}&associatedUuid=${associatedUuid}&url=${url}" "${hosturl}$args?pretty=true"`
-
-    # reading from stdin
-    elif [[ "$filetoupload" == "-"  ]]; then
-
-      cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- ${hosturl}${args}?pretty=true"
-
-      if ((veryverbose)); then
+    if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"
-      fi
+    fi
 
-      # make sure we specify content type as application/json
-      response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary @- "${hosturl}${args}?pretty=true"`
+    response=`curl -sk -H "${authheader}" -X POST -d "event=${event}&persistent=${persistent}&associatedUuid=${associatedUuid}&url=${url}" "${hosturl}$args?pretty=true"`
 
-    # standard file upload
-    elif [[ -f "$filetoupload" ]]; then
+  # reading from stdin
+  elif [[ "$filetoupload" == "-"  ]]; then
 
-  		cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}$args?pretty=true"
+    cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- ${hosturl}${args}?pretty=true"
 
-  		if ((veryverbose)); then
-  			[ "$piped" -eq 0 ] && log "Calling $cmd"
-  		fi
+    if ((veryverbose)); then
+    [ "$piped" -eq 0 ] && log "Calling $cmd"
+    fi
 
-  		response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}$args?pretty=true"`
+    # make sure we specify content type as application/json
+    response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary @- "${hosturl}${args}?pretty=true"`
 
-  	fi
+  # standard file upload
+  elif [[ -f "$filetoupload" ]]; then
 
-  	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-  		result=$(format_api_json "$response")
-  		success "$result"
-  	else
-  		errorresponse=$(jsonquery "$response" "message")
-  		err "$errorresponse"
-  	fi
+    cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}$args?pretty=true"
 
+    if ((veryverbose)); then
+        [ "$piped" -eq 0 ] && log "Calling $cmd"
+    fi
+
+    response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}$args?pretty=true"`
+
+  fi
+
+  if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+    result=$(format_api_json "$response")
+    success "$result"
+  else
+    errorresponse=$(jsonquery "$response" "message")
+    err "$errorresponse"
   fi
 }
 
@@ -143,12 +134,12 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		oid=$(jsonquery "$response" "result.id")
+		nid=$(jsonquery "$response" "result.id")
 		if [ -n "$args" ]; then
-      success "Successfully updated notification $oid"
-    else
-      success "Successfully created notification $oid"
-    fi
+            success "Successfully updated notification $nid"
+        else
+            success "Successfully created notification $nid"
+        fi
 	fi
 }
 

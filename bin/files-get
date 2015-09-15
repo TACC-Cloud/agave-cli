@@ -201,10 +201,11 @@ main() {
         fi
 
     else
-
+       # set -x
       cmd="curl -k -H \"${authheader}\" ${filerange} ${outputarg} ${filesurl}"
 
-    	if ((veryverbose)); then
+
+      if ((veryverbose)); then
        [ "$piped" -eq 0 ] && log "Calling $cmd"
       fi
 
