@@ -1,6 +1,22 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2.1.4 - 2015-09-14
+### ADDED
+- `*-search` Adding support for deep, sql style searching across first-class resources
+- `files-output-list` and `jobs-list` now have -L option to print out file listing in unix-y format
+- `systems-queues-*` commands for crud actions on system queues.
+
+### FIXED
+- Fixed random typos in error messages.
+- All `*-search` commands now properly url-encoded serach terms.
+- Exit code on errors is now returned as 1.
+- Fixed parameter-based notifications creation.
+- Fixing bug in auth-switch command preventing dev and primary url from being set properly.
+
+### REMOVED
+- No changes.
+
 ## 2.1.0 - 2015-02-23
 ### ADDED
 - `*-addupdate` Adding support for reading from stdin to all the scripts that previously accepted only files by replacing the file name with `-`
@@ -16,9 +32,9 @@ All notable changes to this project will be documented in this file.
 
 ## 2.1.0 - 2015-02-22
 ### ADDED
-- `files-publish` **New** script providing a single command to upload a file/folder and create a public PostIt URL that can be shared. All arguments of the `files-upload` and `postits-create` commands are supported.
-- `jobs-output-list` **New** script replaces the default directory listing behavior of the `jobs-output` command.
-- `jobs-output-get` **New** script replaces the download behavior of the `jobs-output` command. This script supercedes the previous command by adding recursive directory downloads, range query support, and optional printing to standard out.
+- `files-publish` script providing a single command to upload a file/folder and create a public PostIt URL that can be shared. All arguments of the `files-upload` and `postits-create` commands are supported.
+- `jobs-output-list` script replaces the default directory listing behavior of the `jobs-output` command.
+- `jobs-output-get` script replaces the download behavior of the `jobs-output` command. This script supercedes the previous command by adding recursive directory downloads, range query support, and optional printing to standard out.
 
 ### FIXED
 - No changes.
