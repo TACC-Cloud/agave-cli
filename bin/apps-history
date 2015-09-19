@@ -59,14 +59,20 @@ main() {
 	if [ -z "$args" ]; then
 		err "Please specify the id of an app for which to fetch the history"
 	else
+        appId=${args[0]}
+        eventId=${args[1]}
 
-        cmd="curl -sk -H \"${authheader}\" $hosturl$args/history?pretty=true$(pagination)"
+        hosturl="${hosturl}${appId}/history"
+
+        [[ -n "${eventId}" ]] && hosturl="${hosturl}/${eventId}"
+
+        cmd="curl -sk -H \"${authheader}\" $hosturl?pretty=true$(pagination)"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" "${hosturl}${args}/history?pretty=true$(pagination)"`
+		response=`curl -sk -H "${authheader}" "${hosturl}?pretty=true$(pagination)"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 

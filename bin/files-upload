@@ -72,7 +72,7 @@ main() {
 	else
 
 		if [ -n "$callbackurl" ]; then
-			post_options="callbackURL=${callbackurl}"
+			post_options="notifications=${callbackurl}"
 		fi
 
 		if [ -n "$filetype" ]; then

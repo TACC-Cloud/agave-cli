@@ -93,7 +93,7 @@ format_api_json() {
 	else
 		system_id=$(jsonquery "$1" "result.id")
 		system_type=$(jsonquery "$1" "result.type")
-		echo "Successfully set $system_id as the default $system_type system for $system_id"
+		echo "Successfully set $system_id as the default $system_type system for $username"
 	fi
 }
 
