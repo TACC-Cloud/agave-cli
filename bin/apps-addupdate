@@ -104,8 +104,9 @@ main() {
   		result=$(format_api_json "$response")
   		success "$result"
   	else
-  		jsonval response_message "$response" "message"
-  		err "$response_message"
+        jsonval response_message "$response" "message"
+        errorresponse=$(jsonquery "$response" "message")
+        err "$errorresponse"
   	fi
 
   fi

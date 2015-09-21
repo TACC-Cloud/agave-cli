@@ -59,7 +59,8 @@ main() {
     out "Reading authentication cache at $AGAVE_CACHE_DIR/current"
   fi
 
-  access_token=$(jsonquery "${currentcache}" "access_token")
+    #access_token=$(jsonquery "${currentcache}" "access_token")
+    jsonval access_token "$current_cache" "access_token"
 
 	time_left=$(get_token_remaining_time)
 
@@ -68,7 +69,7 @@ main() {
 		response=`echo $response | python -mjson.tool`
 	else
 		response="{\"status\":\"success\",\"message\":\"Cache is valid for $time_left seconds\",\"result\":${currentcache}}"
-    response=`echo $response | python -mjson.tool`
+        response=`echo $response | python -mjson.tool`
 	fi
 
   format_api_json "${response}"
@@ -94,7 +95,7 @@ format_api_json() {
       success "time left: $time_left seconds"
       success "expires at: $(jsonquery "$1" "result.expires_at")"
     fi
-	fi
+  fi
 }
 
 ##################################################################

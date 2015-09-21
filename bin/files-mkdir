@@ -85,8 +85,8 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-        newdirpath=$(jsonquery "$1" "result.path" 1)
-		echo "Successfully created folder ${newdirpath}"
+        newfolder=${path%/}${name}
+        echo "Successfully created folder ${newfolder}"
 	fi
 }
 

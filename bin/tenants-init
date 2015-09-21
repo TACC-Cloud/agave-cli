@@ -60,12 +60,14 @@ main() {
   if ((restore)); then
 
     if [ -z "$(kvget backup)" ]; then
-      tenantid=$(jsonquery "$(kvget current)" "tenantid")
+      jsonval tenantid "$(kvget current)" "tenantid"
+      #tenantid=$(jsonquery "$(kvget current)" "tenantid")
       err "No backup configuration to swap. You are still using $tenantid"
     else
       kvset current "$(kvget backup)"
       kvdel backup
-      tenantid=$(jsonquery "$(kvget current)" "tenantid")
+      jsonval tenantid "$(kvget current)" "tenantid"
+      #tenantid=$(jsonquery "$(kvget current)" "tenantid")
       success "Configuration swapped. Now using $tenantid"
     fi
 
@@ -74,7 +76,8 @@ main() {
   elif ((swap)); then
 
     if [ -z "$(kvget backup)" ]; then
-      tenantid=$(jsonquery "$(kvget current)" "tenantid")
+      jsonval tenantid "$(kvget current)" "tenantid"
+#      tenantid=$(jsonquery "$(kvget current)" "tenantid")
       err "No backup configuration to swap. You are still using $tenantid"
     else
       kvset backup2 "$(kvget current)"
@@ -82,7 +85,8 @@ main() {
       kvset backup "$(kvget backup2)"
       kvdel backup2
 
-      tenantid=$(jsonquery "$(kvget current)" "tenantid")
+      jsonval tenantid "$(kvget current)" "tenantid"
+      #tenantid=$(jsonquery "$(kvget current)" "tenantid")
       success "Configuration swapped. Now using $tenantid"
     fi
 

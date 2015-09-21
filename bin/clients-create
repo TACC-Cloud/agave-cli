@@ -90,12 +90,12 @@ format_api_json() {
 		client_secret=$(jsonquery "$formatted_response" "result.consumerSecret")
 		client_key=$(jsonquery "$formatted_response" "result.consumerKey")
 
-    currentcache=$(kvget current)
-    jsonval created_at "$currentcache" "created_at"
-    jsonval expires_at "$currentcache" "expires_at"
-    jsonval expires_in "$currentcache" "expires_in"
-    jsonval access_token "$currentcache" "access_token"
-    jsonval refresh_token "$currentcache" "refresh_token"
+        currentcache=$(kvget current)
+        jsonval created_at "$currentcache" "created_at"
+        jsonval expires_at "$currentcache" "expires_at"
+        jsonval expires_in "$currentcache" "expires_in"
+        jsonval access_token "$currentcache" "access_token"
+        jsonval refresh_token "$currentcache" "refresh_token"
 
 		kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$client_secret\",\"apikey\":\"$client_key\",\"username\":\"$apiusername\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
 	fi

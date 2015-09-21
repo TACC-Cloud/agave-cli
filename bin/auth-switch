@@ -61,62 +61,69 @@ source "$DIR/auth-common.sh"
 main() {
 	#echo -n
 	#set -x
-	#hosturl=https://agave.iplantc.org/token
+
 	local post_options="grant_type=password&username=${username}&password=${password}&scope=PRODUCTION"
 
-  current_cache=$(kvget current )
+    current_cache=$(kvget current )
 
-  if [ "$dev" = "local" ]; then
-    dev="http://localhost:8080"
-	elif [ "$dev" = "dev" -o "$dev" = "devel" -o "$dev" = "development" ] ; then
-    dev="https://iplant-qa.tacc.utexas.edu/v2"
-  elif [ -z "$dev" ]; then
-    dev=$(jsonquery "$current_cache" "devurl")
-  fi
+    if [ "$dev" = "local" ]; then
+        dev="http://localhost:8080"
+    elif [ "$dev" = "dev" -o "$dev" = "devel" -o "$dev" = "development" ] ; then
+        dev="https://iplant-qa.tacc.utexas.edu/v2"
+    elif [ -z "$dev" ]; then
+        #dev=$(jsonquery "$current_cache" "devurl")
+        jsonval dev "$current_cache" "devurl"
+    fi
 
-  if [ -z "$user" ]; then
-    user=$(jsonquery "$current_cache" "username")
-  fi
+    if [ -z "$user" ]; then
+        #user=$(jsonquery "$current_cache" "username")
+        jsonval user "$current_cache" "username"
+    fi
 
-  if [ -z "$tenant" ]; then
-    tenant=$(jsonquery "$current_cache" "tenantid")
-  fi
+    if [ -z "$tenant" ]; then
+        #tenant=$(jsonquery "$current_cache" "tenantid")
+        jsonval tenant "$current_cache" "tenantid"
+    fi
 
-  if [ -z "$prod" ]; then
-    prod=$(jsonquery "$current_cache" "baseurl")
-  fi
+    if [ -z "$prod" ]; then
+        #prod=$(jsonquery "$current_cache" "baseurl")
+        jsonval prod "$current_cache" "baseurl"
+    fi
 
-  if [ -z "$apisecret" ]; then
-    apisecret=$(jsonquery "$current_cache" "apisecret")
-  fi
+    if [ -z "$apisecret" ]; then
+        #apisecret=$(jsonquery "$current_cache" "apisecret")
+        jsonval apisecret "$current_cache" "apisecret"
+    fi
 
-  if [ -z "$apikey" ]; then
-    apikey=$(jsonquery "$current_cache" "apikey")
-  fi
+    if [ -z "$apikey" ]; then
+        #apikey=$(jsonquery "$current_cache" "apikey")
+        jsonval apikey "$current_cache" "apikey"
+    fi
 
-  if [ -z "$access_token" ]; then
-    access_token=$(jsonquery "$current_cache" "access_token")
-  fi
+    if [ -z "$access_token" ]; then
+        #access_token=$(jsonquery "$current_cache" "access_token")
+        jsonval access_token "$current_cache" "access_token"
+    fi
 
-  if [ -z "$refresh_token" ]; then
-    refresh_token=$(jsonquery "$current_cache" "refresh_token")
-  fi
+    if [ -z "$refresh_token" ]; then
+        #refresh_token=$(jsonquery "$current_cache" "refresh_token")
+        jsonval refresh_token "$current_cache" "refresh_token"
+    fi
 
-  if [ -z "$refresh_token" ]; then
-    refresh_token=$(jsonquery "$current_cache" "refresh_token")
-  fi
+    #expires_in=$(jsonquery "$current_cache" "expires_in")
+    jsonval expires_in "$current_cache" "expires_in"
 
-  expires_in=$(jsonquery "$current_cache" "expires_in")
+    #expires_at=$(jsonquery "$current_cache" "expires_at")
+    jsonval expires_at "$current_cache" "expires_at"
 
-  expires_at=$(jsonquery "$current_cache" "expires_at")
+    #created_at=$(jsonquery "$current_cache" "created_at")
+    jsonval created_at "$current_cache" "created_at"
 
-  created_at=$(jsonquery "$current_cache" "created_at")
+    response="{\"tenantid\":\"$tenant\",\"baseurl\":\"$prod\",\"devurl\":\"$dev\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$user\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
 
-	response="{\"tenantid\":\"$tenant\",\"baseurl\":\"$prod\",\"devurl\":\"$dev\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$user\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
+    result=$(format_api_json "$response")
 
-  result=$(format_api_json "$response")
-
-  success "$result"
+    success "$result"
 }
 
 format_api_json() {

@@ -201,9 +201,16 @@ getIpAddress() {
 }
 
 function jsonval {
-	local __resultvar=$1
-	local __temp=`echo "$2" | sed 's/\\\\\//\//g' | sed 's/[{}]//g' | awk -v k="text" '{n=split($0,a,","); for (i=1; i<=n; i++) print a[i]}' | sed 's/\"\:\"/\|/g' | sed 's/[\,]/ /g' | sed 's/\"//g' | grep -w $3| cut -d":" -f2| sed -e 's/^ *//g' -e 's/ *$//g'`
-	eval $__resultvar=`echo '${__temp##*|}'`
+	local __AGAVE_JSON_PARSER=$AGAVE_JSON_PARSER
+	AGAVE_JSON_PARSER=native
+	local __var=$1
+	local __val=$(jsonquery "$2" $3)
+	eval "$(printf "%q=%q" "$__var" "$__val")"
+	AGAVE_JSON_PARSER=$__AGAVE_JSON_PARSER
+
+#	local __resultvar=$1
+#	local __temp=`echo "$2" | sed 's/\\\\\//\//g' | sed 's/[{}]//g' | awk -v k="text" '{n=split($0,a,","); for (i=1; i<=n; i++) print a[i]}' | sed 's/\"\:\"/\|/g' | sed 's/[\,]/ /g' | sed 's/\"//g' | grep -w $3| cut -d":" -f2| sed -e 's/^ *//g' -e 's/ *$//g'`
+#	eval $__resultvar=`echo '${__temp##*|}'`
 }
 
 function ishtmlstring {
@@ -537,7 +544,7 @@ if [[ "tenants-init" != "$calling_cli_command" ]] && [[ "tenants-list" != "$call
     exit
   fi
 
-  baseurl=$(jsonquery "$currentconfig" "baseurl")
+  jsonval baseurl "$currentconfig" "baseurl"
   if  [[ -z $baseurl ]]; then
     err "Please run $DIR/tenants-init to configure your client endpoints before attempting to interact with the APIs."
     exit
@@ -545,7 +552,7 @@ if [[ "tenants-init" != "$calling_cli_command" ]] && [[ "tenants-list" != "$call
     baseurl="${baseurl%/}"
   fi
 
-  devurl=$(jsonquery "$currentconfig" "devurl")
+  jsonval devurl "$currentconfig" "devurl"
   if [[ -z "devurl" ]]; then
     err "Please run $DIR/tenants-init to configure your development endpoints before attempting to interact with the APIs."
     exit
@@ -553,7 +560,7 @@ if [[ "tenants-init" != "$calling_cli_command" ]] && [[ "tenants-list" != "$call
     devurl="${devurl%/}"
   fi
 
-  tenantid=$(jsonquery "$currentconfig" "tenantid")
+  jsonval tenantid "$currentconfig" "tenantid"
   if [[ -z "tenantid" ]]; then
     err "Please run $DIR/tenants-init to configure your client id before attempting to interact with the APIs."
     exit
