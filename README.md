@@ -32,12 +32,10 @@ The Agave CLI is a collection of Bash shell scripts allowing you to interact wit
 
 ## Installation from source
 
-The following technologies are required to use the Agave API cli tools.
+The following dependencies are required to use the Agave API cli tools.
 
 	* bash
 	* curl
-	* Perl
-	* Python (including json.tool)
 
 Just clone the repository from Bitbucket and add the bin directory to your classpath and you're ready to go.
 
@@ -109,3 +107,15 @@ All commands follow a common syntax and share many of the same flags `-h` for he
 	<command> [-hdv] [options] [target]
 
 Each command has built in help documentation that will be displayed when the `-h` flag is specified. The help documentation will list the actions, options, and targets available for that command.
+
+### Configuring custom JSON parsers
+
+The CLI comes bundled with two different JSON parsers. Additionally, tthree other parsers are supported. To specify your preferred parser, set the `AGAVE_JSON_PARSER` environment variable to one of values in the following list. If no value is selected, the python parser will be used if python is available, otherwise the json-mirror API will be used.
+
+* `python`: The Python parser is a lightweight script written for Python 2.6+. It requires the `json` module be installed (which should come standard in 2.7+). Nothing needs to be done to use this module, but you do need to have Python installed. Window users may want to consider using the `json-mirror` option instead.
+* `jq`: [jq](https://stedolan.github.io/jq/) is a command line utility written in C. It is fast, powerful, and has an extremely small memory footprint. jq has binary installers for every majory platform as well as mostly portable build. It must be installed separately.
+* `json`: The [JSON Tool](http://trentm.com/json/) is a command line utility written in NodeJS. It is fast, friendly, and works out of the box. It must be installed separately and requires a Node runtime be present on the system.
+* `native`: This is the native Bash implementation from the [json.sh](https://github.com/dominictarr/JSON.sh) project. It is quite a bit slower than the Python implementation and does have trouble with newline characters from time to time. That being said, it's pretty awesome for a pure Bash JSON parser.
+* `json-mirror`: The [Agave JSON Mirror API](https://bitbucket.org/taccaci/agave-json-mirror) is a publicly available, free API which provides JSON pretty printing and JavaScript style dot notation querying of. It is a suitable replacement for basic java manipulation and formatting.
+
+>  For a 100% bash CLI with no dependencies, use the `json-mirror` parser. That will force the CLI to call out to the [Agave JSON Mirror API](https://bitbucket.org/taccaci/agave-json-mirror) at http://agaveapi.co/json-mirror and avoid any python dependencies.

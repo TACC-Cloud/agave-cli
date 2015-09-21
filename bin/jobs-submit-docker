@@ -1,0 +1,335 @@
+#!/bin/bash
+#
+# jobs-submit-docker
+#
+# author: dooley@tacc.utexas.edu
+#
+# This script is part of the Agave API command line interface (CLI).
+# It converts a docker run command into an agave job request which
+# will take any relevant data and run it in the cloud.
+#
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "$DIR/common.sh"
+
+# Script logic -- TOUCH THIS {{{
+
+# A list of all variables to prompt in interactive mode. These variables HAVE
+# to be named exactly as the longname option definition in usage().
+interactive_opts=(apisecret apikey)
+
+# Print usage
+usage() {
+  echo -n "$(basename $0) [OPTION]...[EXE_FILE] [EXE_ARGUMENTS]
+
+Works similarly to `docker run` by parsing the command line parameters, command,
+and image info, and parsing them into a container-runner job request and submits
+it to Agave to run in the cloud on the Agave Docker cluster.
+
+Unlike with standard Docker volumes, you may specify a valid Agave or web URL as
+the source of your input. Agave will stage the URL into the job work directory
+and mount it as a volume at runtime for your container. Standard notifications
+
+
+   command and Runs the specified executable file in the cloud by compressing and staging the
+work folder to your default storage system and running the code inside a docker
+container. You may optionally specify the name of your job, work directory, and
+an email address to receive nofications of job completion. By default, the
+generic agave/centos-base image is used. You may specify an alternative image
+from the main docker index or supply your own Dockerfile.
+
+
+
+ Options:
+  -z, --access_token  Access token
+  -m, --volume        A volume mount mapping to be into the container at runtime.
+                      Volumes should be specified in <URI>:<path/in/container>
+                      format. Multiple volumes may be specified. URI will be
+                      staged in for you prior to container invocation.
+                      At runtime, the <URI> in the volume mapping will be
+                      automatically replaced with the path to the staged
+                      file/folder in the job's runtime work directory.
+  -n, --name          The name of your job, defaults to <username>-runner
+  -c, --command       This is the actual executable needed to run your program in the
+                      Docker container. ex. Rscript, python, java, mvn, php, sh.
+                      If not specified, a best-guess attempt will be made.
+  -e, --email         The email address where a notificiation of job completion will be sent
+  -I, --image         The Docker image to use. This must be valid and in the
+                      Docker public index. If not specified, agaveapi/scipyrj will
+                      be used.
+  -a, --archivepath   Path to archive the output to on your default storage system.
+                      If this is not specified, the job output will not archive.
+  -W, --watch         Watch the job history once it has been submitted, updating
+                      every few seconds until it completes.
+  -D, --dry-run       Print job request json, but do not submit
+  -H, --hosturl       URL of the service
+  -d, --development   Run in dev mode using default dev server
+  -f, --force         Skip all user interaction
+  -i, --interactive   Prompt for values
+  -q, --quiet         Quiet (no output)
+  -v, --verbose       Verbose output
+  -V, --veryverbose   Very verbose output
+  -h, --help          Display this help and exit
+      --version       Output version information and exit
+"
+}
+
+##################################################################
+##################################################################
+#						Begin Script Logic						 #
+##################################################################
+##################################################################
+
+source "$DIR/jobs-common.sh"
+
+main() {
+	#echo -n
+	#set -x
+
+  if [ -z "$args" ]; then
+    err "Please specify an executable to run"
+    exit
+  else
+      for i in "${args[@]}"; do
+        filename=$(basename "$i")
+        extension="${i##*.}"
+        extension=`echo "$extension" | tr '[:upper:]' '[:lower:]'`
+        break
+      done
+
+      if [ "$extension" == 'class' ]; then
+        command="java"
+        flavor="alexeiled/java7-maven-git"
+      elif [ "$extension" == 'pom' ]; then
+        command="mvn"
+        flavor="alexeiled/java7-maven-git"
+      elif [ "$extension" == 'php' ]; then
+        command="php"
+        flavor="sysdia/docker-php-server"
+      elif [ "$extension" == 'py' ]; then
+        command="python"
+        flavor="agaveapi/scipy-matplot-2.7"
+      elif [ "$extension" == 'r' ] || [ "$extension" == 'R' ]; then
+        command="Rscript"
+        flavor="scivm/r-project-3.0"
+      elif [ "$extension" == 'sh' ]; then
+        command="sh"
+        flavor="agaveapi/scipy-matplot-2.7"
+      elif [ "$extension" == 'pl' ]; then
+        command="perl"
+        flavor="scivm/bioperl-1.6.9"
+      elif [ -e "$extension" ]; then
+        err "Unknown file extension for $filename. Please specify the program used to invoke this file using the -c option"
+        exit
+      fi
+  fi
+
+  if [ -z "$workdir" ]; then
+    workdir=`pwd`
+  elif [ ! -e "$workdir" ]; then
+    err "Work directory $workdir does not exist. Please specify an executable within your work directory."
+    exit
+  fi
+
+
+  if [ -n "$args" ] && [ "$args" != " " ] && [ ! -e "$workdir/$args" ]; then
+    err "File $workdir/$args does not exist. Please specify an executable within your work directory."
+    exit
+  fi
+
+  if [ -z $name ]; then
+    name="$username-runner"
+  else
+    name=$(echo -n "${name}" | sed -e 's/[^[:alnum:]]/-/g' | tr -s '-' | tr A-Z a-z)
+  fi
+
+  if [ -n "$email" ]; then
+    email=$(echo "$email" | sed 's/\&/%26/g' )
+    notifications=", \"notifications\": [ { \"url\": \"$email\",\"event\": \"FINISHED\", \"persistent\": false }, { \"url\": \"$email\",\"event\": \"FAILED\", \"persistent\": false } ]"
+    #notifications=", \"notifications\": [ { \"url\": \"http://requestb.in/1k8tjas1?event=${EVENT}&job_id=${JOB_ID}&job_system=${JOB_SYSTEM}\",\"event\": \"*\", \"persistent\": true }, { \"url\": \"$email\",\"event\": \"*\", \"persistent\": true } ]"
+  fi
+
+  SUBMIT_TIMESTAMP=`date +%s%3N`
+  PACKAGE_NAME="${name}-${SUBMIT_TIMESTAMP}.tgz"
+  REMOTE_PATH="${username}/inputs"
+
+  if [ -n "$archivepath" ]; then
+    archiveparam=", \"archive\": true, \"archivePath\": \"$archivepath\""
+  fi
+
+
+  # If they specified a Docker image to use, verify that it exists.
+  if [ -n "$image" ]; then
+    # verify the docker image exists
+    out "Verifying Docker image $image exists..."
+    imagecheck_response=$(curl -sk "https://index.docker.io/v1/search?q=${image}")
+
+    if [ $? ]; then
+      image_results=$(jsonquery "$imagecheck_response" "num_results");
+      if [[ "$image_results" = '0' ]]; then
+        err "No image found in https://index.docker.io matching $image";
+        exit
+      elif [[ "$image_results" = '1' ]]; then
+        out "Found image $dockerimage in Docker central index"
+        dockerimageparam=", \"dockerImage\": \"${image}\""
+      else
+        err "More than one image matching $image is available in the Docker central index. Please specify the respitory, tag, and, if necessary, version and try again."
+        exit
+      fi
+    fi
+  else
+    err "No docker image specified.";
+    exit
+  fi
+
+  if ((veryverbose)); then
+    PARAMS=" -V"
+  elif ((verbose)); then
+    PARAMS=" -v"
+  fi
+  #
+  # if [[ ! -n "$hosturl" ]]; then
+  #   PARAMS="${PARAMS} -H \"${hosturl}\""
+  # fi
+  #
+  if ((development)); then
+    PARAMS="${PARAMS} -d"
+  fi
+  #
+  # if ((quiet)); then
+  #   PARAMS="${PARAMS} -q"
+  # fi
+  #
+  # if ((force)); then
+  #   PARAMS="${PARAMS} -f"
+  # fi
+  #
+  # if ((interactive)); then
+  #   PARAMS="${PARAMS} -i"
+  # fi
+
+  # Create the remote staging directory for inputs if it does not already exist
+  out "Creating remote archive directory..."
+
+  mkdir_response=$(files-mkdir ${PARAMS} -N ${archivepath} . 1>/dev/null 2>&1)
+  if [[ $mkdir_response == *exists* ]]; then
+    out "Archive directory already exists"
+  elif [[ -n $mkdir_response ]]; then
+    err "Failed to create remote folder to stage inputs."
+    rm $PACKAGE_NAME
+    exit
+  fi
+
+  # Create a job description and submit the job
+  out "Submitting job..."
+  if ((veryverbose)); then
+    log "curl -sk -H \"${authheader}\" -H \"Content-type: application/json\" -X POST --data \"{ \"appId\":\"jstubss-eod-dev-0.1.0\", \"name\": \"$name\",\"inputs\": { \"volumeInputs\": [$volumeInputs] }, \"parameters\": { \"volumes\": [$volumes], $dockerimageparam, \"command\":\"$command\", \"commandArgs\":\"${args[@]}\" }${notifications}${archiveparam}}\" $hosturl?pretty=true"
+  fi
+
+  response=`curl -sk -H "${authheader}" -H "Content-type: application/json" -X POST --data "{ \"appId\":\"jstubss-eod-dev-0.1.0\", \"name\": \"$name\",\"inputs\": { \"volumeInputs\":[$volumeInputs] }, \"parameters\": { \"volumes\": [$volumes], $dockerimageparam, \"command\":\"$command\", \"commandArgs\":\"${args[@]}\" }${notifications}${archiveparam}}" "$hosturl?pretty=true"`
+
+  if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+
+    # prepend the job id to the local history file
+    jobwatchid=$(jsonquery "$response" "result.id")
+    if [[ ! -e .agave.history ]]; then
+      touch .agave.history
+    fi
+    echo "$jobwatchid" | cat - .agave.history > .agave.tmp && mv .agave.tmp .agave.history
+
+    result=$(format_api_json "$response")
+    success "$result"
+
+    if ((watch)); then
+
+      if ((development)); then
+        jhparams=" -d "
+      fi
+
+      if ((veryverbose)); then
+
+        jhparams="$jhparams -V "
+
+      elif ((verbos)); then
+
+        jhparams="$jhparams -v "
+      fi
+
+      jobs-history $jhparams -W $jobwatchid
+
+    else
+      result=$(format_api_json "$response")
+      success "$result"
+    fi
+
+	else
+		errorresponse=$(jsonquery "$response" "message")
+		err "$errorresponse"
+	fi
+}
+
+format_api_json() {
+
+	if ((veryverbose)); then
+		echo "$1"
+	elif [[ $verbose -eq 1 ]]; then
+		result=$(jsonquery "$1" "result" 1)
+		echo "${result}" | python -mjson.tool
+	else
+		jobid=$(jsonquery "$1" "result.id")
+		echo "Successfully submitted job $jobid"
+	fi
+}
+
+##################################################################
+##################################################################
+#						End Script Logic						 #
+##################################################################
+##################################################################
+
+# }}}
+
+# Parse command line options
+source "$DIR/options.sh"
+
+
+# Main loop {{{
+
+# Print help if no arguments were passed.
+[[ $# -eq 0 ]] && set -- "-i"
+
+# Read the options and set stuff
+while [[ $1 = -?* ]]; do
+  case $1 in
+    -h|--help) usage >&2; safe_exit ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -z|--access_token) shift; access_token=$1 ;;
+    -c|--command) shift; command=$1 ;;
+    -m|--volume) shift; volume=$1 ;;
+    -n|--name) shift; name=$1 ;;
+    -e|--email) shift; email=$1 ;;
+    -I|--image) shift; image=$1;;
+    -a|--archivepath) shift; archivepath=$1;;
+    -D|--dry) shift; dry=$1;;
+    -W|--watch) watch=1;;
+    -H|--hosturl) shift; hosturl=$1;;
+  	-d|--development) development=1 ;;
+    -v|--verbose) verbose=1 ;;
+    -V|--veryverbose) veryverbose=1; verbose=1 ;;
+    -q|--quiet) quiet=1 ;;
+    -i|--interactive) interactive=1 ;;
+    -f|--force) force=1 ;;
+    --endopts) shift; break ;;
+    *) die "invalid option: $1" ;;
+  esac
+  shift
+done
+
+# Store the remaining part as arguments.
+args+=("$@")
+
+# }}}
+
+# Run the script logic
+source "$DIR/runner.sh"
