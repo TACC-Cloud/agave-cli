@@ -12,9 +12,11 @@
 #
 ######################################################
 
-FROM centos:centos6
+FROM ubuntu:trusty
 MAINTAINER Rion Dooley <dooley@tacc.utexas.edu>
-RUN yum install -y git vim-minimal
+RUN apt-get update && \
+    apt-get install -y git vim.tiny curl && \
+
 
 # install the cli from git
 RUN git clone https://bitbucket.org/taccaci/foundation-cli /usr/local/agave-cli && \

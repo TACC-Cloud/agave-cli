@@ -35,3 +35,6 @@ notifications-fire
 monitors-fire
 auth-filter.sh
 jobs-update-status
+
+
+*.pyc
