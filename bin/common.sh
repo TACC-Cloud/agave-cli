@@ -464,11 +464,11 @@ get_auth_header() {
 	if [[ "$development" -ne 1 ]]; then
 		echo "Authorization: Bearer $access_token"
 	else
-    if [[ -f "$DIR/auth-filter.sh" ]]; then
-      echo $(source $DIR/auth-filter.sh);
-    else
-      echo " -u \"${username}:${password}\" "
-    fi
+		if [[ -f "$DIR/auth-filter.sh" ]]; then
+		  echo $(source $DIR/auth-filter.sh);
+		else
+		  echo " -u \"${username}:${password}\" "
+		fi
 	fi
 }
 
@@ -539,32 +539,38 @@ calling_cli_command=$(basename $0)
 currentconfig=$(kvget current)
 
 if [[ "tenants-init" != "$calling_cli_command" ]] && [[ "tenants-list" != "$calling_cli_command" ]]; then
-  if [[ -z $currentconfig ]]; then
-    err "Please run $DIR/tenants-init to initialize your client before attempting to interact with the APIs."
-    exit
-  fi
+	if [[ -z $currentconfig ]]; then
+		err "Please run $DIR/tenants-init to initialize your client before attempting to interact with the APIs."
+		exit
+	fi
 
-  jsonval baseurl "$currentconfig" "baseurl"
-  if  [[ -z $baseurl ]]; then
-    err "Please run $DIR/tenants-init to configure your client endpoints before attempting to interact with the APIs."
-    exit
-  else
-    baseurl="${baseurl%/}"
-  fi
+	jsonval baseurl "$currentconfig" "baseurl"
+	if  [[ -z $baseurl ]]; then
+		err "Please run $DIR/tenants-init to configure your client endpoints before attempting to interact with the APIs."
+		exit
+	else
+		baseurl="${baseurl%/}"
+	fi
 
-  jsonval devurl "$currentconfig" "devurl"
-  if [[ -z "devurl" ]]; then
-    err "Please run $DIR/tenants-init to configure your development endpoints before attempting to interact with the APIs."
-    exit
-  else
-    devurl="${devurl%/}"
-  fi
+	jsonval devurl "$currentconfig" "devurl"
+	if [[ -z "devurl" ]]; then
+		err "Please run $DIR/tenants-init to configure your development endpoints before attempting to interact with the APIs."
+		exit
+	else
+		devurl="${devurl%/}"
+	fi
 
-  jsonval tenantid "$currentconfig" "tenantid"
-  if [[ -z "tenantid" ]]; then
-    err "Please run $DIR/tenants-init to configure your client id before attempting to interact with the APIs."
-    exit
-  fi
+	jsonval tenantid "$currentconfig" "tenantid"
+	if [[ -z "tenantid" ]]; then
+		err "Please run $DIR/tenants-init to configure your client id before attempting to interact with the APIs."
+		exit
+	fi
+else
+
+  	# otherwise just load up the devurl so we can override the discovery endpoint
+  	jsonval devurl "$currentconfig" "devurl"
+	devurl="${devurl%/}"
+
 fi
 # }}}
 

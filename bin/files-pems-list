@@ -93,7 +93,7 @@ format_api_json() {
 		n=0
 		for i in $(jsonquery "$1" "result.[].permission.read")
 		do
-			if [[ "$i" = 'rue' ]]; then
+			if [ "$i" == 'rue' ] || [ "$i" == "true" ] || [ "$i" == "True" ]; then
 				canread='READ '
 			else
 				canread=''
@@ -105,7 +105,7 @@ format_api_json() {
 		n=0
 		for i in $(jsonquery "$1" "result.[].permission.write")
 		do
-			if [[ "$i" = 'rue' ]]; then
+			if [ "$i" == 'rue' ] || [ "$i" == "true" ] || [ "$i" == "True" ]; then
 				canwrite='WRITE '
 			else
 				canwrite=''
@@ -115,9 +115,9 @@ format_api_json() {
 		done
 
 		n=0
-		for i in $(jsonquery "$1" "result.[].permission.write")
+		for i in $(jsonquery "$1" "result.[].permission.execute")
 		do
-			if [[ "$i" = 'rue' ]]; then
+			if [ "$i" == 'rue' ] || [ "$i" == "true" ] || [ "$i" == "True" ]; then
 				canexecute='EXECUTE '
 			else
 				canexecute=''

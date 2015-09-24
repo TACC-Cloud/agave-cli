@@ -150,7 +150,7 @@ main() {
       queue_ppns=(`jsonquery "${execution_system}" "queues.[].maxProcessorsPerNode"`)
 
       for i in "${queue_defaults[@]}"; do
-        if [[ "$i" ==  'rue' ]] || [[ "$i" ==  'true' ]]; then
+        if [ "$i" == 'rue' ] || [ "$i" == "true" ] || [ "$i" == "True" ]; then
           system_default_queue_name="${queue_names[$n]}"
           system_default_queue_ppn="${queue_ppns[$n]}"
           system_default_queue_memory="${queue_memories[$n]}"

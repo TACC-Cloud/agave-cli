@@ -8,6 +8,8 @@ from easydict import EasyDict as edict
 import json, sys, argparse, re
 from operator import attrgetter
 
+debug = False
+
 def parse_args():
     parser = argparse.ArgumentParser(prog="jsonquery.py", description="A command line utility for querying JSON data using dot notation.")
 
@@ -26,8 +28,12 @@ def parse_args():
 
 def main():
 
-    args = parse_args()
+    global debug
 
+    args = parse_args()
+    
+    debug = args.debug
+    
     if args.query is None:
 
         print json.dumps(args.input, sort_keys=True, indent=2, separators=(',', ': '))
@@ -36,7 +42,7 @@ def main():
 
         raw = args.input.read()
 
-        if args.debug:
+        if debug:
             print 'Original JSON: ' + raw
 
 
@@ -44,58 +50,73 @@ def main():
 
         d = edict(raw)
 
-        # skipping interpolation of the path in favor of a raw eval here.
-        # not as safe, but this is an internal process
-        json_path = 'd.' + args.query
+        if d is None:
 
-        #json_path = json_path.replace('[','').replace(']','').replace('..', '.')
-
-        json_path = json_path.strip('[]').strip('.');
-        json_path = re.sub(r'\.\[(\d+)\]', '[\1]', json_path, flags=re.IGNORECASE)
-        json_path = re.sub(r'\.\[(.+)\]', '[\'\1\']', json_path, flags=re.IGNORECASE)
-        json_path = re.sub(r'\[\]\.', '.[].', json_path, flags=re.IGNORECASE)
-        json_path = re.sub(r'\.\.', '.', json_path, flags=re.IGNORECASE)
-
-        if json_path.find('[]') != -1 :
-            tokens = json_path.split('.[].', 1)
-            if args.debug: print 'Resulting path query is: map(attrgetter({0}), eval({1}))'.format(tokens[0], tokens[1])
-            query_result = map(attrgetter(tokens[1]), eval(tokens[0]))
-        else:
-            if args.debug: print 'Resulting path query is: ' + json_path
-            query_result = eval(json_path)
-
-        # query produced a primary type
-        if isinstance(query_result, basestring):
-
-            if args.stripquotes is False:
-                print format('"{0}"', query_result)
+            if not args.query:
+                print ''
             else:
+                print 'Empty object has no attribute {0}'.format(args.query)
+
+        else:
+
+            # skipping interpolation of the path in favor of a raw eval here.
+            # not as safe, but this is an internal process
+            json_path = 'd.' + args.query
+
+            #json_path = json_path.replace('[','').replace(']','').replace('..', '.')
+
+            json_path = json_path.strip('[]').strip('.');
+            json_path = re.sub(r'\.\[(\d+)\]', '[\1]', json_path, flags=re.IGNORECASE)
+            json_path = re.sub(r'\.\[(.+)\]', '[\'\1\']', json_path, flags=re.IGNORECASE)
+            json_path = re.sub(r'\[\]\.', '.[].', json_path, flags=re.IGNORECASE)
+            json_path = re.sub(r'\.\.', '.', json_path, flags=re.IGNORECASE)
+
+            if json_path.find('[]') != -1 :
+                tokens = json_path.split('.[].', 1)
+                if debug: print 'Resulting path query is: map(attrgetter({0}), eval({1}))'.format(tokens[0], tokens[1])
+                query_result = map(attrgetter(tokens[1]), eval(tokens[0]))
+            else:
+                if debug: print 'Resulting path query is: ' + json_path
+                query_result = eval(json_path)
+
+            # query produced a primary type
+            if isinstance(query_result, basestring):
+
+                if args.stripquotes is False:
+                    print format('"{0}"', query_result)
+                else:
+                    print query_result
+
+            elif isinstance(query_result, int) or isinstance(query_result, float):
+
                 print query_result
 
-        elif isinstance(query_result, int) or isinstance(query_result, float):
+            elif isinstance(query_result, bool):
 
-            print query_result
+                if query_result :
+                    print 'true'
+                else:
+                    print 'false'
 
-        elif isinstance(query_result, bool):
+            elif isinstance(query_result, list):
 
-            if query_result :
-                print 'true'
+                if args.stripquotes:
+                    for r in query_result: print r
+                else:
+                    print json.dumps(query_result, sort_keys=True, indent=2, separators=(',', ': '))
+
+
+            # result is dict, object, etc
             else:
-                print 'false'
 
-        elif isinstance(query_result, list):
-
-            if args.stripquotes:
-                for r in query_result: print r
-            else:
+                #if isinstance(query_result, list) || isinstance(query_result, dict) || isinstance(query_result, tuple):
                 print json.dumps(query_result, sort_keys=True, indent=2, separators=(',', ': '))
 
-
-        # result is dict, object, etc
-        else:
-
-            #if isinstance(query_result, list) || isinstance(query_result, dict) || isinstance(query_result, tuple):
-            print json.dumps(query_result, sort_keys=True, indent=2, separators=(',', ': '))
-
 if __name__ == "__main__":
-   main()
+    try:
+        main()
+    except Exception as e:
+        if debug:
+            raise
+        else:
+            print e

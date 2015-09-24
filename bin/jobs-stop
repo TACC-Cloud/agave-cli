@@ -79,7 +79,6 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		jobid=$(jsonquery "$1" "result.id")
 		echo "Successfully stopped job $args"
 	fi
 }

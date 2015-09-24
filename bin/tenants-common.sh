@@ -8,5 +8,23 @@
 #
 
 filter_service_url() {
-	hosturl="http://agaveapi.co/tenants/"
+	if [[ -z $hosturl ]]; then
+		if (($development)); then
+			if [[ -n "$AGAVE_DEV_TENANTS_API_BASEURL" ]]; then
+				hosturl="$AGAVE_DEV_TENANTS_API_BASEURL"
+			elif [[ -n "$devurl" ]]; then
+				hosturl="${devurl}/tenants"
+			else
+				hosturl="http://agaveapi.co/tenants"
+			fi
+		else
+			if [[ -n "$AGAVE_TENANTS_API_BASEURL" ]]; then
+				hosturl="$AGAVE_TENANTS_API_BASEURL"
+			else
+				hosturl="http://agaveapi.co/tenants"
+			fi
+		fi
+	fi
+
+	hosturl="${hosturl%&}"
 }
