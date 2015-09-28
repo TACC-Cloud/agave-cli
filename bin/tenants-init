@@ -95,6 +95,7 @@ main() {
   else
 
     tenantresponse=$(curl -sk ${hosturl%/}/)
+
     oldIFS="$IFS"
     #tenantids=$(jsonquery "${tenantresponse}" "result.[].tenantId")
     IFS='

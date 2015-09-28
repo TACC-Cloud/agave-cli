@@ -113,7 +113,7 @@ main() {
 
           jhparams="$jhparams -V "
 
-        elif ((verbos)); then
+        elif ((verbose)); then
 
           jhparams="$jhparams -v "
         fi

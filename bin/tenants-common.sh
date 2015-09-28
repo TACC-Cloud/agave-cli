@@ -15,16 +15,16 @@ filter_service_url() {
 			elif [[ -n "$devurl" ]]; then
 				hosturl="${devurl}/tenants"
 			else
-				hosturl="http://agaveapi.co/tenants"
+				hosturl="http://agaveapi.co/tenants/"
 			fi
 		else
 			if [[ -n "$AGAVE_TENANTS_API_BASEURL" ]]; then
 				hosturl="$AGAVE_TENANTS_API_BASEURL"
 			else
-				hosturl="http://agaveapi.co/tenants"
+				hosturl="http://agaveapi.co/tenants/"
 			fi
 		fi
 	fi
 
-	hosturl="${hosturl%&}"
+	#hosturl="${hosturl%&}"
 }

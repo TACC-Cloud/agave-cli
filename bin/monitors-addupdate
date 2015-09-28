@@ -152,11 +152,12 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		jsonval oid "$i" "id"
+		oid=$(jsonquery "$1" "result.id")
+    target=$(jsonquery "$1" "result.target")
     if [ -n "$args" ]; then
-      success "Successfully updated monitor $oid"
+      success "Successfully updated monitor $oid on target $target"
     else
-      success "Successfully created monitor $oid"
+      success "Successfully created monitor $oid on target $target"
     fi
 	fi
 }
