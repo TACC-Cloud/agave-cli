@@ -444,12 +444,12 @@ prompt_options() {
       fi
     elif [[ $val == "password" ]]; then
     	echo -n "API password: "
-    	stty -echo; read password; stty echo
+    	stty -echo; read -p password; stty echo
     	echo -n "
 ";
     elif [[ $val == "apipassword" ]]; then
     	echo -n "API password: "
-    	stty -echo; read apipassword; stty echo
+    	stty -echo; read -p apipassword; stty echo
     	echo -n "
 ";
 	# Otherwise just read the input
