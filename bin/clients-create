@@ -65,7 +65,7 @@ main() {
 		tier='Unlimited'
 	fi
 
-	cmd="curl -sku \"${apiusername}:xxxx\" -X POST -d "clientName=${client_name}" -d \"tier=${tier}\" -d \"description=${description}\" -d \"callbackUrl=${callbackUrl}\" ${hosturl}${args}?pretty=true"
+	cmd="curl -sku \"${apiusername}:XXXXX\" -X POST -d "clientName=${client_name}" -d \"tier=${tier}\" -d \"description=${description}\" -d \"callbackUrl=${callbackUrl}\" ${hosturl}${args}?pretty=true"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"

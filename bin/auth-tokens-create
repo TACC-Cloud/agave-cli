@@ -67,7 +67,7 @@ main() {
 	#echo -n
 	#set -x
 	#hosturl=https://agave.iplantc.org/token
-	local post_options="grant_type=password&username=${username}&password=${password}&scope=PRODUCTION"
+	local post_options="username=${username}&password=${password}&grant_type=password&scope=PRODUCTION"
 
 	# if [ -n "$tenant" ]; then
 # 		post_options="tenant=${tenant}"
@@ -79,13 +79,13 @@ main() {
 	#
 	#post_options=${post_options%&}
 
-	cmd="curl -sku \"$apikey:XXXXXX\" -X POST -d \"grant_type=password&username=${username}&password=XXXXXX&scope=PRODUCTION\" -H \"Content-Type:application/x-www-form-urlencoded\" ${hosturl%/}"
+	cmd="curl -sku \"$apikey:XXXXX\" -X POST --data-urlencode \"username=${username}\" --data-urlencode \"password=XXXXX\" --data-urlencode \"grant_type=password\" --data-urlencode \"scope=PRODUCTION\" -H \"Content-Type:application/x-www-form-urlencoded\" ${hosturl%/}"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
-
-	response=`curl -sku "$apikey:$apisecret" -X POST -d "$post_options" -H "Content-Type:application/x-www-form-urlencoded" "${hosturl%/}" | python -mjson.tool`
+  
+	response=`curl -sku "$apikey:$apisecret" -X POST --data-urlencode "username=${username}" --data-urlencode "password=${password}" --data-urlencode "grant_type=password" --data-urlencode "scope=PRODUCTION" -H "Content-Type:application/x-www-form-urlencoded" "${hosturl%/}" | python -mjson.tool`
 
 	if [[ $(jsonquery "$response" "token_type") = 'bearer' ]]; then
 		result=$(format_api_json "$response")
@@ -111,7 +111,7 @@ format_api_json() {
 
 		kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
 
-		echo "Token for ${tenantid}:${username} successfully created and cached for ${expires_in} seconds";
+		echo "Token for ${tenantid}:${username} successfully refreshed and cached for ${expires_in} seconds";
 	fi
 
 	if ((veryverbose)); then

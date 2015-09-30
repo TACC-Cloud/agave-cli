@@ -76,7 +76,7 @@ main() {
 		elif [ -n "$system" ]; then
 			hosturl="$hosturl/system/$system"
 		else
-			hosturl="$hosturl/"
+			hosturl="$hosturl"
 		fi
 
 		if [ -n "$publiconly" ]; then

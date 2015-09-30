@@ -29,7 +29,7 @@ fi
 
 # versioning info
 version="v2"
-release="2.1.4"
+release="2.1.1"
 if [ -e "$DIR/../.git/refs/heads/master" ];
 then
   revision="${version}-r$(head -c 5 $DIR/../.git/refs/heads/master)"
@@ -50,17 +50,6 @@ development=0
 disable_cache=0 # set to 1 to prevent using auth cache.
 args=()
 
-# Configure which json parser to use
-if [[ -z "$AGAVE_JSON_PARSER" ]]; then
-	# If no parser is specified, look for python in the local path
-	# and fall back on the native json.sh implementation.
-	if hash python 2>/dev/null; then
-		AGAVE_JSON_PARSER='python'
-	else
-		AGAVE_JSON_PARSER='native'
-	fi
-fi
-
 # }}}
 # Helpers {{{
 
@@ -80,50 +69,41 @@ out() {
 die() { out "$@"; exit 1; } >&2
 err() {
 	if [[ -n $(ishtmlstring "$response") ]]; then
-
 		jsonresponsemessage="{\"status\":\"error\",\"message\":\"Unable to contact api server\",\"result\":null}"
 		response=`echo $jsonresponsemessage | python -mjson.tool`
-
 	elif [[ -n $(isxmlstring "$response") ]]; then
-
 		#response=`echo "$response" | xmllint --format -`
 		responsemessage=${1#*<ams:message>}
 		responsemessage=${responsemessage%</ams:message>*}
 		jsonresponsemessage="{\"status\":\"error\",\"message\":\"${responsemessage}\",\"result\":null}"
 		response=`echo "$jsonresponsemessage" | python -mjson.tool`
-
 	else
-
 		response=$@
-
 	fi
 
-  	if (($verbose)); then
+  if (($verbose)); then
 		if ((piped)); then
-      		out "${response}"
-    	else
-      		#out " \033[1;31m✖\033[0m  $response"
-		  	out "\033[1;31m${response}\033[0m"
-    	fi
+      out "${response}"
+    else
+      #out " \033[1;31m✖\033[0m  $response"
+		  out "\033[1;31m${response}\033[0m"
+    fi
 	else
 		if ((piped)); then
-      		out "$@"
-    	else
-      		#out " \033[1;31m✖\033[0m  $@";
-		  	out "\033[1;31m$@\033[0m"
-    	fi
+      out "$@"
+    else
+      #out " \033[1;31m✖\033[0m  $@";
+		  out "\033[1;31m$@\033[0m"
+    fi
 	fi
-
-	exit 1;
-
 } >&2
 
 success() {
 	#out " \033[1;32m✔\033[0m  $@";
   if ((piped)); then
-	  out "$@"
+    out "$@"
   else
-	  out "\033[1;0m$@\033[0m";
+	   out "\033[1;0m$@\033[0m";
   fi
 	#out "$@"
 }
@@ -201,16 +181,9 @@ getIpAddress() {
 }
 
 function jsonval {
-	local __AGAVE_JSON_PARSER=$AGAVE_JSON_PARSER
-	AGAVE_JSON_PARSER=native
-	local __var=$1
-	local __val=$(jsonquery "$2" $3)
-	eval "$(printf "%q=%q" "$__var" "$__val")"
-	AGAVE_JSON_PARSER=$__AGAVE_JSON_PARSER
-
-#	local __resultvar=$1
-#	local __temp=`echo "$2" | sed 's/\\\\\//\//g' | sed 's/[{}]//g' | awk -v k="text" '{n=split($0,a,","); for (i=1; i<=n; i++) print a[i]}' | sed 's/\"\:\"/\|/g' | sed 's/[\,]/ /g' | sed 's/\"//g' | grep -w $3| cut -d":" -f2| sed -e 's/^ *//g' -e 's/ *$//g'`
-#	eval $__resultvar=`echo '${__temp##*|}'`
+	local __resultvar=$1
+	local __temp=`echo "$2" | sed 's/\\\\\//\//g' | sed 's/[{}]//g' | awk -v k="text" '{n=split($0,a,","); for (i=1; i<=n; i++) print a[i]}' | sed 's/\"\:\"/\|/g' | sed 's/[\,]/ /g' | sed 's/\"//g' | grep -w $3| cut -d":" -f2| sed -e 's/^ *//g' -e 's/ *$//g'`
+	eval $__resultvar=`echo '${__temp##*|}'`
 }
 
 function ishtmlstring {
@@ -230,12 +203,12 @@ function isxmlstring {
 function getpagination {
   pagination=''
   re='^[0-9]+$'
-  if [[ $limit =~ $re ]] ; then
-    pagination="&limit=$limit"
+  if [[ $1 =~ $re ]] ; then
+    pagination="&limit=$1"
   fi
 
-  if [[ $offset =~ $re ]] ; then
-    pagination="${pagination}&offset=$offset"
+  if [[ $2 =~ $re ]] ; then
+    pagination="${pagination}&offset=$2"
   fi
 
   echo $pagination
@@ -247,11 +220,11 @@ function pagination {
 
 function jsonquery {
 
-  	if [[ -z "$1" ]]; then
-		if [[ "$2" = "message" ]]; then
-		  echo "Unable to contact api server at $hosturl"
-		fi
-  	elif [[ -n $(ishtmlstring $1) ]]; then
+  if [[ -z "$1" ]]; then
+    if [[ "$2" = "message" ]]; then
+      echo "Unable to contact api server at $hosturl"
+    fi
+  elif [[ -n $(ishtmlstring $1) ]]; then
 		if [[ "$2" = "message" ]]; then
 			echo "Unable to contact api server"
 		fi
@@ -262,84 +235,48 @@ function jsonquery {
 			echo $responsemessage
 		fi
 	else
+		oIFS="$IFS"
+		IFS="."
+		declare -a fields=($2)
+		IFS="$oIFS"
+		unset oIFS
+		#printf "> [%s]\n" "${fields[@]}"
 
-		# Look for custom json parsers
-		if [[ -n "$AGAVE_JSON_PARSER" ]]; then
+		re='^[0-9]+$'
 
-			if [[ 'json-mirror' == "$AGAVE_JSON_PARSER" ]]; then
-
-				$DIR/json-mirror.sh "${1}" "$2" "$3"
-
-			elif [[ 'jq' == "$AGAVE_JSON_PARSER" ]]; then
-
-				jpath = ".${2}"
-
-				if [[ -n "$3" ]]; then
-					echo "$1" | jq --raw-output ${jpath}
-				else
-					echo "$1" | jq ${jpath}
-				fi
-
-			elif [[ 'json' == "$AGAVE_JSON_PARSER" ]]; then
-
-				if [[ -n "$3" ]]; then
-					echo "$1" | json -j $2
-				else
-					echo "$1" | json $2
-				fi
-
-			elif [[ 'python' == "$AGAVE_JSON_PARSER" ]]; then
-
-				[[ -z "$3" ]] && stripquotes='-s'
-
-				echo "${1}" | python $DIR/python2/pydotjson.py -q ${2} $stripquotes
-
-			elif [[ 'native' == "$AGAVE_JSON_PARSER" ]]; then
-
-				oIFS="$IFS"
-				IFS="."
-				declare -a fields=($2)
-				IFS="$oIFS"
-				unset oIFS
-				#printf "> [%s]\n" "${fields[@]}"
-
-				re='^[0-9]+$'
-
-				for x in "${fields[@]}"; do
-					if [ "$x" == '\*' ]; then
-						patharray=${patharray}',"[^"]*"'
-						escpatharray=${escpatharray}',*'
-					#echo $patharray"\\n"
-					elif [[ $x = '[]' ]]; then
-						patharray=${patharray}',[0-9]+'
-						escpatharray=${escpatharray}',[0-9]*'
-					elif [[ $x =~ $re ]] ; then
-						patharray=${patharray}','$x
-						escpatharray=${escpatharray}','$x
-					#echo $patharray"\\n"
-					else
-						patharray=${patharray}',"'$x'"'
-						escpatharray=${escpatharray}',\"'$x'\"'
-					#echo $patharray"\\n"
-					fi
-				done
-
-				patharray="${patharray:1:${#patharray}-1}"
-				escpatharray="${escpatharray:1:${#escpatharray}-1}"
-
-				patharray='\['${patharray}'\]'
-				escpatharray='\['${escpatharray}'\]'
-
-				if [ -z "$3" ]; then
-					echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g | sed 's/^[ \t]*//g' | sed s/\"//g
-				else
-					# third argument says to leave the response quoted
-					echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g
-				fi
-				unset patharray
-				unset escpatharray
+		for x in "${fields[@]}"; do
+			if [ "$x" == '\*' ]; then
+				patharray=${patharray}',"[^"]*"'
+				escpatharray=${escpatharray}',*'
+				#echo $patharray"\\n"
+			elif [[ $x = '[]' ]]; then
+				patharray=${patharray}',[0-9]+'
+				escpatharray=${escpatharray}',[0-9]*'
+			elif [[ $x =~ $re ]] ; then
+				patharray=${patharray}','$x
+				escpatharray=${escpatharray}','$x
+				#echo $patharray"\\n"
+			else
+				patharray=${patharray}',"'$x'"'
+				escpatharray=${escpatharray}',\"'$x'\"'
+				#echo $patharray"\\n"
 			fi
+		done
+
+		patharray="${patharray:1:${#patharray}-1}"
+		escpatharray="${escpatharray:1:${#escpatharray}-1}"
+
+		patharray='\['${patharray}'\]'
+		escpatharray='\['${escpatharray}'\]'
+
+		if [ -z "$3" ]; then
+			echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g | sed 's/^[ \t]*//g' | sed s/\"//g
+		else
+			# third argument says to leave the response quoted
+			echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g
 		fi
+		unset patharray
+		unset escpatharray
 	fi
 }
 
@@ -444,12 +381,12 @@ prompt_options() {
       fi
     elif [[ $val == "password" ]]; then
     	echo -n "API password: "
-    	stty -echo; read -p password; stty echo
+    	stty -echo; read "password"; stty echo
     	echo -n "
 ";
     elif [[ $val == "apipassword" ]]; then
     	echo -n "API password: "
-    	stty -echo; read -p apipassword; stty echo
+    	stty -echo; read "apipassword"; stty echo
     	echo -n "
 ";
 	# Otherwise just read the input
@@ -464,11 +401,11 @@ get_auth_header() {
 	if [[ "$development" -ne 1 ]]; then
 		echo "Authorization: Bearer $access_token"
 	else
-		if [[ -f "$DIR/auth-filter.sh" ]]; then
-		  echo $(source $DIR/auth-filter.sh);
-		else
-		  echo " -u \"${username}:${password}\" "
-		fi
+    if [[ -f "$DIR/auth-filter.sh" ]]; then
+      echo $(source $DIR/auth-filter.sh);
+    else
+      echo " -u \"${username}:${password}\" "
+    fi
 	fi
 }
 
@@ -539,70 +476,35 @@ calling_cli_command=$(basename $0)
 currentconfig=$(kvget current)
 
 if [[ "tenants-init" != "$calling_cli_command" ]] && [[ "tenants-list" != "$calling_cli_command" ]]; then
-	if [[ -z $currentconfig ]]; then
-		err "Please run $DIR/tenants-init to initialize your client before attempting to interact with the APIs."
-		exit
-	fi
+  if [[ -z $currentconfig ]]; then
+    err "Please run $DIR/tenants-init to initialize your client before attempting to interact with the APIs."
+    exit
+  fi
 
-	jsonval baseurl "$currentconfig" "baseurl"
-	if  [[ -z $baseurl ]]; then
-		err "Please run $DIR/tenants-init to configure your client endpoints before attempting to interact with the APIs."
-		exit
-	else
-		baseurl="${baseurl%/}"
-	fi
+  baseurl=$(jsonquery "$currentconfig" "baseurl")
+  if  [[ -z $baseurl ]]; then
+    err "Please run $DIR/tenants-init to configure your client endpoints before attempting to interact with the APIs."
+    exit
+  else
+    baseurl="${baseurl%/}"
+  fi
 
-	jsonval devurl "$currentconfig" "devurl"
-	if [[ -z "devurl" ]]; then
-		err "Please run $DIR/tenants-init to configure your development endpoints before attempting to interact with the APIs."
-		exit
-	else
-		devurl="${devurl%/}"
-	fi
+  devurl=$(jsonquery "$currentconfig" "devurl")
+  if [[ -z "devurl" ]]; then
+    err "Please run $DIR/tenants-init to configure your development endpoints before attempting to interact with the APIs."
+    exit
+  else
+    devurl="${devurl%/}"
+  fi
 
-	jsonval tenantid "$currentconfig" "tenantid"
-	if [[ -z "tenantid" ]]; then
-		err "Please run $DIR/tenants-init to configure your client id before attempting to interact with the APIs."
-		exit
-	fi
-else
-
-  	# otherwise just load up the devurl so we can override the discovery endpoint
-  	jsonval devurl "$currentconfig" "devurl"
-	devurl="${devurl%/}"
-
+  tenantid=$(jsonquery "$currentconfig" "tenantid")
+  if [[ -z "tenantid" ]]; then
+    err "Please run $DIR/tenants-init to configure your client id before attempting to interact with the APIs."
+    exit
+  fi
 fi
 # }}}
 
 function join {
   local IFS="$1"; shift; echo "$*";
-}
-
-function json_prettyify {
-
-	# Look for custom json parsers
-	if [[ 'python' == "$AGAVE_JSON_PARSER" ]]; then
-
-		echo "$@" | python $DIR/python2/pydotjson.py
-
-	elif [[ 'jq' == "$AGAVE_JSON_PARSER" ]]; then
-
-		echo "$@" | jq -r '.'
-
-	elif [[ 'json' == "$AGAVE_JSON_PARSER" ]]; then
-
-		echo "$@" | json
-
-	# If all else fails, we can use the jsonparser api
-	#elif [[ -z "$AGAVE_JSON_PARSER" -o 'json-mirror' == "$AGAVE_JSON_PARSER" ]]; then
-	else
-
-		jsonparserresponse=$(curl -sk -H "ContentType: application/json" -F @- "http://agaveapi.co/jsonparser?pretty=true&q=.")
-
-		if [ $? ]; then
-			echo $jsonparserresponse
-		else
-			echo "$@"
-		fi
-	fi
 }
