@@ -81,31 +81,30 @@ err() {
 		response=$@
 	fi
 
-  if (($verbose)); then
+  	if (($verbose)); then
 		if ((piped)); then
-      out "${response}"
-    else
-      #out " \033[1;31m✖\033[0m  $response"
-		  out "\033[1;31m${response}\033[0m"
-    fi
-	else
+		  out "${response}"
+		else
+		  out "\033[1;31m${message}\033[0m"
+		fi
+  	else
 		if ((piped)); then
-      out "$@"
-    else
-      #out " \033[1;31m✖\033[0m  $@";
-		  out "\033[1;31m$@\033[0m"
-    fi
+		  out "$@"
+    	else
+      	  #out " \033[1;31m✖\033[0m  $@";
+		  out "\033[1;31m${@}\033[0m"
+    	fi
 	fi
 } >&2
 
 success() {
-	#out " \033[1;32m✔\033[0m  $@";
   if ((piped)); then
     out "$@"
   else
-	   out "\033[1;0m$@\033[0m";
+	#message=$(echo "$@" | sed 's/\\[0-9]\{3\}\[[0-9]\(;[0-9]\{2\}\)\?m//g')
+	out "\033[1;0m${message}\033[0m";
   fi
-	#out "$@"
+
 }
 
 version() {
@@ -187,16 +186,20 @@ function jsonval {
 }
 
 function ishtmlstring {
-	firstelement=${1:0:5}
-	if [[ "$firstelement" = "<html" ]]; then
-		echo 1
+	if [[ -n "$1" ]]; then
+		firstelement=${1:0:5}
+		if [[ "$firstelement" = "<html" ]]; then
+			echo 1
+		fi
 	fi
 }
 
 function isxmlstring {
-	firstcharacter=${1:0:1}
-	if [[ "$firstcharacter" = "<" ]]; then
-		echo 1
+	if [[ -n "$1" ]]; then
+		firstcharacter=${1:0:1}
+		if [[ "$firstcharacter" = "<" ]]; then
+			echo 1
+		fi
 	fi
 }
 

@@ -75,7 +75,7 @@ main() {
 		fi
 
 		if [ -n "$privateonly" ]; then
-			querystring="private=true&${querystring}"
+			querystring="public=false&${querystring}"
 		fi
 
 		if [ -n "$defaultonly" ]; then
