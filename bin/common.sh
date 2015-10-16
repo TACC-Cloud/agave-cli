@@ -29,7 +29,7 @@ fi
 
 # versioning info
 version="v2"
-release="2.1.1"
+release="2.1.5"
 if [ -e "$DIR/../.git/refs/heads/master" ];
 then
   revision="${version}-r$(head -c 5 $DIR/../.git/refs/heads/master)"
@@ -50,10 +50,21 @@ development=0
 disable_cache=0 # set to 1 to prevent using auth cache.
 args=()
 
+# Configure which json parser to use
+if [[ -z "$AGAVE_JSON_PARSER" ]]; then
+	# If no parser is specified, look for python in the local path
+	# and fall back on the native json.sh implementation.
+#	if hash python 2>/dev/null; then
+#		AGAVE_JSON_PARSER='python'
+#	else
+		AGAVE_JSON_PARSER='native'
+#	fi
+fi
+
 # }}}
 # Helpers {{{
 
-out() {
+function out() {
   ((quiet)) && return
 
   local message="$@"
@@ -66,17 +77,17 @@ out() {
   #fie
   printf '%b\n' "$message";
 }
-die() { out "$@"; exit 1; } >&2
-err() {
+function die() { out "$@"; exit 1; } >&2
+function err() {
 	if [[ -n $(ishtmlstring "$response") ]]; then
-		jsonresponsemessage="{\"status\":\"error\",\"message\":\"Unable to contact api server\",\"result\":null}"
+		jsonresponsemessage="{\"status\":\"error\",\"message\":\"Unexpected response from the API server\",\"result\":null}"
 		response=`echo $jsonresponsemessage | python -mjson.tool`
 	elif [[ -n $(isxmlstring "$response") ]]; then
 		#response=`echo "$response" | xmllint --format -`
-		responsemessage=${1#*<ams:message>}
-		responsemessage=${responsemessage%</ams:message>*}
-		jsonresponsemessage="{\"status\":\"error\",\"message\":\"${responsemessage}\",\"result\":null}"
-		response=`echo "$jsonresponsemessage" | python -mjson.tool`
+#		responsemessage=${1#*<ams:message>}
+#		responsemessage=${responsemessage%</ams:message>*}
+		response=$(get_xml_message "$1")
+		response=$(to_json_error_message "$response" | python -mjson.tool)
 	else
 		response=$@
 	fi
@@ -85,7 +96,7 @@ err() {
 		if ((piped)); then
 		  out "${response}"
 		else
-		  out "\033[1;31m${message}\033[0m"
+		  out "\033[1;31m${response}\033[0m"
 		fi
   	else
 		if ((piped)); then
@@ -97,7 +108,7 @@ err() {
 	fi
 } >&2
 
-success() {
+function success() {
   if ((piped)); then
     out "$@"
   else
@@ -107,13 +118,13 @@ success() {
 
 }
 
-version() {
+function version() {
 	out "iPlant Agave API ${release}
 Agave CLI (revision ${revision})
 "
 }
 
-copyright() {
+function copyright() {
 	out "Copyright (c) 2013, Texas Advanced Computing Center
 All rights reserved.
 
@@ -144,7 +155,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 "
 }
 
-disclaimer() {
+function disclaimer() {
 	out "Documentation on the Agave API, client libaries, and developer tools is
 available online at the Agave Developer Portal, http://agaveapi.co. For
 localized help of the various CLI commands, run any command with the -h
@@ -153,16 +164,16 @@ or --help option.
 }
 
 # Verbose logging
-log() { (($verbose)) && out "$@"; }
+function log() { (($verbose)) && out "$@"; }
 
 # Notify on function success
-notify() { [[ $? == 0 ]] && success "$@" || err "$@"; }
+function notify() { [[ $? == 0 ]] && success "$@" || err "$@"; }
 
 # Escape a string
-escape() { echo $@ | sed 's/\//\\\//g'; }
+function escape() { echo $@ | sed 's/\//\\\//g'; }
 
 # Unless force is used, confirm with user
-confirm() {
+function confirm() {
   (($force)) && return 1;
 
   read -p "$1 [Y/n] " -n 1;
@@ -170,12 +181,12 @@ confirm() {
 }
 
 # Set a trap for cleaning up in case of errors or when script exits.
-rollback() {
+function rollback() {
 	stty echo
 	die
 }
 
-getIpAddress() {
+function getIpAddress() {
     curl http://myip.dnsomatic.com
 }
 
@@ -196,11 +207,42 @@ function ishtmlstring {
 
 function isxmlstring {
 	if [[ -n "$1" ]]; then
-		firstcharacter=${1:0:1}
-		if [[ "$firstcharacter" = "<" ]]; then
-			echo 1
+		if hash xmllint 2>/dev/null; then
+			xmllint - >> /dev/null 2>&1 <<< "$1"
+			[ $? -eq 0 ] && echo 1
+		else
+			firstcharacter=$(trim "$1")
+			firstcharacter=${firstcharacter:0:1}
+			[ "$firstcharacter" = '<' ] && echo 1
 		fi
 	fi
+}
+
+function get_xml_message() {
+	if [[ -n $(echo "$1" | grep -om1 "<ams:message>[^<]*") ]]; then
+		echo "$1" | grep -om1 "<ams:message>[^<]*" | sed -e 's/<ams:message>//'
+	elif [[ -n $(echo "$1" | grep -om1 "<am:description>[^<]*") ]]; then
+		echo "$1" | grep -om1 "<am:description>[^<]*" | sed -e 's/<am:description>//'
+	else
+		echo "$1"
+	fi
+}
+
+function to_json_error_message() {
+	printf '{"status":"error","message":"%s","result":null}' "$(echo "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\"/g')"
+
+	#printf '{"status":"error","message":"%s","result":null}' "$1"
+#	echo "{\"status\":\"error\",\"message\":\"${1}\",\"result\":null}"
+#	response=`echo "$jsonresponsemessage" | python -mjson.tool`
+
+
+}
+
+function trim() {
+	local var="$*"
+	var="${var#"${var%%[![:space:]]*}"}"   # remove leading whitespace characters
+	var="${var%"${var##*[![:space:]]}"}"   # remove trailing whitespace characters
+	echo -n "$var"
 }
 
 function getpagination {
@@ -223,63 +265,107 @@ function pagination {
 
 function jsonquery {
 
-  if [[ -z "$1" ]]; then
-    if [[ "$2" = "message" ]]; then
-      echo "Unable to contact api server at $hosturl"
-    fi
-  elif [[ -n $(ishtmlstring $1) ]]; then
+  	if [[ -z "$1" ]]; then
+    	if [[ "$2" = "message" ]]; then
+      		echo "Unable to contact api server at $hosturl"
+    	fi
+  	elif [[ -n $(ishtmlstring "$1") ]]; then
 		if [[ "$2" = "message" ]]; then
-			echo "Unable to contact api server"
+			if (( $veryverbose )); then
+				echo "$1"
+			else
+				echo "Unexpected response from the API server."
+			fi
 		fi
-	elif [[ -n $(isxmlstring $1) ]]; then
+	elif [[ -n $(isxmlstring "$1") ]]; then
 		if [[ "$2" = "message" ]]; then
-			responsemessage=${1#*<ams:message>}
-			responsemessage=${responsemessage%</ams:message>*}
-			echo $responsemessage
+
+			echo $(get_xml_message "$1")
+
+			# echo $(echo "$1" | grep -oPm1 "(?<=<ams:message>)[^<]+")
+
+#			responsemessage=${1#*<ams:message>}
+#			responsemessage=${responsemessage%</ams:message>*}
+#			echo $responsemessage
 		fi
 	else
-		oIFS="$IFS"
-		IFS="."
-		declare -a fields=($2)
-		IFS="$oIFS"
-		unset oIFS
-		#printf "> [%s]\n" "${fields[@]}"
+		# Look for custom json parsers
+		if [[ -n "$AGAVE_JSON_PARSER" ]]; then
 
-		re='^[0-9]+$'
+			if [[ 'json-mirror' == "$AGAVE_JSON_PARSER" ]]; then
 
-		for x in "${fields[@]}"; do
-			if [ "$x" == '\*' ]; then
-				patharray=${patharray}',"[^"]*"'
-				escpatharray=${escpatharray}',*'
-				#echo $patharray"\\n"
-			elif [[ $x = '[]' ]]; then
-				patharray=${patharray}',[0-9]+'
-				escpatharray=${escpatharray}',[0-9]*'
-			elif [[ $x =~ $re ]] ; then
-				patharray=${patharray}','$x
-				escpatharray=${escpatharray}','$x
-				#echo $patharray"\\n"
-			else
-				patharray=${patharray}',"'$x'"'
-				escpatharray=${escpatharray}',\"'$x'\"'
-				#echo $patharray"\\n"
+				$DIR/json-mirror.sh "${1}" "$2" "$3"
+
+			elif [[ 'jq' == "$AGAVE_JSON_PARSER" ]]; then
+
+				jpath = ".${2}"
+
+				if [[ -n "$3" ]]; then
+					echo "$1" | jq --raw-output ${jpath}
+				else
+					echo "$1" | jq ${jpath}
+				fi
+
+			elif [[ 'json' == "$AGAVE_JSON_PARSER" ]]; then
+
+				if [[ -n "$3" ]]; then
+					echo "$1" | json -j $2
+				else
+					echo "$1" | json $2
+				fi
+
+			elif [[ 'python' == "$AGAVE_JSON_PARSER" ]]; then
+
+				[[ -z "$3" ]] && stripquotes='-s'
+
+				echo "${1}" | python $DIR/python2/pydotjson.py -q ${2} $stripquotes
+
+			elif [[ 'native' == "$AGAVE_JSON_PARSER" ]]; then
+
+				oIFS="$IFS"
+				IFS="."
+				declare -a fields=($2)
+				IFS="$oIFS"
+				unset oIFS
+				#printf "> [%s]\n" "${fields[@]}"
+
+				re='^[0-9]+$'
+
+				for x in "${fields[@]}"; do
+					if [ "$x" == '\*' ]; then
+						patharray=${patharray}',"[^"]*"'
+						escpatharray=${escpatharray}',*'
+					#echo $patharray"\\n"
+					elif [[ $x = '[]' ]]; then
+						patharray=${patharray}',[0-9]+'
+						escpatharray=${escpatharray}',[0-9]*'
+					elif [[ $x =~ $re ]] ; then
+						patharray=${patharray}','$x
+						escpatharray=${escpatharray}','$x
+					#echo $patharray"\\n"
+					else
+						patharray=${patharray}',"'$x'"'
+						escpatharray=${escpatharray}',\"'$x'\"'
+					#echo $patharray"\\n"
+					fi
+				done
+
+				patharray="${patharray:1:${#patharray}-1}"
+				escpatharray="${escpatharray:1:${#escpatharray}-1}"
+
+				patharray='\['${patharray}'\]'
+				escpatharray='\['${escpatharray}'\]'
+
+				if [ -z "$3" ]; then
+					echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g | sed 's/^[ \t]*//g' | sed s/\"//g
+				else
+					# third argument says to leave the response quoted
+					echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g
+				fi
+				unset patharray
+				unset escpatharray
 			fi
-		done
-
-		patharray="${patharray:1:${#patharray}-1}"
-		escpatharray="${escpatharray:1:${#escpatharray}-1}"
-
-		patharray='\['${patharray}'\]'
-		escpatharray='\['${escpatharray}'\]'
-
-		if [ -z "$3" ]; then
-			echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g | sed 's/^[ \t]*//g' | sed s/\"//g
-		else
-			# third argument says to leave the response quoted
-			echo "$1" | $DIR/json.sh -p | egrep "$patharray" | sed s/"$escpatharray"//g
 		fi
-		unset patharray
-		unset escpatharray
 	fi
 }
 
@@ -288,7 +374,7 @@ function jsonquery {
 # Boilerplate {{{
 
 # Prompt the user to interactively enter desired variable values.
-prompt_options() {
+function prompt_options() {
   local desc=
   local val=
   tokenstore=$(kvget current)
@@ -395,50 +481,24 @@ prompt_options() {
 	# Otherwise just read the input
     else
     	echo -n "$desc: "
-		  eval "read $val"
+		eval "read $val"
     fi
   done
 }
 
-get_auth_header() {
+function get_auth_header() {
 	if [[ "$development" -ne 1 ]]; then
 		echo "Authorization: Bearer $access_token"
 	else
-    if [[ -f "$DIR/auth-filter.sh" ]]; then
-      echo $(source $DIR/auth-filter.sh);
-    else
-      echo " -u \"${username}:${password}\" "
-    fi
-	fi
-}
-
-check_response_status() {
-
-	if [[ "$?" -eq 22 ]]; then
-		jsonresponsemessage="{\"status\":\"error\",\"message\":\"Unable to contact api server\",\"result\":null}"
-		response=`echo $jsonresponsemessage | python -mjson.tool`
-	else
-		local __response_status=`echo "$1" | grep '^  "status" : "success"'`
-		if [[ -n $__response_status ]]; then
-			eval response_status="success"
-		elif [[ -n $(isxmlstring $1) ]]; then
-			responsemessage=${1#*<ams:message>}
-			responsemessage=${responsemessage%</ams:message>*}
-			jsonresponsemessage="{\"status\":\"error\",\"message\":\"${responsemessage}\",\"result\":null}"
-			response=`echo "$jsonresponsemessage" | python -mjson.tool`
+		if [[ -f "$DIR/auth-filter.sh" ]]; then
+		  echo $(source $DIR/auth-filter.sh);
 		else
-			local __html_check=`echo "$1" | grep '^<'`
-			if [[ -z $____html_check ]]; then
-				local __response_status=`echo "$1" | python -mjson.tool | grep '^    "status": "success"'`
-				if [[ -n $__response_status ]]; then
-					eval response_status="success"
-				fi
-			fi
+		  echo " -u \"${username}:${password}\" "
 		fi
 	fi
 }
 
-get_token_remaining_time() {
+function get_token_remaining_time() {
 
 	auth_cache=`kvget current`
 
@@ -457,21 +517,12 @@ get_token_remaining_time() {
   fi
 }
 
-is_valid_url() {
+function is_valid_url() {
 	regex='(\b(https?|ftp|file)://)?[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]'
 	if [[ "$1" =~ $regex ]]
 	then
 		echo 1
 	fi
-}
-
-to_json_error() {
-  if ((veryverbose)); then
-	response="{ \"status\":\"error\",\"message\":\"$1\",\"result\":null }"
-	response=`echo "$response" | python -mjson.tool`
-  else
-	response="$1"
-  fi
 }
 
 # load tenant-specific settings
@@ -510,4 +561,33 @@ fi
 
 function join {
   local IFS="$1"; shift; echo "$*";
+}
+
+function json_prettyify {
+
+	# Look for custom json parsers
+	if [[ 'python' == "$AGAVE_JSON_PARSER" ]]; then
+
+		echo "$@" | python $DIR/python2/pydotjson.py
+
+	elif [[ 'jq' == "$AGAVE_JSON_PARSER" ]]; then
+
+		echo "$@" | jq -r '.'
+
+	elif [[ 'json' == "$AGAVE_JSON_PARSER" ]]; then
+
+		echo "$@" | json
+
+	# If all else fails, we can use the jsonparser api
+	#elif [[ -z "$AGAVE_JSON_PARSER" -o 'json-mirror' == "$AGAVE_JSON_PARSER" ]]; then
+	else
+
+		jsonparserresponse=$(curl -sk -H "ContentType: application/json" -F @- "http://agaveapi.co/jsonparser?pretty=true&q=.")
+
+		if [ $? ]; then
+			echo $jsonparserresponse
+		else
+			echo "$@"
+		fi
+	fi
 }
