@@ -28,29 +28,29 @@ public=true. Multiple search terms should be provided as a URL query string. For
 'executionType.eq=HPC' 'executionSystem.like=*stampede*' 'lastUpdated.after=last week'.
 
  Query parameters:
-  available                 Whether the app is available. Boolean, default true
-  checkpointable            Whether the app is checkpointable
-  checksum                  The checksum of the public app deployment assets.
-  created                   The timestamp when the app was first registered. Results are
-                            rounded by day. You may specify using YYYY-MM-DD format or free
-                            form timeframes such as 'yesterday' or '3 days ago'.
-  defaultmaxruntime         The max run time for job requests utilizing this app.
-  defaultmemorypernode      The default memory request for job requests utilizing this app.
-  defaultnodes              The default number of nodes requested for job requests utilizing this app.
-  defaultprocessorspernode  The default processors per node request for job requests utilizing this app.
-  defaultqueue              The default executionSystem queue for job requests utilizing this app.
-  deploymentpath            The deployment path on the storageSystem where the app assets reside.
-  executionsystem           The id of the system where the app will run.
-  executiontype             The execution type of the app. One of HPC, CLI, CONDOR.
-  helpuri                   The URL to the help documentation for this app.
-  icon                      The icon associated with this app.
-  id                        The unique id of the app defined by <name>-<version>
-  inputs.id                 The id of one or more input definitions for the app
-  label                     The display label for the app.
-  lastupdated               The timestamp of the last time the app was updated. Results are
-                            rounded by day. You may specify using YYYY-MM-DD format or free
-                            form timeframes such as 'yesterday' or '3 days ago'.
-  longdescription           The full description of the app.
+  available                     Whether the app is available. Boolean, default true
+  checkpointable                Whether the app is checkpointable
+  checksum                      The checksum of the public app deployment assets.
+  created                       The timestamp when the app was first registered. Results are
+                                rounded by day. You may specify using YYYY-MM-DD format or free
+                                form timeframes such as 'yesterday' or '3 days ago'.
+  defaultmaxruntime             The max run time for job requests utilizing this app.
+  defaultmemorypernode          The default memory request for job requests utilizing this app.
+  defaultnodes                  The default number of nodes requested for job requests utilizing this app.
+  defaultprocessorspernode      The default processors per node request for job requests utilizing this app.
+  defaultqueue                  The default executionSystem queue for job requests utilizing this app.
+  deploymentpath                The deployment path on the storageSystem where the app assets reside.
+  executionsystem               The id of the system where the app will run.
+  executiontype                 The execution type of the app. One of HPC, CLI, CONDOR.
+  helpuri                       The URL to the help documentation for this app.
+  icon                          The icon associated with this app.
+  id                            The unique id of the app defined by <name>-<version>
+  inputs.id                     The id of one or more input definitions for the app
+  label                         The display label for the app.
+  lastupdated                   The timestamp of the last time the app was updated. Results are
+                                rounded by day. You may specify using YYYY-MM-DD format or free
+                                form timeframes such as 'yesterday' or '3 days ago'.
+  longdescription               The full description of the app.
   modules                       The list of modules used by this app. Do not use equality
                                 operators with this search term.
   name                          The name of the app
@@ -60,6 +60,7 @@ public=true. Multiple search terms should be provided as a URL query string. For
   owner                         The owner of the app.
   parallelism                   The parallelism type of the app: One of PARALLEL, PTHREAD, SERIAL
   parameters.id                 The id of one or more parameter definitions for the app
+  parameters.type               The type of one or more parameter definitions for the app
   public                        Whether the app is publicly available for use.
   publiconly                    Restricts to only public apps. Present for legacy support. This is
                                 equivalent to public=true
@@ -80,17 +81,17 @@ public=true. Multiple search terms should be provided as a URL query string. For
 
  Options:
   -z, --access_token	Access token
-  -l, --limit         Maximum number of results to return
-  -o, --offset        Number of results to skip from the start
-  -H, --hosturl       URL of the service
-  -d, --development   Run in dev mode using default dev server
-  -f, --force         Skip all user interaction
-  -i, --interactive   Prompt for values
-  -q, --quiet         Quiet (no output)
-  -v, --verbose       Verbose output
-  -V, --veryverbose   Very verbose output
-  -h, --help          Display this help and exit
-      --version       Output version information and exit
+  -l, --limit           Maximum number of results to return
+  -o, --offset          Number of results to skip from the start
+  -H, --hosturl         URL of the service
+  -d, --development     Run in dev mode using default dev server
+  -f, --force           Skip all user interaction
+  -i, --interactive     Prompt for values
+  -q, --quiet           Quiet (no output)
+  -v, --verbose         Verbose output
+  -V, --veryverbose     Very verbose output
+  -h, --help            Display this help and exit
+      --version         Output version information and exit
 "
 }
 

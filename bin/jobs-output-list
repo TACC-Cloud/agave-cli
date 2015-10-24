@@ -30,17 +30,18 @@ be on the work folder if it still exists.
 
  Options:
   -z, --access_token	Access token
-  -l, --limit         Maximum number of results to return
-  -o, --offset        Number of results to skip from the start
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -L, --long            Print response in unix-style ls -l format
+  -l, --limit           Maximum number of results to return
+  -o, --offset          Number of results to skip from the start
+  -H, --hosturl         URL of the service
+  -d, --development     Run in dev mode using default dev server
+  -f, --force           Skip all user interaction
+  -i, --interactive     Prompt for values
+  -q, --quiet           Quiet (no output)
+  -v, --verbose         Verbose output
+  -V, --veryverbose     Very verbose output
+  -h, --help            Display this help and exit
+      --version         Output version information and exit
 "
 }
 
@@ -87,10 +88,57 @@ format_api_json() {
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
-	else
-		result=$(jsonquery "$1" "result.[].name")
-		echo "${result}"
-	fi
+    elif [[ $long -eq 1 ]]; then
+        lstng=$(lsify "$1" | awk '{ printf("%-10s %+12s %+18s %+32s %s\n", $1, $2, $3, $4, $5); }')
+        echo "$lstng"
+    else
+        result=$(jsonquery "$1" "result.[].name")
+        echo "${result}"
+    fi
+}
+
+lsify () {
+    #jq '.result[] | {type,length,name,lastModified}'
+
+    names=($(jsonquery "$1" "result.[].name"))
+    #echo $names
+    lengths=($(jsonquery "$1" "result.[].length"))
+    #echo $lengths
+    types=($(jsonquery "$1" "result.[].type"))
+    #echo $types
+    modifieds=($(jsonquery "$1" "result.[].lastModified"))
+    #echo $modifieds
+    pems=($(jsonquery "$1" "result.[].permissions"))
+
+    n=0
+    for i in "${names[@]}"; do
+        up=''
+        if [[ "${pems[$n]}" == "READ" ]]; then
+            up='r--------'
+        elif [[ "${pems[$n]}" == "WRITE" ]]; then
+            up='-w-------'
+        elif [[ "${pems[$n]}" == "EXECUTE" ]]; then
+            up='--x------'
+        elif [[ "${pems[$n]}" == "READ_WRITE" ]]; then
+            up='rw-------'
+        elif [[ "${pems[$n]}" == "READ_EXECUTE" ]]; then
+            up='r-x------'
+        elif [[ "${pems[$n]}" == "WRITE_EXECUTE" ]]; then
+            up='-wx------'
+        elif [[ "${pems[$n]}" == "EXECUTE" ]]; then
+            up='rwx------'
+        fi
+
+        if [[ "${types[$n]}" == "dir" ]]; then
+            up="d${up}"
+        else
+            up="-${up}"
+        fi
+
+        echo -e "${up}\t${username}\t${lengths[$n]}\t$i\t${modifieds[$n]}"
+        n=$[n+1]
+    done
+
 }
 
 ##################################################################
@@ -116,6 +164,7 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
+    -L|--long) long=1;;
     -l|--limit) shift; limit=$1;;
     -o|--offset) shift; offset=$1;;
     -H|--hosturl) shift; hosturl=$1;;

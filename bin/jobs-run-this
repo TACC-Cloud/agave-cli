@@ -264,7 +264,26 @@ main() {
 
   rm $PACKAGE_NAME
 
-  sleep 5
+  # wait for the upload to get to the remote system
+  echo "Checking upload status while waiting for file to finishing streaming to remote system."
+  while (( true )); do
+
+    # should be quick...check every second
+    sleep 1
+    # check history for a terminal status: TRANSFORMING_COMPLETED, TRANSFORMING_FAILED
+    filehistory=$(files-history -z $REMOTE_PATH $appbundleparam)
+    transferstatus=$(jsonquery "$filehistory" "result.[].status" | tail -n 1)
+    if [[ "$transferstatus" = "TRANSFORMING_COMPLETED" -o "$transferstatus" = "$STAGING_COMPLETED" ]]; then
+      break;
+    elif [[ "$transferstatus" = "TRANSFORMING_FAILED" -o "$transferstatus" = "$STAGING_FAILED" -o "$transferstatus" = "$FAILED" ]]; then
+      err "Failed to upload local assets to remote system"
+    else
+      echo -e "."
+    fi
+
+    echo -e "upload complete"
+
+  done
 
   # Create a job description and submit the job
   out "Submitting job..."

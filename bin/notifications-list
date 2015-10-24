@@ -89,8 +89,31 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		result=$(jsonquery "$1" "result.[]._links.self.href")
-		echo "${result}"
+        if [[ -z "$args" ]]; then
+#		    events=$(jsonquery "$1" "result.[].event")
+#            codes=$(jsonquery "$1" "result.[].url")
+#            assocs=$(jsonquery "$1" "result.[].associatedUuid")
+#            n=0
+#            for i in $(jsonquery "$1" "result.[].id")
+#            do
+#                results[$n]="$i ${assocs[$n]} ${events[$n]} ${codes[$n]}"
+#                n=$[n+1]
+#            done
+
+            results=$(jsonquery "$1" "result.[].id")
+            echo "$results";
+#            for i in "${results[@]}"; do
+#                echo ( "$i" )
+#            done
+        else
+            id=$(jsonquery "$1" "result.id")
+#            assoc=$(jsonquery "$1" "result.associatedUuid")
+#            event=$(jsonquery "$1" "result.event")
+#            code=$(jsonquery "$1" "result.responseCode")
+#            echo "$assoc $event $code"
+            echo "$id"
+        fi
+
 	fi
 }
 

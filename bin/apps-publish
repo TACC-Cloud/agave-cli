@@ -26,7 +26,7 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(apisecret apikey executionSystem)
 
 # Print usage
 usage() {
@@ -46,8 +46,6 @@ Global admin privileges are required to publish a system.
 
  Options:
   -z, --access_token	    Access token
-  -s, --deploymentSystem    The system where the public app bundle will be archived and stored
-  -p, --deploymentPath      The deployment path on on the deploymentSystem where the app bundle will be stored.
   -e, --executionSystem     The target execution system for the public app
   -n, --name                The new name of the public app
   -x, --appVersion         The new version of the public app
@@ -80,13 +78,13 @@ main() {
 	else
         publicAppparams=''
 
-        if [ -n "$deploymentSystem" ]; then
-            publicAppparams="${publicAppparams}&deploymentSystem=${deploymentSystem}"
-        fi
-
-        if [ -n "$deploymentPath" ]; then
-            publicAppparams="${publicAppparams}&deploymentPath=${deploymentPath}"
-        fi
+#        if [ -n "$deploymentSystem" ]; then
+#            publicAppparams="${publicAppparams}&deploymentSystem=${deploymentSystem}"
+#        fi
+#
+#        if [ -n "$deploymentPath" ]; then
+#            publicAppparams="${publicAppparams}&deploymentPath=${deploymentPath}"
+#        fi
 
         if [ -n "$executionSystem" ]; then
             publicAppparams="${publicAppparams}&executionSystem=${executionSystem}"
@@ -128,7 +126,7 @@ format_api_json() {
 		echo "${result}" | python -mjson.tool
 	else
 		result=$(jsonquery "$1" "result.id")
-    success "Successfully published app $args as $result"
+        success "Successfully published app $args as $result"
 	fi
 }
 
@@ -154,8 +152,6 @@ while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
-    -s|--deploymentSystem) shift; deploymentSystem=$1 ;;
-    -p|--deploymentPath) shift; deploymentPath=$1 ;;
     -e|--executionSystem) shift; executionSystem=$1 ;;
     -n|--name) shift; name=$1 ;;
     -x|--appVersion) shift; appVersion=$1 ;;
