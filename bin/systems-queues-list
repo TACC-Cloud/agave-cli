@@ -93,12 +93,13 @@ format_api_json() {
 		echo "${result}" | python -mjson.tool
 	else
 		if [[ -z "$queuename" ]]; then
-			queuenames=$(jsonquery "$1" "result.[].name")
-            jrunning=$(jsonquery "$1" "result.[].load.running")
-            jpending=$(jsonquery "$1" "result.[].load.pending")
-            jqueued=$(jsonquery "$1" "result.[].load.queued")
+
+			queuenames=($(jsonquery "$1" "result.[].name"))
+            jrunning=($(jsonquery "$1" "result.[].load.running"))
+            jpending=($(jsonquery "$1" "result.[].load.pending"))
+            jqueued=($(jsonquery "$1" "result.[].load.queued"))
             for i in "${queuenames[@]}"; do
-                echo echo "$i ${jrunning[$i]}/${jpending[$i]}/${jqueued[$i]}"
+                echo "$i ${jrunning[$i]}/${jpending[$i]}/${jqueued[$i]}"
             done
 		else
 			systemrole=$(jsonquery "$1" "result.name")

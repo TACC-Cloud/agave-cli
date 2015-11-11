@@ -48,7 +48,7 @@ Global admin privileges are required to publish a system.
   -z, --access_token	    Access token
   -e, --executionSystem     The target execution system for the public app
   -n, --name                The new name of the public app
-  -x, --appVersion         The new version of the public app
+  -x, --appVersion          The new version of the public app
   -H, --hosturl             URL of the service
   -d, --development         Run in dev mode using default dev server
   -f, --force               Skip all user interaction
@@ -85,27 +85,30 @@ main() {
 #        if [ -n "$deploymentPath" ]; then
 #            publicAppparams="${publicAppparams}&deploymentPath=${deploymentPath}"
 #        fi
-
+        querystring="${querystring} --data-urlencode "${i}
         if [ -n "$executionSystem" ]; then
-            publicAppparams="${publicAppparams}&executionSystem=${executionSystem}"
+            dat="executionSystem=${executionSystem}"
+            publicAppparams="${publicAppparams} --data-urlencode "${dat}
         fi
 
         if [ -n "$name" ]; then
-            publicAppparams="${publicAppparams}&name=${name}"
+            dat="name=${name}"
+            publicAppparams="${publicAppparams} --data-urlencode "${dat}
         fi
 
         if [ -n "$appVersion" ]; then
-            publicAppparams="${publicAppparams}&version=${appVersion}"
+            dat="version=${appVersion}"
+            publicAppparams="${publicAppparams} --data-urlencode "${dat}
         fi
 
 
-		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=publish${publicAppparams}\" $hosturl$args?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X PUT --data-urlencode \"action=publish\" ${publicAppparams} $hosturl$args?pretty=true"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X PUT -d "action=publish${publicAppparams}" "$hosturl$args?pretty=true"`
+		response=`curl -sk -H "${authheader}" -X PUT --data-urlencode "action=publish" ${publicAppparams} "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")

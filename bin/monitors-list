@@ -117,18 +117,19 @@ format_api_json() {
       echo "$args $montarget $monfreq"
     else
       monitors=( $(jsonquery "$1" "result.[].id") )
+      frequencies=( $(jsonquery "$1" "result.[].frequency") )
+      lastUpdateds=( $(jsonquery "$1" "result.[].lastUpdated") )
+      lastSuccesses=( $(jsonquery "$1" "result.[].lastSuccess") )
 
       n=0
       for i in $(jsonquery "$1" "result.[].target")
       do
-        monitors[$n]="${monitors[$n]} $i"
-        n=$[n+1]
-      done
-
-      n=0
-      for i in $(jsonquery "$1" "result.[].frequency")
-      do
-        monitors[$n]="${monitors[$n]} $i"
+        if [[ "${lastUpdateds[$n]}" = "${lastSuccesses[$n]}" ]]; then
+            checkStatus=PASSED
+        else
+            checkStatus=FAILED
+        fi
+        monitors[$n]="${monitors[$n]} $checkStatus ${frequencies[$n]} $i "
         n=$[n+1]
       done
 

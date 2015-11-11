@@ -82,8 +82,8 @@ main() {
     tenant=$(jsonquery "$current_cache" "tenantid")
   fi
 
-  if [ -z "$prod" ]; then
-    prod=$(jsonquery "$current_cache" "baseurl")
+  if [ -z "$baseurl" ]; then
+     baseurl=$(jsonquery "$current_cache" "baseurl")
   fi
 
   if [ -z "$apisecret" ]; then
@@ -112,7 +112,7 @@ main() {
 
   created_at=$(jsonquery "$current_cache" "created_at")
 
-	response="{\"tenantid\":\"$tenant\",\"baseurl\":\"${prod}\",\"devurl\":\"${dev}\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$user\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
+  response="{\"tenantid\":\"$tenant\",\"baseurl\":\"${baseurl}\",\"devurl\":\"${dev}\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$user\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
 
   result=$(format_api_json "$response")
 
@@ -155,7 +155,7 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -u|--user) shift; user=$1 ;;
   	-d|--dev) shift; dev=$1 ;;
-    -p|--prod) shift; prod=$1 ;;
+    -b|--baseurl) shift; baseurl=$1 ;;
     -t|--tenant) shift; tenant=$1 ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;

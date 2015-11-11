@@ -29,27 +29,27 @@ apps may be cloned. The cloning process will create a copy of the
 application assets in the cloning user's default storage system.
 
  Options:
-  -z, --access_token	Access token
-  -N, --appname     	Name given to the clone of the existing app. Defaults
-                    	to the current app name and the authenticated user's 
-                    	username appended with a dash
-  -R, --appversion  	Version given to the clone of the existing app. Defaults
-                    	to the current app's version number
-  -E, --executionSystem Execution system for the new app. Defaults to the current
-                    	app's execution system.
-  -P, --deploymentPath  Deployment path for the application assets on the cloned app's
-                    	storage system. This only applies to clone public apps.                    
-  -S, --deploymentSystem	Deployment system for the new app. Defaults to the current
-                    	user's default storage system. This only applies to clone public apps.
-  -H, --hosturl     	URL of the service
-  -d, --development 	Run in dev mode using default dev server
-  -f, --force       	Skip all user interaction
-  -i, --interactive 	Prompt for values
-  -q, --quiet       	Quiet (no output)
-  -v, --verbose     	Verbose output
-  -V, --veryverbose 	Very verbose output
-  -h, --help        	Display this help and exit
-      --version     	Output version information and exit
+  -z, --access_token		Access token
+  -n, --appname     		Name given to the clone of the existing app. Defaults
+                    		to the current app name and the authenticated user's
+                    		username appended with a dash
+  -x, --appVersion          Version given to the clone of the existing app. Defaults
+                    		to the current app's version number
+  -r, --executionSystem 	Execution system for the new app. Defaults to the current
+                    		app's execution system.
+  -p, --deploymentPath  	Deployment path for the application assets on the cloned app's
+                    		storage system. This only applies to clone public apps.
+  -s, --deploymentSystem	Deployment system for the new app. Defaults to the current
+                    		user's default storage system. This only applies to clone public apps.
+  -H, --hosturl     		URL of the service
+  -d, --development 		Run in dev mode using default dev server
+  -f, --force       		Skip all user interaction
+  -i, --interactive 		Prompt for values
+  -q, --quiet       		Quiet (no output)
+  -v, --verbose     		Verbose output
+  -V, --veryverbose 		Very verbose output
+  -h, --help        		Display this help and exit
+      --version     		Output version information and exit
 "
 }
 
@@ -69,34 +69,39 @@ main() {
 		err "Please specify a valid app id to clone"
 	else
 		
-		form_params="action=clone"
+		form_params=""
 		if [ -n "$appname" ]; then
-			form_params="name=${appname}&${form_params}"
+			dat="name=${appname}"
+			form_params="${form_params} --data-urlencode "${dat}
 		fi
 		
 		if [ -n "$appversion" ]; then
-			form_params="version=${appversion}&${form_params}"
+			dat="version=${appversion}"
+			form_params="${form_params} --data-urlencode "${dat}
 		fi
 		
 		if [ -n "$deploymentSystem" ]; then
-			form_params="deploymentSystem=${deploymentSystem}&${form_params}"
+			dat="deploymentSystem=${deploymentSystem}"
+			form_params="${form_params} --data-urlencode "${dat}
 		fi
 		
 		if [ -n "$executionSystem" ]; then
-			form_params="executionSystem=${executionSystem}&${form_params}"
+			dat="executionSystem=${executionSystem}"
+			form_params="${form_params} --data-urlencode "${dat}
 		fi
 		
 		if [ -n "$deploymentPath" ]; then
-			form_params="deploymentPath=${deploymentPath}&${form_params}"
+			dat="deploymentPath=${deploymentPath}"
+			form_params="${form_params} --data-urlencode "${dat}
 		fi
 		
-		cmd="curl -sk  -H \"${authheader}\" -X PUT -d \"$form_params\" $hosturl$args?pretty=true"
+		cmd="curl -sk  -H \"${authheader}\" -X PUT $hosturl$args?pretty=true --data-urlencode "action=clone" ${form_params}"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 	
-		response=`curl -sk  -H "${authheader}" -X PUT -d "$form_params" "$hosturl$args?pretty=true"`
+		response=`curl -sk  -H "${authheader}" -X PUT -d "$form_params" "$hosturl$args?pretty=true" --data-urlencode "action=clone" ${form_params}`
 		
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
@@ -144,11 +149,11 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
-    -N|--appname) shift; appname=$1 ;;
-    -R|--appversion) shift; appversion=$1 ;;
-    -S|--deploymentSystem) shift; deploymentSystem=$1 ;;
-    -E|--executionSystem) shift; executionSystem=$1 ;;
-    -P|--deploymentPath) shift; deploymentPath=$1 ;;
+    -n|--appname) shift; appname=$1 ;;
+    -x|--appversion) shift; appversion=$1 ;;
+    -s|--deploymentSystem) shift; deploymentSystem=$1 ;;
+    -e|--executionSystem) shift; executionSystem=$1 ;;
+    -p|--deploymentPath) shift; deploymentPath=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

@@ -61,7 +61,7 @@ main() {
 	#echo -n
 	#set -x
 
-  querystring="pretty=true$(pagination)"
+  	querystring="pretty=true$(pagination)"
 
 	hosturl=${hosturl%/}
 	if [ -n "$args" ]; then

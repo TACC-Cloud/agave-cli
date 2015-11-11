@@ -37,6 +37,9 @@ else
   revision="${version}"
 fi
 
+# Determine which flavor of awk is being used (e.g. GNU gawk or BSD nawk)
+awk=$(awk -Wversion &>/dev/null && echo gawk || echo nawk)
+
 os=`uname -s`;
 
 # Defaults
@@ -75,7 +78,11 @@ function out() {
   #    #s/✔/Success:/g;
   #  ')
   #fie
-  printf '%b\n' "$message";
+  if (( pipe )); then
+  	echo "$@"
+  else
+  	printf '%b\n' "$message";
+  fi
 }
 function die() { out "$@"; exit 1; } >&2
 function err() {
@@ -388,7 +395,7 @@ function prompt_options() {
     [[ $(eval echo "\$$val") ]] && continue
 
     # Parse the usage description for spefic option longname.
-    desc=$(usage | awk -v val=$val -v os=$os '
+    desc=$(usage | awk -v val=$val -v awk=${awk} '
       BEGIN {
         # Separate rows at option definitions and begin line right before
         # longname.
@@ -400,7 +407,7 @@ function prompt_options() {
         # into awk. Adjust for bsd awk vs gnu awk
         newval="--" val;
         # print os " " $2 " = " newval "\n"
-        if ( os == "Darwin" ) {
+        if ( awk == "nawk" ) {
 
         	if ($2 == newval) {
         		# Print all remaining fields, ie. the description.
@@ -529,7 +536,7 @@ function is_valid_url() {
 calling_cli_command=$(basename $0)
 currentconfig=$(kvget current)
 
-if [[ "tenants-init" != "$calling_cli_command" ]] && [[ "tenants-list" != "$calling_cli_command" ]]; then
+if [[ "auth-switch" != "$calling_cli_command" ]] && [[ "tenants-init" != "$calling_cli_command" ]] && [[ "tenants-list" != "$calling_cli_command" ]]; then
   if [[ -z $currentconfig ]]; then
     err "Please run $DIR/tenants-init to initialize your client before attempting to interact with the APIs."
     exit

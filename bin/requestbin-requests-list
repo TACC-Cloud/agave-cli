@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# profiles-list
+# requestbin-requests-list
 #
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It retrieves a list of one or more registered user profiles from the api
+# It lists the contents of a requestbin
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -16,24 +16,15 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(access_token)
+interactive_opts=()
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]...
-$(basename $0) [OPTION]... USERNAME
+  echo -n "$(basename $0) [OPTION]... [REQUESTBIN_ID]
 
-List one or more API users. Results can be filtered by partial name,
-email, or username using the appropriate options.
+Lists all requests made to the requestbin with the given id.
 
  Options:
-  -z, --access_token	Access token
-  -N, --name          Search for profiles by first and/or last name
-  -E, --email         Search by email address
-  -U, --user          Search by email address
-  -l, --limit         Maximum number of results to return
-  -o, --offset        Number of results to skip from the start
-  -H, --hosturl       URL of the service
   -d, --development   Run in dev mode using default dev server
   -f, --force         Skip all user interaction
   -i, --interactive   Prompt for values
@@ -51,58 +42,60 @@ email, or username using the appropriate options.
 ##################################################################
 ##################################################################
 
-source "$DIR/profiles-common.sh"
+source "$DIR/requestbin-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 
-	#hosturl=${hosturl%/}
+    if [ -z "$args" ]; then
+        err "Please specify a valid system id for which to retrieve the credentials"
+    else
+        cmd="curl -sk ${hosturl}api/v1/bins/${args}/requests"
 
-    if [ -n "$args" ]; then
-        profileurl="$hosturl$args?pretty=true"
-	elif [ -n "$user" ]; then
-		profileurl="${hosturl}?username=${user}&pretty=true"
-	elif [ -n "$email" ]; then
-		profileurl="${hosturl}?email=${email}&pretty=true"
-	elif [ -n "$name" ]; then
-		profileurl="${hosturl}?name=${name}&pretty=true"
-	else
-		profileurl="$hosturl?pretty=true"
-	fi
+        if ((veryverbose)); then
+            [ "$piped" -eq 0 ] && log "Calling $cmd"
+        fi
 
-	cmd="curl -sk -H \"${authheader}\" $profileurl$(pagination)"
+        response=`curl -sk ${hosturl}api/v1/bins/${args}/requests`
 
-	if ((veryverbose)); then
-		[ "$piped" -eq 0 ] && log "Calling $cmd"
-	fi
-
-	response=`curl -sk -H "${authheader}" "${profileurl}$(pagination)"`
-
-	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-		result=$(format_api_json "$response")
-		success "$result"
-	else
-		errorresponse=$(jsonquery "$response" "message")
-		err "$errorresponse"
-	fi
+        if [[ -n $(jsonquery "$response" "[].id") ]]; then
+            result=$(format_api_json "$response")
+            success "$result"
+        else
+            errorresponse=$(jsonquery "$response" "error")
+            err "$errorresponse"
+        fi
+    fi
 }
 
 format_api_json() {
 
 	if ((veryverbose)); then
-		echo "$1"
+		echo "$1" | python -mjson.tool
 	elif [[ $verbose -eq 1 ]]; then
-		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-    if [ -n "$args" ]; then
-		    result=$(jsonquery "$1" "result.email")
-    else
-      result=$(jsonquery "$1" "result.[].email")
+		times=( $(jsonquery "$1" "[].time") )
+        n=0
+        for i in $(jsonquery "$1" "[].method")
+        do
+            # adjust for bsd date vs gnu date
+            if [[ "$os" = "Darwin" ]]; then
+                TS=${times[$n]%.*}
+#                TS=${TS%.*}
+                TS=$(date -r $TS)
+            else
+                TS=$(date -d @"${times[$n]%.*}")
+            fi
+            requests[$n]="$i on $TS"
+            n=$[n+1]
+        done
+
+        for i in "${requests[@]}"; do
+            echo "$i"
+        done
     fi
-		success "${result}"
-	fi
 }
 
 ##################################################################
@@ -116,7 +109,6 @@ format_api_json() {
 # Parse command line options
 source "$DIR/options.sh"
 
-
 # Main loop {{{
 
 # Print help if no arguments were passed.
@@ -127,12 +119,6 @@ while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
-    -z|--access_token) shift; access_token=$1 ;;
-    -N|--name) shift; name=$1 ;;
-    -E|--email) shift; email=$1 ;;
-    -U|--user) shift; user=$1 ;;
-    -l|--limit) shift; limit=$1;;
-    -o|--offset) shift; offset=$1;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

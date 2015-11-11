@@ -37,6 +37,8 @@ filter and paginate the results.
                       (ex. 2004-02-12T15:19:21+00:00)
   -R, --result        The result the returned tests should have. Valid values
                       are PASSED, FAILED, UNKNOWN.
+  -T, --type          The type of monitoring check run. Valid values are
+                      STORAGE and LOGIN.
   -l, --limit         Maximum number of results to return
   -o, --offset        Number of results to skip from the start
   -H, --hosturl       URL of the service
@@ -67,21 +69,25 @@ main() {
 	if [ -n "$args" ]; then
 		monitorurl="${hosturl}/${monitorId}/checks/${args}?pretty=true$(pagination)"
 	else
-    querystring="pretty=true"
-    if [ -n "$startDate" ]; then
-      querystring="startDate=${startDate}&${querystring}"
-    fi
+        querystring="pretty=true"
+        if [ -n "$startDate" ]; then
+            querystring="startDate=${startDate}&${querystring}"
+        fi
 
-    if [ -n "$endDate" ]; then
-      querystring="endDate=${endDate}&${querystring}"
-    fi
+        if [ -n "$endDate" ]; then
+            querystring="endDate=${endDate}&${querystring}"
+        fi
 
-    if [ -n "$result" ]; then
-      querystring="result=${result}&${querystring}"
-    fi
+        if [ -n "$result" ]; then
+            querystring="result=${result}&${querystring}"
+        fi
 
-    monitorurl="${hosturl}/${monitorId}/checks?${querystring}"
-  fi
+        if [ -n "$type" ]; then
+            querystring="type=${type}&${querystring}"
+        fi
+
+        monitorurl="${hosturl}/${monitorId}/checks?${querystring}"
+    fi
 
 	cmd="curl -sk -H \"${authheader}\" ${monitorurl}$(pagination)"
 
@@ -108,35 +114,27 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		checkresult=$(jsonquery "$1" "result.result")
-    checkdate=$(jsonquery "$1" "result.created")
-    echo "$args $checkdate $checkresult"
 
-    if [ -n "$args" ]; then
-      checkresult=$(jsonquery "$1" "result.result")
-      checkdate=$(jsonquery "$1" "result.created")
-      echo "$args $checkdate $checkresult"
-    else
-      monitors=( $(jsonquery "$1" "result.[].id") )
+        if [ -n "$args" ]; then
+          checkresult=$(jsonquery "$1" "result.result")
+          checkdate=$(jsonquery "$1" "result.created")
+          echo "$args $checkdate $checkresult"
+        else
+          monitors=( $(jsonquery "$1" "result.[].id") )
+          types=( $(jsonquery "$1" "result.[].type") )
+          outcomes=( $(jsonquery "$1" "result.[].result") )
 
-      n=0
-      for i in $(jsonquery "$1" "result.[].created")
-      do
-        monitors[$n]="${monitors[$n]} $i"
-        n=$[n+1]
-      done
+          n=0
+          for i in $(jsonquery "$1" "result.[].created")
+          do
+            monitors[$n]="${monitors[$n]} ${types[$n]} ${outcomes[$n]} $i "
+            n=$[n+1]
+          done
 
-      n=0
-      for i in $(jsonquery "$1" "result.[].result")
-      do
-        monitors[$n]="${monitors[$n]} $i"
-        n=$[n+1]
-      done
-
-      for i in "${monitors[@]}"; do
-        echo "$i"
-      done
-    fi
+          for i in "${monitors[@]}"; do
+            echo "$i"
+          done
+        fi
 
 	fi
 }
@@ -167,6 +165,7 @@ while [[ $1 = -?* ]]; do
     -S|--startDate) shift; startDate=$1 ;;
     -E|--endDate) shift; endDate=$1 ;;
     -R|--result) shift; result=$1 ;;
+    -T|--type) shift; type=$1 ;;
     -l|--limit) shift; limit=$1;;
     -o|--offset) shift; offset=$1;;
     -H|--hosturl) shift; hosturl=$1;;
