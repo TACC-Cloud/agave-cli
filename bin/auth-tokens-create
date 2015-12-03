@@ -37,21 +37,24 @@ For ease of use, the -S option can be specified to store the new
 credential for reuse in subsequent calls to the API.
 
  Options:
-  -u, --username    Agave tenant username
-  -p, --password    Agave tenant passwordxwxw
-  -s, --apisecret   Consumer secret
-  -k, --apikey      Consumer Key
-  -x, --proxyuser   API username for whom the returned token should apply, requires admin permissions
-  -S, --storetoken  Store the token for later use so you can work without reauthenticating on every command.
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -u, --username            Agave tenant username
+  -p, --password            Agave tenant passwordxwxw
+  -s, --apisecret           Consumer secret
+  -k, --apikey              Consumer Key
+  -x, --proxyuser           API username for whom the returned token should apply, requires admin permissions
+  -S, --storetoken          Store the token for later use so you can work without reauthenticating on
+                            every command. This is the default behavior.
+  -D, --displayonly         Display the fetched auth credentials, but do not save. The local auth cache
+                            will not be updated.
+  -H, --hosturl             URL of the service
+  -d, --development         Run in dev mode using default dev server
+  -f, --force               Skip all user interaction
+  -i, --interactive         Prompt for values
+  -q, --quiet               Quiet (no output)
+  -v, --verbose             Verbose output
+  -V, --veryverbose         Very verbose output
+  -h, --help                Display this help and exit
+      --version             Output version information and exit
 "
 }
 
@@ -148,10 +151,11 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -u|--username) shift; username=$1 ;;
   	-p|--password) shift; password=$1 ;;
-	  -s|--apisecret) shift; apisecret=$1 ;;
+    -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
     -x|--proxyuser) shift; proxyuser=$1;;
-	  -S|--storetoken) storetoken=1 ;;
+    -S|--storetoken) storetoken=1 ;;
+    -D|--displayonly) storetoken=0 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

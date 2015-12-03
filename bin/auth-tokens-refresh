@@ -15,7 +15,7 @@ source "$DIR/common.sh"
 
 # set to 1 to prevent using cache. token creation requires a valid key
 disable_cache=1
-storetoken=0
+storetoken=1
 
 # Script logic -- TOUCH THIS {{{
 
@@ -31,19 +31,22 @@ It retrieves a new bearer token using the refresh token obtained from a previous
 
 
  Options:
-  -r, --refresh_token	Access token
-  -s, --apisecret   Consumer secret
-  -k, --apikey      Consumer Key
-  -S, --storetoken  Store the token for later use so you can work without reauthenticating on every command.
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -r, --refresh_token	    Access token
+  -s, --apisecret           Consumer secret
+  -k, --apikey              Consumer Key
+  -S, --storetoken          Store the token for later use so you can work without reauthenticating on
+                            every command. This is the default behavior.
+  -D, --displayonly         Display the fetched auth credentials, but do not save. The local auth cache
+                            will not be updated.
+  -H, --hosturl             URL of the service
+  -d, --development         Run in dev mode using default dev server
+  -f, --force               Skip all user interaction
+  -i, --interactive         Prompt for values
+  -q, --quiet               Quiet (no output)
+  -v, --verbose             Verbose output
+  -V, --veryverbose         Very verbose output
+  -h, --help                Display this help and exit
+      --version             Output version information and exit
 "
 }
 
@@ -146,6 +149,7 @@ while [[ $1 = -?* ]]; do
     -r|--refresh_token) shift; refresh_token=$1 ;;
     -x|--proxyuser) shift; proxyuser=$1;;
 	-S|--storetoken) storetoken=1 ;;
+    -D|--displayonly) storetoken=0 ;;
 	-H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
