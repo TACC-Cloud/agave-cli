@@ -16,7 +16,7 @@ source "$DIR/common.sh"
 
 # set to 1 to prevent using cache. token creation requires a valid key
 disable_cache=1
-storetoken=0
+storetoken=1
 
 # Script logic -- TOUCH THIS {{{
 

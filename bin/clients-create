@@ -34,7 +34,7 @@ It creates a new client application and generates a set of API keys for the user
                         are being generated.
   -C, --callbackUrl	    The callback url for the OAuth auth grant
   -S, --storeclient     Store the new api keys for later use so you do not have to manually
-                        reenter them when obtaining an auth token.
+                        reenter them when obtaining an auth token. This is the default behavior.
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
