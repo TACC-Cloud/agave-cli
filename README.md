@@ -62,7 +62,7 @@ Prior to using the CLI, you will need to initialize your environment using the `
 
 In order to communicate with Agave, you will need a set of API keys. You can use the `clients-create` command to create a set.
 
-	bash-4.1# client-create -N cli_client -D "Just a test api client" -u "$AGAVE_USERNAME" -p "$AGAVE_PASSWORD" -S
+	bash-4.1# clients-create -N cli_client -D "Just a test api client" -u "$AGAVE_USERNAME" -p "$AGAVE_PASSWORD" -S
 
 The `-S` option will save your api keys in your session cache directory, `AGAVE_CACHE_DIR`.
 
