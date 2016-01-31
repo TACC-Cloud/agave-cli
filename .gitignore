@@ -36,5 +36,6 @@ monitors-fire
 auth-filter.sh
 playground
 
-*.pyc
+bin/auth-switch
 
+*.pyc
