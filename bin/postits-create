@@ -71,7 +71,7 @@ main() {
 		die
 	fi
 
-	if [ -z "$method"]; then
+	if [ -z "$method" ]; then
 		post_options="method=GET"
 	elif echo "$method" | grep -E "[GET|get|PUT|put|POST|post|DELETE|delete]" >/dev/null ; then
 		post_options="method=${method}"

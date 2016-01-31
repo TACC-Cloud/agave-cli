@@ -61,15 +61,14 @@ source "$DIR/auth-common.sh"
 main() {
 	#echo -n
 	#set -x
-	#hosturl=https://agave.iplantc.org/token
 	local post_options="grant_type=password&username=${username}&password=${password}&scope=PRODUCTION"
 
   current_cache=$(kvget current )
 
   if [ "$dev" = "local" ]; then
     dev="http://localhost:8080"
-	elif [ "$dev" = "dev" -o "$dev" = "devel" -o "$dev" = "development" ] ; then
-    dev="https://iplant-qa.tacc.utexas.edu/v2"
+  elif [ "$dev" = "docker" ]; then
+    dev="https://docker.example.com"
   elif [ -z "$dev" ]; then
     dev=$(jsonquery "$current_cache" "devurl")
   fi
