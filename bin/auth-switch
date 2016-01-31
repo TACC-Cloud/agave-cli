@@ -67,8 +67,14 @@ main() {
 
   if [ "$dev" = "local" ]; then
     dev="http://localhost:8080"
+  elif [ "$dev" = "dev" -o "$dev" = "devel" -o "$dev" = "development" ] ; then
+    dev="http://api.prod.agaveapi.co"
   elif [ "$dev" = "docker" ]; then
     dev="https://docker.example.com"
+  elif [ "$dev" = "staging" ]; then
+    dev="https://api.staging.agaveapi.co"
+  elif [ "$dev" = "qa" ]; then
+    dev="https://iplant-qa.tacc.utexas.edu/v2"
   elif [ -z "$dev" ]; then
     dev=$(jsonquery "$current_cache" "devurl")
   fi
