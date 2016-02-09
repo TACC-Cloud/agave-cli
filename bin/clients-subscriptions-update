@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # clients-subscriptions-update
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -17,7 +17,7 @@ interactive=1
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apiusername apipassword apiNname)
+interactive_opts=(apiusername apipassword apiName)
 
 # Print usage
 usage() {
@@ -55,27 +55,27 @@ source "$DIR/clients-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [ -z "$args" ]; then
 		err "Please specify a valid client name"
 	else
-	
-		if [ -z "$name" ]; then
+
+		if [ -z "$apiName" ]; then
 			err "Please specify an API name or * for all APIs"
 		fi
-		
+
 		if [ -z "$tier" ]; then
 			tier='Unlimited'
 		fi
-	
-		cmd="curl -sku \"${apiusername}:xxxx\" -X POST -d \"apiName=${apiName}&tier=${tier}&apiVersion=${apiVersion}&apiProvider=${apiProvider}\" ${hosturl}${args}?pretty=true"
+
+		cmd="curl -sku \"${apiusername}:xxxx\" -X POST -d \"apiName=${apiName}&tier=${tier}&apiVersion=${apiVersion}&apiProvider=${apiProvider}\" ${hosturl}${args}/subscriptions?pretty=true"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sku "${apiusername}:${apipassword}" -X POST -d "apiName=${apiName}&tier=${tier}&apiVersion=${apiVersion}&apiProvider=${apiProvider}" "${hosturl}${args}?pretty=true"`
-			
+		response=`curl -sku "${apiusername}:${apipassword}" -X POST -d "apiName=${apiName}&tier=${tier}&apiVersion=${apiVersion}&apiProvider=${apiProvider}" "${hosturl}${args}/subscriptions?pretty=true"`
+
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
 			success "${result}"
