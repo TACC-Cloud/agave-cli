@@ -22,7 +22,7 @@ interactive_opts=(apisecret apikey filetoupload)
 usage() {
   echo -n "$(basename $0) [OPTION]... [PATH]
 
-This is a convenience script to uploads a local file or folder to a remote
+This is a convenience script that uploads a local file or folder to a remote
 storage system and create a PostIt download URL to the remote path. The upload
 will occur via HTTP. The subsequent staging will be done via the native data
 protocol for the destination system. If the given file type requires import
@@ -30,30 +30,30 @@ filtering, it will be applied prior to the callback being sent. If not system
 id is specified, the user's default storage system will be used.
 
  Options:
-  -z, --access_token	Access token
-  -F, --filetoupload The file or folder to upload
-  -C, --callbackurl	The email address or webhook to notify upon completion of all
-  					import filtering
-  -T, --filetype	The filetype associated with this file. See transforms-list
-  					for a full list of supported file types. Defaults to 'raw'
-  -N, --filename	The name of the file once uploaded
-  -S, --systemid	The system to which the file or folder will be uploaded
-  -l, --lifetime    Lifetime of the returned token in seconds
-  -m, --maxUses     Maximum number of times the returned token can be used
-  -u, --internalUsername  Internal user to attach to this token
-  -x, --apiusername API username for whom the returned token should apply,
-                    requires admin permissions
-  -M, --method      HTTP method the postit should perform: GET, POST, PUT, DELETE.
-            Defaults to GET
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -z, --access_token        Access token
+  -F, --filetoupload        The file or folder to upload
+  -C, --callbackurl         The email address or webhook to notify upon completion of all
+                            import filtering
+  -T, --filetype            The filetype associated with this file. See transforms-list
+                            for a full list of supported file types. Defaults to 'raw'
+  -N, --filename            The name of the file once uploaded
+  -S, --systemid            The system to which the file or folder will be uploaded
+  -l, --lifetime            Lifetime of the returned token in seconds
+  -m, --maxUses             Maximum number of times the returned token can be used
+  -u, --internalUsername    Internal user to attach to this token
+  -x, --apiusername         API username for whom the returned token should apply,
+                            requires admin permissions
+  -M, --method              HTTP method the postit should perform: GET, POST, PUT, DELETE.
+                            Defaults to GET
+  -H, --hosturl             URL of the service
+  -d, --development         Run in dev mode using default dev server
+  -f, --force               Skip all user interaction
+  -i, --interactive         Prompt for values
+  -q, --quiet               Quiet (no output)
+  -v, --verbose             Verbose output
+  -V, --veryverbose         Very verbose output
+  -h, --help                Display this help and exit
+      --version             Output version information and exit
 "
 }
 

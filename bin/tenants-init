@@ -27,21 +27,21 @@ usage() {
   echo -n "$(basename $0) [OPTION]...
 
 Configure the context of the cli by selecting the tenant and setting the
-base url
+base url.
 
  Options:
-  -t, --tenant          The tenant id to use, ex iplantc.org
-  -b, --backup          Backup the previous config before setting the new one.
-                        The current config will be stored as $AGAVE_CACHE_DIR/backup
-  -r, --restore         Sets the backed up config as current config and deletes the backup
-  -s, --swap            Swaps the current and backup configs, preserving both
-  -d, --developmenturl  The development tenant, ex https://agave-dev.iplantc.org
-  -f, --force           Skip all user interaction
-  -i, --interactive     Prompt for values
-  -q, --quiet           Quiet (no output)
-  -v, --verbose         Verbose output
-  -h, --help            Display this help and exit
-      --version         Output version information and exit
+  -t, --tenant            The tenant id to use, ex iplantc.org
+  -b, --backup            Backup the previous config before setting the new one.
+                          The current config will be stored as $AGAVE_CACHE_DIR/backup
+  -r, --restore           Sets the backed up config as current config and deletes the backup
+  -s, --swap              Swaps the current and backup configs, preserving both
+  -d, --developmenturl    The development tenant, ex https://agave-dev.iplantc.org
+  -f, --force             Skip all user interaction
+  -i, --interactive       Prompt for values
+  -q, --quiet             Quiet (no output)
+  -v, --verbose           Verbose output
+  -h, --help              Display this help and exit
+      --version           Output version information and exit
 "
 }
 

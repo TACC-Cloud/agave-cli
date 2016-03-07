@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# auth-tokens-create.sh
+# auth-tokens-create
 #
 # author: dooley@tacc.utexas.edu
 #
@@ -29,32 +29,32 @@ usage() {
   echo -n "$(basename $0) [OPTION]...
 
 Obtain a new oauth bearer token. Tokens can be used repeatedly until they
-expire at which point you can simply do an oauth-renew with your API
+expire at which point you can simply do an auth-tokens-refresh with your API
 username and password to refresh your token. This step is required to
-interact with any Agave services
+interact with any Agave services.
 
 For ease of use, the -S option can be specified to store the new
 credential for reuse in subsequent calls to the API.
 
  Options:
-  -u, --username            Agave tenant username
-  -p, --password            Agave tenant passwordxwxw
-  -s, --apisecret           Consumer secret
-  -k, --apikey              Consumer Key
-  -x, --proxyuser           API username for whom the returned token should apply, requires admin permissions
-  -S, --storetoken          Store the token for later use so you can work without reauthenticating on
-                            every command. This is the default behavior.
-  -D, --displayonly         Display the fetched auth credentials, but do not save. The local auth cache
-                            will not be updated.
-  -H, --hosturl             URL of the service
-  -d, --development         Run in dev mode using default dev server
-  -f, --force               Skip all user interaction
-  -i, --interactive         Prompt for values
-  -q, --quiet               Quiet (no output)
-  -v, --verbose             Verbose output
-  -V, --veryverbose         Very verbose output
-  -h, --help                Display this help and exit
-      --version             Output version information and exit
+  -u, --username       Agave tenant username
+  -p, --password       Agave tenant password
+  -s, --apisecret      Consumer secret
+  -k, --apikey         Consumer Key
+  -x, --proxyuser      API username for whom the returned token should apply, requires admin permissions
+  -S, --storetoken     Store the token for later use so you can work without reauthenticating on
+                       every command. This is the default behavior
+  -D, --displayonly    Display the fetched auth credentials, but do not save. The local auth cache
+                       will not be updated
+  -H, --hosturl        URL of the service
+  -d, --development    Run in dev mode using default dev server
+  -f, --force          Skip all user interaction
+  -i, --interactive    Prompt for values
+  -q, --quiet          Quiet (no output)
+  -v, --verbose        Verbose output
+  -V, --veryverbose    Very verbose output
+  -h, --help           Display this help and exit
+      --version        Output version information and exit
 "
 }
 

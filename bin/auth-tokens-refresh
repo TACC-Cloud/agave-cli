@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# auth-tokens-create.sh
+# auth-tokens-refresh
 #
 # author: dooley@tacc.utexas.edu
 #
@@ -27,26 +27,26 @@ interactive_opts=(apisecret apikey refresh_token)
 usage() {
   echo -n "$(basename $0) [OPTION]...
 
-It retrieves a new bearer token using the refresh token obtained from a previous auth-tokens-create call.
-
+Retrieves a new bearer token using the refresh token obtained from a previous
+auth-tokens-create call.
 
  Options:
-  -r, --refresh_token	    Access token
-  -s, --apisecret           Consumer secret
-  -k, --apikey              Consumer Key
-  -S, --storetoken          Store the token for later use so you can work without reauthenticating on
-                            every command. This is the default behavior.
-  -D, --displayonly         Display the fetched auth credentials, but do not save. The local auth cache
-                            will not be updated.
-  -H, --hosturl             URL of the service
-  -d, --development         Run in dev mode using default dev server
-  -f, --force               Skip all user interaction
-  -i, --interactive         Prompt for values
-  -q, --quiet               Quiet (no output)
-  -v, --verbose             Verbose output
-  -V, --veryverbose         Very verbose output
-  -h, --help                Display this help and exit
-      --version             Output version information and exit
+  -r, --refresh_token    Access token
+  -s, --apisecret        Consumer secret
+  -k, --apikey           Consumer Key
+  -S, --storetoken       Store the token for later use so you can work without reauthenticating on
+                         every command. This is the default behavior
+  -D, --displayonly      Display the fetched auth credentials, but do not save. The local auth cache
+                         will not be updated
+  -H, --hosturl          URL of the service
+  -d, --development      Run in dev mode using default dev server
+  -f, --force            Skip all user interaction
+  -i, --interactive      Prompt for values
+  -q, --quiet            Quiet (no output)
+  -v, --verbose          Verbose output
+  -V, --veryverbose      Very verbose output
+  -h, --help             Display this help and exit
+      --version          Output version information and exit
 "
 }
 

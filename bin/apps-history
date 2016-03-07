@@ -27,20 +27,20 @@ information related to number of retries, reasons for failure, and other hiccups
 that occurred in the submission process.
 
  Options:
-  -z, --access_token  Access token
-  -W, --watch         Watches the app history, updating every few seconds
-                      until the app reaches a terminal state.
-  -l, --limit         Maximum number of results to return
-  -o, --offset        Number of results to skip from the start
-  -H, --hosturl       URL of the service
-  -d, --development   Run in dev mode using default dev server
-  -f, --force         Skip all user interaction
-  -i, --interactive   Prompt for values
-  -q, --quiet         Quiet (no output)
-  -v, --verbose       Verbose output
-  -V, --veryverbose   Very verbose output
-  -h, --help          Display this help and exit
-      --version       Output version information and exit
+  -z, --access_token    Access token
+  -W, --watch           Watches the app history, updating every few seconds
+                        until the app reaches a terminal state
+  -l, --limit           Maximum number of results to return
+  -o, --offset          Number of results to skip from the start
+  -H, --hosturl         URL of the service
+  -d, --development     Run in dev mode using default dev server
+  -f, --force           Skip all user interaction
+  -i, --interactive     Prompt for values
+  -q, --quiet           Quiet (no output)
+  -v, --verbose         Verbose output
+  -V, --veryverbose     Very verbose output
+  -h, --help            Display this help and exit
+      --version         Output version information and exit
 "
 }
 

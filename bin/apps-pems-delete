@@ -30,7 +30,7 @@ on this app are removed.
  Options:
   -z, --access_token    Access token
   -u, --pemusername     The user whose permissions should be removed
-  -h, --hosturl         URL of the service
+  -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
   -i, --interactive     Prompt for values

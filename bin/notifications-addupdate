@@ -29,21 +29,21 @@ email address. The needed information can be passed in as a file containing
 information as a JSON object or via command line arguments.
 
  Options:
-  -z, --access_token	Access token
-  -F, --filetoupload The file containing the json app description to submit
-  -U, --url 	The callback url or email address for this notification
-  -E, --event	The event about which to send notifications.
-  -P, --persistent	Whether this event should expire after the first occurance.
-  -A, --associatedUuid	The uuid of the object for which this notification applies.
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -z, --access_token      Access token
+  -F, --filetoupload      The file containing the json app description to submit
+  -U, --url               The callback url or email address for this notification
+  -E, --event             The event about which to send notifications
+  -P, --persistent        Whether this event should expire after the first occurence
+  -A, --associatedUuid    The uuid of the object for which this notification applies
+  -H, --hosturl           URL of the service
+  -d, --development       Run in dev mode using default dev server
+  -f, --force             Skip all user interaction
+  -i, --interactive       Prompt for values
+  -q, --quiet             Quiet (no output)
+  -v, --verbose           Verbose output
+  -V, --veryverbose       Very verbose output
+  -h, --help              Display this help and exit
+      --version           Output version information and exit
 "
 }
 

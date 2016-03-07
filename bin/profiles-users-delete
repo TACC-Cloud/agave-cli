@@ -26,17 +26,17 @@ Delete an internal user. This will simply disable the internal user account.
 Once deleted, the username cannot be reused.
 
  Options:
-  -z, --access_token	Access token
-  -U, --internalusername 	Username of internal user to delete
-  -h, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -z, --access_token        Access token
+  -U, --internalusername    Username of internal user to delete
+  -H, --hosturl             URL of the service
+  -d, --development         Run in dev mode using default dev server
+  -f, --force               Skip all user interaction
+  -i, --interactive         Prompt for values
+  -q, --quiet               Quiet (no output)
+  -v, --verbose             Verbose output
+  -V, --veryverbose         Very verbose output
+  -h, --help                Display this help and exit
+      --version             Output version information and exit
 "
 }
 

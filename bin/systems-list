@@ -28,23 +28,23 @@ List all systems available to the authenticated user. URL querying by type,
 default designation, and scope is supported.
 
  Options:
-  -z, --access_token	Access token
-  -S, --storageonly		Only return storage systems. Ignored if system id is given.
-  -E, --executiononly	Only return execution systems. Ignored if system id is given.
-  -D, --defaultonly		Only return default systems. Ignored if system id is given.
-  -P, --publiconly		Only return public systems. Ignored if system id is given.
-  -Q, --privateonly		Only return private systems. Ignored if system id is given.
-  -l, --limit         Maximum number of results to return
-  -o, --offset        Number of results to skip from the start
-  -H, --hosturl     	URL of the service
-  -d, --development 	Run in dev mode using default dev server
-  -f, --force       	Skip all user interaction
-  -i, --interactive 	Prompt for values
-  -q, --quiet       	Quiet (no output)
-  -v, --verbose     	Verbose output
-  -V, --veryverbose 	Very verbose output
-  -h, --help        	Display this help and exit
-      --version     	Output version information and exit
+  -z, --access_token     Access token
+  -S, --storageonly      Only return storage systems. Ignored if system id is given
+  -E, --executiononly    Only return execution systems. Ignored if system id is given
+  -D, --defaultonly      Only return default systems. Ignored if system id is given
+  -P, --publiconly       Only return public systems. Ignored if system id is given
+  -Q, --privateonly      Only return private systems. Ignored if system id is given
+  -l, --limit            Maximum number of results to return
+  -o, --offset           Number of results to skip from the start
+  -H, --hosturl          URL of the service
+  -d, --development      Run in dev mode using default dev server
+  -f, --force            Skip all user interaction
+  -i, --interactive      Prompt for values
+  -q, --quiet            Quiet (no output)
+  -v, --verbose          Verbose output
+  -V, --veryverbose      Very verbose output
+  -h, --help             Display this help and exit
+      --version          Output version information and exit
 "
 }
 

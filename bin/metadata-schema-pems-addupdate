@@ -28,19 +28,19 @@ view and edit this metadata schema. Valid permissions are READ, WRITE, READ_WRIT
 ALL, and NONE.
 
  Options:
-  -z, --access_token	Access token
-  -u, --pemusername	The user whose permissions should be set
-  -p, --permission	The permission to set. Valid permissions are READ, 
-  			WRITE, READ_WRITE, ALL, and NONE
-  -h, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -z, --access_token    Access token
+  -u, --pemusername     The user whose permissions should be set
+  -p, --permission      The permission to set. Valid permissions are READ, 
+                        WRITE, READ_WRITE, ALL, and NONE
+  -H, --hosturl         URL of the service
+  -d, --development     Run in dev mode using default dev server
+  -f, --force           Skip all user interaction
+  -i, --interactive     Prompt for values
+  -q, --quiet           Quiet (no output)
+  -v, --verbose         Verbose output
+  -V, --veryverbose     Very verbose output
+  -h, --help            Display this help and exit
+      --version         Output version information and exit
 "
 }
 

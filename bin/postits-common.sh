@@ -1,6 +1,6 @@
 #!/bin/bash
 # 
-# profiles-common.sh
+# postits-common.sh
 # 
 # author: dooley@tacc.utexas.edu
 #

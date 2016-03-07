@@ -23,27 +23,27 @@ interactive_opts=(client_name apiusername apipassword)
 usage() {
   echo -n "$(basename $0) [OPTION]...
 
-It creates a new client application and generates a set of API keys for the user.
+Creates a new client application and generates a set of API keys for the user.
 
  Options:
-  -u, --apiusername	    API username
-  -p, --apipassword	    API password
-  -N, --client_name		The name of the client application
-  -T, --tier		    The subscription tier
-  -D, --description	    A short description of the client application for which these keys
-                        are being generated.
-  -C, --callbackUrl	    The callback url for the OAuth auth grant
-  -S, --storeclient     Store the new api keys for later use so you do not have to manually
-                        reenter them when obtaining an auth token. This is the default behavior.
-  -H, --hosturl         URL of the service
-  -d, --development     Run in dev mode using default dev server
-  -f, --force           Skip all user interaction
-  -i, --interactive     Prompt for values
-  -q, --quiet           Quiet (no output)
-  -v, --verbose         Verbose output
-  -V, --veryverbose     Very verbose output
-  -h, --help            Display this help and exit
-      --version         Output version information and exit
+  -u, --apiusername    API username
+  -p, --apipassword    API password
+  -N, --client_name    The name of the client application
+  -T, --tier           The subscription tier
+  -D, --description    A short description of the client application for which these keys
+                       are being generated
+  -C, --callbackUrl    The callback url for the OAuth auth grant
+  -S, --storeclient    Store the new api keys for later use so you do not have to manually
+                       reenter them when obtaining an auth token. This is the default behavior
+  -H, --hosturl        URL of the service
+  -d, --development    Run in dev mode using default dev server
+  -f, --force          Skip all user interaction
+  -i, --interactive    Prompt for values
+  -q, --quiet          Quiet (no output)
+  -v, --verbose        Verbose output
+  -V, --veryverbose    Very verbose output
+  -h, --help           Display this help and exit
+      --version        Output version information and exit
 "
 }
 

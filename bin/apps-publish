@@ -45,19 +45,19 @@ disable previously published apps when appropriate.
 Global admin privileges are required to publish a system.
 
  Options:
-  -z, --access_token	    Access token
-  -e, --executionSystem     The target execution system for the public app
-  -n, --name                The new name of the public app
-  -x, --appVersion          The new version of the public app
-  -H, --hosturl             URL of the service
-  -d, --development         Run in dev mode using default dev server
-  -f, --force               Skip all user interaction
-  -i, --interactive         Prompt for values
-  -q, --quiet               Quiet (no output)
-  -v, --verbose             Verbose output
-  -V, --veryverbose         Very verbose output
-  -h, --help                Display this help and exit
-      --version             Output version information and exit
+  -z, --access_token       Access token
+  -e, --executionSystem    The target execution system for the public app
+  -n, --name               The new name of the public app
+  -x, --appVersion         The new version of the public app
+  -H, --hosturl            URL of the service
+  -d, --development        Run in dev mode using default dev server
+  -f, --force              Skip all user interaction
+  -i, --interactive        Prompt for values
+  -q, --quiet              Quiet (no output)
+  -v, --verbose            Verbose output
+  -V, --veryverbose        Very verbose output
+  -h, --help               Display this help and exit
+      --version            Output version information and exit
 "
 }
 

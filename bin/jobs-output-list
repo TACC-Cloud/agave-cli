@@ -24,12 +24,12 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [JOB_ID] [PATH]
 
-It retrieves a listing of the job output. If the job completed normally and
+Retrieves a listing of the job output. If the job completed normally and
 archived, the listing will be on the archive directory. Otherwise, it will
 be on the work folder if it still exists.
 
  Options:
-  -z, --access_token	Access token
+  -z, --access_token    Access token
   -L, --long            Print response in unix-style ls -l format
   -l, --limit           Maximum number of results to return
   -o, --offset          Number of results to skip from the start
