@@ -30,7 +30,7 @@ must be given.
  Options:
   -z, --access_token    Access token
   -S, --systemId        Specify the system id
-  -N, --name            Name of the new folder
+  -N, --name            Name of the new file or folder
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
