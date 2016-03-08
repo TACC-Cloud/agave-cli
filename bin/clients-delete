@@ -24,7 +24,7 @@ interactive_opts=(apiusername apipassword)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
+  echo -n "$(basename $0) [OPTION]... [CLIENT_NAME]
 
 Deletes a client application and associated API keys.
 
