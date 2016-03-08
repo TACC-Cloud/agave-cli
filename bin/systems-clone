@@ -21,7 +21,7 @@ interactive_opts=(apisecret apikey id)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [APP_ID]
+  echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
 
 Creates a copy of an existing system private to the authenticated user.
 Authentication settings, apps, and roles are not transferred.
