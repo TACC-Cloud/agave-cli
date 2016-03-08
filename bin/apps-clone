@@ -35,7 +35,7 @@ application assets in the cloning user's default storage system.
                             username appended with a dash
   -x, --appVersion          Version given to the clone of the existing app. Defaults
                             to the current app's version number
-  -r, --executionSystem     Execution system for the new app. Defaults to the current
+  -e, --executionSystem     Execution system for the new app. Defaults to the current
                             app's execution system
   -p, --deploymentPath      Deployment path for the application assets on the cloned app's
                             storage system. This only applies to clone public apps.
