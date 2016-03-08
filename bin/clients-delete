@@ -26,11 +26,7 @@ interactive_opts=(apiusername apipassword)
 usage() {
   echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
 
-Deletes a registered system. Deleting a system automatically disables all 
-applications registered with the given system as either a storage or 
-execution host. Actively running jobs may fail to archive their data if
-the archive system is deleted. File transfers may also fail if the transfer
-had not yet started when the system was deleted.
+Deletes a client application and associated API keys.
 
  Options:
   -u, --apiusername    API apiusername
