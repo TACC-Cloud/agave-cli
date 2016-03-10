@@ -24,7 +24,7 @@ usage() {
   echo -n "$(basename $0) [OPTION]...
 $(basename $0) [OPTION]... [CLIENT_NAME]
 
-List all clients registered to the authenticated user.
+List all API clients registered to the authenticated user.
 
  Options:
   -u, --apiusername    API apiusername

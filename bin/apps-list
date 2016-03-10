@@ -24,7 +24,8 @@ usage() {
 $(basename $0) [OPTION]... [APP_ID]
 
 List all applications available to the user. Results can be filtered by
-partial name, tag, or ontology term.
+partial name, tag, or ontology term. A more flexible solution is provided
+by the apps-search command.
 
  Options:
   -z, --access_token    Access token

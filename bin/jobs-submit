@@ -26,8 +26,8 @@ Submit a new job request.
 
  Options:
   -z, --access_token    Access token
-  -F, --filetoupload    The file containing the json job description to submit.
-                        Use - to read from stdin and when piping
+  -F, --filetoupload    The file containing the JSON job description to submit.
+                        Use - to read from STDIN and when piping
   -W, --watch           Watch the job history after it has been submitted, updating
                         every few seconds until the job reaches a terminal state
   -H, --hosturl         URL of the service

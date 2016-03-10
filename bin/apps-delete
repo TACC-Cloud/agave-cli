@@ -23,8 +23,8 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [APP_ID]
 
-Delete an app. Once deleted, an app cannot be undeleted. The unique id 
-will be unavailable for reassignment to future apps.
+Delete an app. Once deleted, an app cannot be undeleted. The app's 
+unique id will be unavailable for reassignment to future apps.
 
  Options:
   -z, --access_token    Access token

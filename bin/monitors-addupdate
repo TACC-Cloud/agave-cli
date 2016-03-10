@@ -33,8 +33,8 @@ passed in as a file containing a JSON object or via command line arguments.
 
  Options:
   -z, --access_token          Access token
-  -F, --filetoupload          The file containing the json app description to submit
-                              Use - to read from stdin and when piping
+  -F, --filetoupload          The file containing the JSON monitor description to submit
+                              Use - to read from STDIN and when piping
   -S, --systemId              The system to monitor
   -A, --active                Whether the monitor should be active. true or false.
                               Default true
@@ -42,7 +42,7 @@ passed in as a file containing a JSON object or via command line arguments.
                               Minimum 5, default 720 (12 hours)
   -U, --updateSystemStatus    Whether the test should update the system status.
                               You must have an ADMIN role on the system to set this.
-                              Default false
+                              Default = false
   -H, --hosturl               URL of the service
   -d, --development           Run in dev mode using default dev server
   -f, --force                 Skip all user interaction

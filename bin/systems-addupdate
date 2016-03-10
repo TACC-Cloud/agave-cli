@@ -32,7 +32,7 @@ a system_id must be provided.
  Options:
   -z, --access_token    Access token
   -F, --filetoupload    The file containing the json system description to submit
-                        Use - to read from stdin and when piping
+                        Use - to read from STDIN and when piping
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction

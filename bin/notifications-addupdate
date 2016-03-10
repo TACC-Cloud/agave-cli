@@ -30,7 +30,7 @@ information as a JSON object or via command line arguments.
 
  Options:
   -z, --access_token      Access token
-  -F, --filetoupload      The file containing the json app description to submit
+  -F, --filetoupload      The file containing the JSON notification description to submit
   -U, --url               The callback url or email address for this notification
   -E, --event             The event about which to send notifications
   -P, --persistent        Whether this event should expire after the first occurence

@@ -24,7 +24,7 @@ interactive_opts=(access_token apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [APP_ID]
 
-Creates a private copy of a publicly published app. Only public
+Creates a private copy of a published app. Only public
 apps may be cloned. The cloning process will create a copy of the 
 application assets in the cloning user's default storage system.
 

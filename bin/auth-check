@@ -22,7 +22,7 @@ interactive_opts=()
 usage() {
   echo -n "$(basename $0) [OPTION]...
 
-Check the status of the current oauth bearer token. If the token is expired,
+Check the status of the current Oauth bearer token. If the token is expired,
 you can simply do an auth-tokens-refresh with your API username and password
 to refresh your token.
 

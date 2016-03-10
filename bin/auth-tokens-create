@@ -28,8 +28,8 @@ interactive_opts=(apisecret apikey username password)
 usage() {
   echo -n "$(basename $0) [OPTION]...
 
-Obtain a new oauth bearer token. Tokens can be used repeatedly until they
-expire at which point you can simply do an auth-tokens-refresh with your API
+Obtain a new Oauth bearer token. Tokens can be used repeatedly until they
+expire, at which point you can simply do an auth-tokens-refresh with your API
 username and password to refresh your token. This step is required to
 interact with any Agave services.
 

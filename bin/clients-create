@@ -23,7 +23,7 @@ interactive_opts=(client_name apiusername apipassword)
 usage() {
   echo -n "$(basename $0) [OPTION]...
 
-Creates a new client application and generates a set of API keys for the user.
+Creates a new API client application and generates a set of API keys for the user.
 
  Options:
   -u, --apiusername    API username

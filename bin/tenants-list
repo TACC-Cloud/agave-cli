@@ -22,7 +22,7 @@ interactive_opts=()
 usage() {
   echo -n "$(basename $0) [OPTION]... [PATH]
 
-Retrieves a list of available tenants from the agave central.
+Retrieves the list of available tenants from the Agave central database.
 
  Options:
   -l, --limit          Maximum number of results to return

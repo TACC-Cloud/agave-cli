@@ -22,11 +22,9 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [PATH]
 
-Deletes a remote file or folder. Regardless of the remote protocol used to access the
-system, the file will be downloaded over HTTP. Keep this in mind for larger
-files. If no system is specified, your default storage system will be used.
-By specifying a system, the path given will be resolved on that remote system.
-Note that the system id, not hostname must be given.
+Deletes a remote file or folder. If no system is specified, your default storage 
+system will be used. By specifying a system, the path given will be resolved on 
+that remote system. Note that the system id, not hostname must be given.
 
  Options:
   -z, --access_token    Access token
