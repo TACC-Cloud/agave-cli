@@ -29,8 +29,8 @@ provided.
 
  Options:
   -z, --access_token    Access token
-  -F, --filetoupload    The file containing the json app description to submit
-  -D, --data            The raw json to upload
+  -F, --filetoupload    The file containing the JSON metadata schema to submit
+  -D, --data            The raw JSON to upload
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction

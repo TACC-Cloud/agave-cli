@@ -1,6 +1,16 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2.1.5 - 2016-03-09
+### ADDED
+- No changes.
+
+### FIXED
+- Overhauled parameters and script docs for correctness and consistency.
+
+### REMOVED
+- No changes.
+
 ## 2.1.4 - 2015-09-14
 ### ADDED
 - `*-search` Adding support for deep, sql style searching across first-class resources

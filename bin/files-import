@@ -25,7 +25,7 @@ usage() {
 Imports a remote URI to a remote storage system. The subsequent staging will be
 done via a proxy between the native data protocol of the remote system and the URL.
 When possible, 3rd party transfer will take place. If the given file type requires
-import filtering, it will be applied prior to the callback being sent. If not
+import filtering, it will be applied prior to the callback being sent. If no
 system id is specified, the user's default storage system will be used. This action
 is non-blocking.
 

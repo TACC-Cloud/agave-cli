@@ -31,8 +31,8 @@ existing application, an application id must be provided.
 
  Options:
   -z, --access_token    Access token
-  -F, --filetoupload    The file containing the json app description to submit
-                        Use - to read from stdin and when piping
+  -F, --filetoupload    The file containing the JSON app description to submit
+                        Use - to read from STDIN and when piping
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction

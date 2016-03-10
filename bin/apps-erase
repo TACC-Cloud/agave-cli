@@ -27,7 +27,7 @@ usage() {
 Erases an app completely. This is an admin-only action and should not
 be used unless you completely understand what you are doing. This action
 removes jobs, notifications, and metadata associated with it. Use with
-caution
+caution!
 
  Options:
   -z, --access_token    Access token

@@ -27,7 +27,7 @@ work folder to your default storage system and running the code inside a docker
 container. You may optionally specify the name of your job, work directory, and
 an email address to receive nofications of job completion. By default, the
 generic agave/centos-base image is used. You may specify an alternative image
-from the main docker index or supply your own Dockerfile.
+from the public Docker Hub index or supply your own Dockerfile.
 
  Options:
   -z, --access_token    Access token

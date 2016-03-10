@@ -24,7 +24,7 @@ usage() {
 
 List the history of events for a specific app. This will give more descriptive
 information related to number of retries, reasons for failure, and other hiccups
-that occurred in the submission process.
+that may have occurred in the submission process.
 
  Options:
   -z, --access_token    Access token
