@@ -301,6 +301,7 @@ function jsonquery {
 
 			if [[ 'json-mirror' == "$AGAVE_JSON_PARSER" ]]; then
 
+				# website returns a 404 error
 				$DIR/json-mirror.sh "${1}" "$2" "$3"
 
 			elif [[ 'jq' == "$AGAVE_JSON_PARSER" ]]; then
