@@ -83,7 +83,7 @@ def main():
             if isinstance(query_result, basestring):
 
                 if args.stripquotes is False:
-                    print format('"{0}"', query_result)
+                    print '"{0}"'.format(query_result)
                 else:
                     print query_result
 
