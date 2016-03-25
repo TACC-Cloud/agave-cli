@@ -315,10 +315,34 @@ function jsonquery {
 
 			elif [[ 'json' == "$AGAVE_JSON_PARSER" ]]; then
 
+				#if [[ -n "$3" ]]; then
+				#	echo "$1" | json -j $2
+				#else
+				#	echo "$1" | json $2
+				#fi
+
 				if [[ -n "$3" ]]; then
-					echo "$1" | json -j $2
+				
+					if [[ "$2" =~ \[\] ]]; then
+						oIFS="$IFS"
+						IFS="[]" read fbefore fmiddle fafter <<< "$2"
+						IFS="$oIFS"
+						unset oIFS
+						echo "$1" | json $fbefore | json -j -a $fafter
+					else
+						echo "$1" | json -j $2
+					fi
 				else
-					echo "$1" | json $2
+				
+					if [[ "$2" =~ \[\] ]]; then
+						oIFS="$IFS"
+						IFS="[]" read fbefore fmiddle fafter <<< "$2"
+						IFS="$oIFS"
+						unset oIFS
+						echo "$1" | json $fbefore | json -a $fafter
+					else
+						echo "$1" | json $2
+					fi
 				fi
 
 			elif [[ 'python' == "$AGAVE_JSON_PARSER" ]]; then
