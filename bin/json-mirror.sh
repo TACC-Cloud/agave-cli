@@ -10,7 +10,8 @@
 response=$(echo "${1}" | curl -s --globoff -X POST -H "Content-Type: application/json" --data-binary @- "https://agaveapi.co/json-mirror?q=${2}")
 
 if [[ -n "$3" ]]; then
-    echo "${response}" | sed 's/^[ \t]*//g' | sed 's/\"//g'
+    #echo "${response}" | sed 's/^[ \t]*//g' | sed 's/\"//g'
+    echo "${response}" | sed 's/^[ \t]*//g'
 else
     echo "${response}" | sed 's/^\s+\"/"/g' | sed 's/\[//g' | sed 's/\]//g' | sed 's/\"//g' | sed 's/,$//g' | sed 's/  //g'
 fi
