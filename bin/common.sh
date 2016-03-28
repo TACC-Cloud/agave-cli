@@ -305,14 +305,6 @@ function jsonquery {
 
 			elif [[ 'jq' == "$AGAVE_JSON_PARSER" ]]; then
 
-				#jpath = ".${2}"
-
-				#if [[ -n "$3" ]]; then
-				#	echo "$1" | jq --raw-output ${jpath}
-				#else
-				#	echo "$1" | jq ${jpath}
-				#fi
-
 				jpath=".${2}"
 				
 				if [[ -n "$3" ]]; then
@@ -352,12 +344,6 @@ function jsonquery {
 				fi
 
 			elif [[ 'json' == "$AGAVE_JSON_PARSER" ]]; then
-
-				#if [[ -n "$3" ]]; then
-				#	echo "$1" | json -j $2
-				#else
-				#	echo "$1" | json $2
-				#fi
 
 				if [[ -n "$3" ]]; then
 				
