@@ -34,14 +34,18 @@ The Agave CLI is a collection of Bash shell scripts allowing you to interact wit
 
 The following dependencies are required to use the Agave API cli tools.
 
-	* bash
-	* curl
+	* bash 4.2.50+
+	* curl 7.19.7+
+	* python 2.7.9+
 
-Just clone the repository from Bitbucket and add the bin directory to your classpath and you're ready to go.
+Optional dependencies
+
+	* jq 1.4+ (for faster JSON parsing)
+
+Clone the repository from Bitbucket and add the bin directory to your PATH and you're ready to go.
 
 	git clone https://bitbucket.org/taccaci/foundation-cli.git agave-cli
 	export PATH=$PATH:`pwd`/agave-cli/bin
-
 
 ## Getting started
 
