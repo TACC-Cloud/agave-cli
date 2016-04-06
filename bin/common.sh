@@ -305,20 +305,68 @@ function jsonquery {
 
 			elif [[ 'jq' == "$AGAVE_JSON_PARSER" ]]; then
 
-				jpath = ".${2}"
-
+				jpath=".${2}"
+				
 				if [[ -n "$3" ]]; then
-					echo "$1" | jq --raw-output ${jpath}
+				
+				        if [[ "$jpath" =~ \[\] ]]; then
+						oIFS="$IFS"
+						IFS="[]" read fbefore fmiddle fafter <<< "$jpath"
+						IFS="$oIFS"
+						unset oIFS
+						fbefore_noperiod="${fbefore%?}"
+				 
+						if [[ -z "$fbefore_noperiod" ]]; then
+				                	echo "$1" | jq ".[] | $fafter"
+						else
+				                	echo "$1" | jq "$fbefore_noperiod | .[] | $fafter"
+						fi
+				        else
+				                echo "$1" | jq "$jpath"
+				        fi
 				else
-					echo "$1" | jq ${jpath}
+				
+				        if [[ "$jpath" =~ \[\] ]]; then
+						oIFS="$IFS"
+						IFS="[]" read fbefore fmiddle fafter <<< "$jpath"
+						IFS="$oIFS"
+						unset oIFS
+						fbefore_noperiod="${fbefore%?}"
+
+						if [[ -z "$fbefore_noperiod" ]]; then
+				                	echo "$1" | jq -r ".[] | $fafter"
+						else
+				                	echo "$1" | jq -r "$fbefore_noperiod | .[] | $fafter"
+						fi
+				        else
+				                echo "$1" | jq -r "$jpath"
+				        fi
 				fi
 
 			elif [[ 'json' == "$AGAVE_JSON_PARSER" ]]; then
 
 				if [[ -n "$3" ]]; then
-					echo "$1" | json -j $2
+				
+					if [[ "$2" =~ \[\] ]]; then
+						oIFS="$IFS"
+						IFS="[]" read fbefore fmiddle fafter <<< "$2"
+						IFS="$oIFS"
+						unset oIFS
+						echo "$1" | json $fbefore | json -j -a $fafter
+					else
+						echo "$1" | json -j $2
+					fi
 				else
-					echo "$1" | json $2
+				
+					if [[ "$2" =~ \[\] ]]; then
+						oIFS="$IFS"
+						IFS="[]" read fbefore fmiddle fafter <<< "$2"
+						IFS="$oIFS"
+						unset oIFS
+						echo "$1" | json $fbefore | json -a $fafter
+					else
+						echo "$1" | json $2
+					fi
 				fi
 
 			elif [[ 'python' == "$AGAVE_JSON_PARSER" ]]; then

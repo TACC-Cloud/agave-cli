@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # jsonquery.py
 #
-# A Python 3>=2.6 command line utility for querying JSON data using dot notation.
+# A Python >=2.7 command line utility for querying JSON data using dot notation.
 #
 
 from easydict import EasyDict as edict
@@ -42,9 +42,12 @@ def main():
 
         raw = args.input.read()
 
+        if args.query.startswith('[]') == 1 :
+            # Modify this json to be compatible with EasyDict
+            raw = '{"things":' + raw + '}'
+
         if debug:
             print 'Original JSON: ' + raw
-
 
         raw = json.loads(raw)
 
@@ -61,7 +64,10 @@ def main():
 
             # skipping interpolation of the path in favor of a raw eval here.
             # not as safe, but this is an internal process
-            json_path = 'd.' + args.query
+            if args.query.startswith('[]') == 1 :
+                json_path ='d.things.' + args.query
+            else:
+                json_path = 'd.' + args.query
 
             #json_path = json_path.replace('[','').replace(']','').replace('..', '.')
 
@@ -83,7 +89,7 @@ def main():
             if isinstance(query_result, basestring):
 
                 if args.stripquotes is False:
-                    print format('"{0}"', query_result)
+                    print '"{0}"'.format(query_result)
                 else:
                     print query_result
 
