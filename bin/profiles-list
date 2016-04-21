@@ -59,25 +59,25 @@ main() {
 
 	#hosturl=${hosturl%/}
 
-    if [ -n "$args" ]; then
-        profileurl="$hosturl$args?pretty=true"
+  if [ -n "$args" ]; then
+    hosturl="$hosturl$args?pretty=true"
 	elif [ -n "$user" ]; then
-		profileurl="${hosturl}?username=${user}&pretty=true"
+		hosturl="${hosturl}?username=${user}&pretty=true"
 	elif [ -n "$email" ]; then
-		profileurl="${hosturl}?email=${email}&pretty=true"
+		hosturl="${hosturl}?email=${email}&pretty=true"
 	elif [ -n "$name" ]; then
-		profileurl="${hosturl}?name=${name}&pretty=true"
+		hosturl="${hosturl}?name=${name}&pretty=true"
 	else
-		profileurl="$hosturl?pretty=true"
+		hosturl="$hosturl?pretty=true"
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" $profileurl$(pagination)"
+	cmd="curl -sk -H \"${authheader}\" '$hosturl$(pagination)'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 
-	response=`curl -sk -H "${authheader}" "${profileurl}$(pagination)"`
+	response=`curl -sk -H "${authheader}" "${hosturl}$(pagination)"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")

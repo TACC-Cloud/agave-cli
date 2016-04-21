@@ -74,7 +74,7 @@ main() {
     # reading from stdin
     if [[ "$filetoupload" == "-"  ]]; then
 
-      cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- $hosturl?pretty=true"
+      cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- '$hosturl?pretty=true'"
 
       if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"
@@ -86,7 +86,7 @@ main() {
     # standard file upload
     else
 
-      cmd="curl -sk -H \"${authheader}\" -X POST -d \"fileToUpload=@$filetoupload\" $hosturl?pretty=true"
+      cmd="curl -sk -H \"${authheader}\" -X POST -d \"fileToUpload=@$filetoupload\" '$hosturl?pretty=true'"
 
       if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"

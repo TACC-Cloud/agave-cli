@@ -60,7 +60,7 @@ main() {
 	else
 		hosturl=${hosturl%/}
 
-		cmd="curl -sk -H \"${authheader}\" ${hosturl}/data/$args/pems/$pemusername?pretty=true$(pagination)"
+		cmd="curl -sk -H \"${authheader}\" '${hosturl}/data/$args/pems/$pemusername?pretty=true$(pagination)'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"

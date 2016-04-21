@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # metadata-pems-update
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -22,14 +22,14 @@ interactive_opts=(apisecret apikey username permission)
 usage() {
   echo -n "$(basename $0) [OPTION]... [METADATA_ID]
 
-Update the user permissions on this metadata object. This will impact who can 
-view and edit this metadata. Valid permissions are READ, WRITE, READ_WRITE, 
+Update the user permissions on this metadata object. This will impact who can
+view and edit this metadata. Valid permissions are READ, WRITE, READ_WRITE,
 ALL, and NONE.
 
  Options:
   -z, --access_token    Access token
   -u, --pemusername     The user whose permissions should be set
-  -p, --permission      The permission to set. Valid permissions are READ, 
+  -p, --permission      The permission to set. Valid permissions are READ,
                         WRITE, READ_WRITE, ALL, and NONE
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
@@ -54,19 +54,19 @@ source "$DIR/metadata-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [ -z "$args" ]; then
 		err "Please specify an metadata id for which to set the permissions"
 	else
 		hosturl=${hosturl%/}
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"permission=$permission\" ${hosturl}/data/$args/pems/$pemusername?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X POST -d \"permission=$permission\" '${hosturl}/data/$args/pems/$pemusername?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-	
+
 		response=`curl -sk -H "${authheader}" -X POST -d "permission=$permission" "${hosturl}/data/$args/pems/$pemusername?pretty=true"`
-		
+
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
 			success "$result"
@@ -78,7 +78,7 @@ main() {
 }
 
 format_api_json() {
-	
+
 	if ((veryverbose)); then
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
@@ -134,4 +134,3 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
-

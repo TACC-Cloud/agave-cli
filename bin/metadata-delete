@@ -1,11 +1,11 @@
 #!/bin/bash
-# 
+#
 # metadata-delete
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It deletes a metadata object. All associated metadata will be 
+# It deletes a metadata object. All associated metadata will be
 # deleted as well.
 #
 
@@ -23,7 +23,7 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [METADATA_ID]
 
-Delete a metadata object. All associated metadata objects will be 
+Delete a metadata object. All associated metadata objects will be
 deleted as well. Schema will remain unchanged.
 
  Options:
@@ -51,17 +51,17 @@ source "$DIR/metadata-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [ -z "$args" ]; then
 		err "Please specify a valid metadata object id to delete"
 	else
-	
-		cmd="curl -sk -H \"${authheader}\" -X DELETE ${hosturl}data/${args}?pretty=true"
+
+		cmd="curl -sk -H \"${authheader}\" -X DELETE '${hosturl}data/${args}?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-	
+
 		response=`curl -sk -H "${authheader}" -X DELETE "${hosturl}data/${args}?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
@@ -71,7 +71,7 @@ main() {
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
 		fi
-	fi	
+	fi
 }
 
 format_api_json() {

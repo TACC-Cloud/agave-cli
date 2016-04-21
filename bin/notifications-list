@@ -57,20 +57,20 @@ main() {
 
 	hosturl=${hosturl%/}
 	if [ -n "$args" ]; then
-		notificationurl="${hosturl}/${args}?pretty=true"
+		hosturl="${hosturl}/${args}?pretty=true"
 	elif [ -n "$uuid" ]; then
-		notificationurl="${hosturl}?associatedUuid=${uuid}&pretty=true"
+		hosturl="${hosturl}?associatedUuid=${uuid}&pretty=true"
 	else
-		notificationurl="${hosturl}?pretty=true"
+		hosturl="${hosturl}?pretty=true"
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" ${notificationurl}$(pagination)"
+	cmd="curl -sk -H \"${authheader}\" '${hosturl}$(pagination)'"
 
 	if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"
     fi
 
-    response=`curl -sk -H "${authheader}" "${notificationurl}$(pagination)"`
+    response=`curl -sk -H "${authheader}" "${hosturl}$(pagination)"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")

@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # profiles-list
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -51,15 +51,15 @@ source "$DIR/profiles-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
-	cmd="curl -sk -H \"${authheader}\" -X DELETE $hosturl$username/users/$internalusername?pretty=true"
-	
+
+	cmd="curl -sk -H \"${authheader}\" -X DELETE '$hosturl$username/users/$internalusername?pretty=true'"
+
 	if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-		
+
 	response=`curl -sk -H "${authheader}" -X DELETE $hosturl$username/users/$internalusername?pretty=true`
-	
+
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
 		success "$result"
@@ -70,7 +70,7 @@ main() {
 }
 
 format_api_json() {
-	
+
 	if ((veryverbose)); then
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
@@ -129,4 +129,3 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
-

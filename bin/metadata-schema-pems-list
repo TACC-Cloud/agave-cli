@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # apps-pems-list
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -23,7 +23,7 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [SCHEMA_ID]
 
-List the current user permissions for this metadata schema. Specifying a  
+List the current user permissions for this metadata schema. Specifying a
 specific username will return the permissions for that user.
 
  Options:
@@ -52,20 +52,20 @@ source "$DIR/metadata-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [ -z "$args" ]; then
 		err "Please specify a valid metadata schema id for which to retrieve permissions"
 	else
 		hosturl=${hosturl%/}
-		
-		cmd="curl -sk -H \"${authheader}\" ${hosturl}/schemas/$args/pems/$pemusername?pretty=true"
+
+		cmd="curl -sk -H \"${authheader}\" '${hosturl}/schemas/$args/pems/$pemusername?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-		
+
 		response=`curl -sk -H "${authheader}" "${hosturl}/schemas/$args/pems/$pemusername?pretty=true"`
-	
+
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
 			success "$result"
@@ -73,12 +73,12 @@ main() {
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
 		fi
-	fi	
-	
+	fi
+
 }
 
 format_api_json() {
-	
+
 	if ((veryverbose)); then
 		echo "$1" | python -mjson.tool
 	elif [[ $verbose -eq 1 ]]; then
@@ -87,7 +87,7 @@ format_api_json() {
 	else
 		if [[ -z "$pemusername" ]]; then
 			pemusers=( $(jsonquery "$1" "result.[].username") )
-			
+
 			n=0
 			for i in $(jsonquery "$1" "result.[].permission.read")
 			do
@@ -99,7 +99,7 @@ format_api_json() {
 				pemusers[$n]="${pemusers[$n]} $canread"
 				n=$[n+1]
 			done
-			
+
 			n=0
 			for i in $(jsonquery "$1" "result.[].permission.write")
 			do
@@ -111,7 +111,7 @@ format_api_json() {
 				pemusers[$n]="${pemusers[$n]}$canwrite"
 				n=$[n+1]
 			done
-			
+
 			n=0
 			for i in $(jsonquery "$1" "result.[].permission.execute")
 			do
@@ -123,11 +123,11 @@ format_api_json() {
 				pemusers[$n]="${pemusers[$n]}$canexecute"
 				n=$[n+1]
 			done
-			
+
 			for i in "${pemusers[@]}"; do
 				echo "$i"
 			done
-		
+
 		else
 			userpem=$(jsonquery "$1" "result.permission.read")
 			if [ "$userpem" = 'rue' ] || [ "$userpem" = 'true' ] || [ "$userpem" = 'True' ]; then
@@ -135,20 +135,20 @@ format_api_json() {
 			else
 				canread=''
 			fi
-		
+
 			userpem=$(jsonquery "$1" "result.permission.write")
 			if [ "$userpem" = 'rue' ] || [ "$userpem" = 'true' ] || [ "$userpem" = 'True' ]; then
 				canwrite='WRITE '
 			else
 				canwrite=''
-			fi	
-			
+			fi
+
 			userpem=$(jsonquery "$1" "result.permission.execute")
 			if [ "$userpem" = 'rue' ] || [ "$userpem" = 'true' ] || [ "$userpem" = 'True' ]; then
 				canexecute='EXECUTE '
 			else
 				canexecute=''
-			fi				
+			fi
 
 			echo "$pemusername $canread$canwrite$canexecute"
 		fi
@@ -199,4 +199,3 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
-

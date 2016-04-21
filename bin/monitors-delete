@@ -55,7 +55,7 @@ main() {
 		err "Please specify a valid monitor id to delete"
 	else
 
-		cmd="curl -sk -H \"${authheader}\" -X DELETE ${hosturl}${args}?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X DELETE '${hosturl}${args}?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"

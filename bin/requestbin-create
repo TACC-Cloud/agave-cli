@@ -50,7 +50,7 @@ main() {
 	#echo -n
 	#set -x
 
-    cmd="curl -sk -X POST ${hosturl}api/v1/bins"
+    cmd="curl -sk -X POST '${hosturl}api/v1/bins'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"

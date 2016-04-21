@@ -84,7 +84,7 @@ main() {
         persistent="false"
     fi
 
-    cmd="curl -sk -H \"${authheader}\" -X POST -d \"event=${event}&persistent=${persistent}&associatedUuid=${associatedUuid}&url=${url}\" ${hosturl}$args?pretty=true"
+    cmd="curl -sk -H \"${authheader}\" -X POST -d \"event=${event}&persistent=${persistent}&associatedUuid=${associatedUuid}&url=${url}\" '${hosturl}$args?pretty=true'"
 
     if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"
@@ -95,7 +95,7 @@ main() {
   # reading from stdin
   elif [[ "$filetoupload" == "-"  ]]; then
 
-    cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- ${hosturl}${args}?pretty=true"
+    cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- '${hosturl}${args}?pretty=true'"
 
     if ((veryverbose)); then
     [ "$piped" -eq 0 ] && log "Calling $cmd"
@@ -107,7 +107,7 @@ main() {
   # standard file upload
   elif [[ -f "$filetoupload" ]]; then
 
-    cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}$args?pretty=true"
+    cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" '${hosturl}$args?pretty=true'"
 
     if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"

@@ -100,7 +100,7 @@ main() {
         active="true"
       fi
 
-      cmd="curl -sk -H \"${authheader}\" -X POST -d \"frequency=${frequency}&active=${active}&updateSystemStatus=${updateSystemStatus}&target=${systemId}\" ${hosturl}$args?pretty=true"
+      cmd="curl -sk -H \"${authheader}\" -X POST -d \"frequency=${frequency}&active=${active}&updateSystemStatus=${updateSystemStatus}&target=${systemId}\" '${hosturl}$args?pretty=true'"
 
       if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"
@@ -111,7 +111,7 @@ main() {
     # reading from stdin
     elif [[ "$filetoupload" == "-"  ]]; then
 
-      cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- ${hosturl}${args}?pretty=true"
+      cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- '${hosturl}${args}?pretty=true'"
 
       if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"
@@ -123,7 +123,7 @@ main() {
     # standard file upload
     else
 
-      cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}$args?pretty=true"
+      cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" '${hosturl}$args?pretty=true'"
 
       if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"

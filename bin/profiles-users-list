@@ -75,7 +75,7 @@ main() {
 		profileurl="${hosturl}$username/users?pretty=true"
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" $profileurl$(pagination)"
+	cmd="curl -sk -H \"${authheader}\" '$profileurl$(pagination)'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"

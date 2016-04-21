@@ -88,7 +88,7 @@ main() {
 		fi
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" $hosturl?${querystring}"
+	cmd="curl -sk -H \"${authheader}\" '$hosturl?${querystring}'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"

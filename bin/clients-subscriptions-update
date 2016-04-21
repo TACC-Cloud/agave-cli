@@ -69,7 +69,7 @@ main() {
 			tier='Unlimited'
 		fi
 
-		cmd="curl -sku \"${apiusername}:xxxx\" -X POST -d \"apiName=${apiName}&tier=${tier}&apiVersion=${apiVersion}&apiProvider=${apiProvider}\" ${hosturl}${args}/subscriptions?pretty=true"
+		cmd="curl -sku \"${apiusername}:xxxx\" -X POST -d \"apiName=${apiName}&tier=${tier}&apiVersion=${apiVersion}&apiProvider=${apiProvider}\" '${hosturl}${args}/subscriptions?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"

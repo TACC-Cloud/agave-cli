@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # metadata-schema-addupdate
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -54,8 +54,8 @@ source "$DIR/metadata-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
-	cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" ${hosturl}schemas/${args}?pretty=true"
+
+	cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" '${hosturl}schemas/${args}?pretty=true'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"

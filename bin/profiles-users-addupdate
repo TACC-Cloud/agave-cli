@@ -1,11 +1,11 @@
 #!/bin/bash
-# 
+#
 # profiles-users-addupdate
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It registers or updates internal users for a given acccount. If 
+# It registers or updates internal users for a given acccount. If
 # registering a new internal user, no internal username should be provided. If
 # updating an existing internal user, an internal username must be provided.
 #
@@ -26,7 +26,7 @@ usage() {
 $(basename $0) [OPTION]... [INTERNAL_USERNAME]
 
 Create or update an internal user. Internal users are associated with an API
-user and cannot be utilized by other API users. Each internal user may have 
+user and cannot be utilized by other API users. Each internal user may have
 an authenication profile associated with them such that operations like job
 submissions and file transfers can be done with the internal user's credentials
 rather than those of the API user.
@@ -57,8 +57,8 @@ source "$DIR/profiles-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
-	cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" $hosturl$username/users/$args?pretty=true"
+
+	cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" '$hosturl$username/users/$args?pretty=true'"
 
 	if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
