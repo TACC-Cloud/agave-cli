@@ -58,7 +58,7 @@ main() {
 		hosturl="${hosturl}/${args}"
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" ${hosturl}?pretty=true$(pagination)"
+	cmd="curl -sk -H \"${authheader}\" '${hosturl}?pretty=true$(pagination)'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"
@@ -113,7 +113,7 @@ while [[ $1 = -?* ]]; do
     -l|--limit) shift; limit=$1;;
     -o|--offset) shift; offset=$1;;
     -H|--hosturl) shift; hosturl=$1;;
-  	-d|--development) development=1 ;;
+    -d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
     -V|--veryverbose) veryverbose=1; verbose=1 ;;
     -q|--quiet) quiet=1 ;;
