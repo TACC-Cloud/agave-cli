@@ -21,23 +21,23 @@ interactive_opts=(apisecret apikey id)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [APP_ID]
+  echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
 
 Creates a copy of an existing system private to the authenticated user.
 Authentication settings, apps, and roles are not transferred.
 
  Options:
-  -z, --access_token	Access token
-  -I, --id          System id of new system
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -z, --access_token    Access token
+  -I, --id              System id of new system
+  -H, --hosturl         URL of the service
+  -d, --development     Run in dev mode using default dev server
+  -f, --force           Skip all user interaction
+  -i, --interactive     Prompt for values
+  -q, --quiet           Quiet (no output)
+  -v, --verbose         Verbose output
+  -V, --veryverbose     Very verbose output
+  -h, --help            Display this help and exit
+      --version         Output version information and exit
 "
 }
 

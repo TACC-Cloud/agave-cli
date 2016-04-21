@@ -1,6 +1,6 @@
 #!/bin/bash
 # 
-# common.sh
+# options.sh
 # 
 # author: dooley@tacc.utexas.edu
 #

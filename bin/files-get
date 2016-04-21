@@ -29,21 +29,21 @@ By specifying a system, the path given will be resolved on that remote system.
 Note that the system id, not hostname must be given.
 
  Options:
-  -z, --access_token	Access token
-  -S, --systemId	    Specify the system id
-  -R, --range		      Byte range to retrieve in <start>-<end> format
-  -N, --filename	    Name by which the local file should be saved
-  -r, --recursive     Copy files and directories recursively
-  -P, --print		      Print contents to stdout
-  -H, --hosturl       URL of the service
-  -d, --development   Run in dev mode using default dev server
-  -f, --force         Skip all user interaction
-  -i, --interactive   Prompt for values
-  -q, --quiet         Quiet (no output)
-  -v, --verbose       Verbose output
-  -V, --veryverbose   Very verbose output
-  -h, --help          Display this help and exit
-      --version       Output version information and exit
+  -z, --access_token    Access token
+  -S, --systemId        Specify the system id
+  -R, --range           Byte range to retrieve in <start>-<end> format
+  -N, --filename        Name by which the local file should be saved
+  -r, --recursive       Copy files and directories recursively
+  -P, --print           Print contents to stdout
+  -H, --hosturl         URL of the service
+  -d, --development     Run in dev mode using default dev server
+  -f, --force           Skip all user interaction
+  -i, --interactive     Prompt for values
+  -q, --quiet           Quiet (no output)
+  -v, --verbose         Verbose output
+  -V, --veryverbose     Very verbose output
+  -h, --help            Display this help and exit
+      --version         Output version information and exit
 "
 }
 

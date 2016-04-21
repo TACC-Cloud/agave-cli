@@ -31,24 +31,24 @@ will be passed on to the original URL. Results will be proxied back to the
 caller.
 
  Options:
-  -z, --access_token	Access token
-  -l, --lifetime    Lifetime of the returned token in seconds
-  -m, --maxUses     Maximum number of times the returned token can be used
-  -u, --internalUsername  Internal user to attach to this token
-  -x, --apiusername API username for whom the returned token should apply,
-                    requires admin permissions
-  -M, --method      HTTP method the postit should perform: GET, POST, PUT, DELETE.
-  					Defaults to GET
-  -N, --noauth      Generate a postit, but do not pre-authenticate the URL
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -z, --access_token        Access token
+  -l, --lifetime            Lifetime of the returned token in seconds
+  -m, --maxUses             Maximum number of times the returned token can be used
+  -u, --internalUsername    Internal user to attach to this token
+  -x, --apiusername         API username for whom the returned token should apply,
+                            requires admin permissions
+  -M, --method              HTTP method the postit should perform: GET, POST, PUT, DELETE.
+                            Defaults to GET
+  -N, --noauth              Generate a postit, but do not pre-authenticate the URL
+  -H, --hosturl             URL of the service
+  -d, --development         Run in dev mode using default dev server
+  -f, --force               Skip all user interaction
+  -i, --interactive         Prompt for values
+  -q, --quiet               Quiet (no output)
+  -v, --verbose             Verbose output
+  -V, --veryverbose         Very verbose output
+  -h, --help                Display this help and exit
+      --version             Output version information and exit
 "
 }
 

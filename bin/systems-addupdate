@@ -27,21 +27,21 @@ $(basename $0) [OPTION]... [SYSTEM_ID]
 
 Registers or updates an existing registered systems. If registering a new
 systems, no system_id should be provided. If updating an existing system,
-an system_id must be provided.
+a system_id must be provided.
 
  Options:
-  -z, --access_token	Access token
-  -F, --filetoupload  The file containing the json system description to submit
-                      Use - to read from stdin and when piping.
-  -H, --hosturl       URL of the service
-  -d, --development   Run in dev mode using default dev server
-  -f, --force         Skip all user interaction
-  -i, --interactive   Prompt for values
-  -q, --quiet         Quiet (no output)
-  -v, --verbose       Verbose output
-  -V, --veryverbose   Very verbose output
-  -h, --help          Display this help and exit
-      --version       Output version information and exit
+  -z, --access_token    Access token
+  -F, --filetoupload    The file containing the json system description to submit
+                        Use - to read from STDIN and when piping
+  -H, --hosturl         URL of the service
+  -d, --development     Run in dev mode using default dev server
+  -f, --force           Skip all user interaction
+  -i, --interactive     Prompt for values
+  -q, --quiet           Quiet (no output)
+  -v, --verbose         Verbose output
+  -V, --veryverbose     Very verbose output
+  -h, --help            Display this help and exit
+      --version         Output version information and exit
 "
 }
 

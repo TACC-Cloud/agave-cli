@@ -23,8 +23,8 @@ usage() {
   echo -n "$(basename $0) [OPTION]...
 $(basename $0) [OPTION]... [MONITOR_ID]
 
-Subscribe for a monitors about a system. A monitor must be associated with a
-valid system to which you have at lease USER role. You may include a
+Subscribe for a monitor about a system. A monitor must be associated with a
+valid system to which you have at least USER role. You may include a
 notifications attribute containing an array of notification objects to subscribe
 for updates about changes in check results. You may also tell the monitor to
 update the system status accordingly if you have at least ADMIN role by
@@ -32,26 +32,26 @@ setting the updateSystemStatus attribute to true. Monitor descriptions can be
 passed in as a file containing a JSON object or via command line arguments.
 
  Options:
-  -z, --access_token        Access token
-  -F, --filetoupload        The file containing the json app description to submit
-                            Use - to read from stdin and when piping.
-  -S, --systemId            The system to monitor
-  -A, --active              Whether the monitor should be active. true or false.
-                            Default true.
-  -I, --interval            How often the monitor should run in minutes.
-                            Minimum 5, default 720 (12 hours).
-  -U, --updateSystemStatus  Whether the test should update the system status.
-                            You must have an ADMIN role on the system to set this.
-                            Default false
-  -H, --hosturl             URL of the service
-  -d, --development         Run in dev mode using default dev server
-  -f, --force               Skip all user interaction
-  -i, --interactive         Prompt for values
-  -q, --quiet               Quiet (no output)
-  -v, --verbose             Verbose output
-  -V, --veryverbose         Very verbose output
-  -h, --help                Display this help and exit
-      --version             Output version information and exit
+  -z, --access_token          Access token
+  -F, --filetoupload          The file containing the JSON monitor description to submit
+                              Use - to read from STDIN and when piping
+  -S, --systemId              The system to monitor
+  -A, --active                Whether the monitor should be active. true or false.
+                              Default true
+  -I, --interval              How often the monitor should run in minutes.
+                              Minimum 5, default 720 (12 hours)
+  -U, --updateSystemStatus    Whether the test should update the system status.
+                              You must have an ADMIN role on the system to set this.
+                              Default = false
+  -H, --hosturl               URL of the service
+  -d, --development           Run in dev mode using default dev server
+  -f, --force                 Skip all user interaction
+  -i, --interactive           Prompt for values
+  -q, --quiet                 Quiet (no output)
+  -v, --verbose               Verbose output
+  -V, --veryverbose           Very verbose output
+  -h, --help                  Display this help and exit
+      --version               Output version information and exit
 "
 }
 

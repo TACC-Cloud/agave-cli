@@ -22,22 +22,24 @@ interactive_opts=(apisecret apikey username permission)
 usage() {
   echo -n "$(basename $0) [OPTION]... [JOB_ID]
 
-Update user permissions for a particular job.
+Update user permissions for a particular job. This will impact who can view the
+status, modify, or download output of a job. Valid permissions are READ, WRITE,
+and EXECUTE.
 
  Options:
-  -z, --access_token	Access token
-  -u, --apiusername	The user whose permissions should be set
-  -p, --permission	The permission to set. Valid values are READ, 
-  			WRITE, READ_WRITE, ALL, and NONE
-  -h, --hosturl     	URL of the service
-  -d, --development 	Run in dev mode using default dev server
-  -f, --force       	Skip all user interaction
-  -i, --interactive 	Prompt for values
-  -q, --quiet       	Quiet (no output)
-  -v, --verbose     	Verbose output
-  -V, --veryverbose 	Very verbose output
-  -h, --help        	Display this help and exit
-      --version     	Output version information and exit
+  -z, --access_token    Access token
+  -u, --apiusername     The user whose permissions should be set
+  -p, --permission      The permission to set. Valid values are READ, 
+                        WRITE, READ_WRITE, ALL, and NONE
+  -H, --hosturl         URL of the service
+  -d, --development     Run in dev mode using default dev server
+  -f, --force           Skip all user interaction
+  -i, --interactive     Prompt for values
+  -q, --quiet           Quiet (no output)
+  -v, --verbose         Verbose output
+  -V, --veryverbose     Very verbose output
+  -h, --help            Display this help and exit
+      --version         Output version information and exit
 "
 }
 

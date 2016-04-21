@@ -23,21 +23,23 @@ usage() {
   echo -n "$(basename $0) [OPTION]...
 $(basename $0) [OPTION]... [METADATA_ID]
 
-Add a metadata record.
+Add a metadata record. If registering a new metadata record, no metadata id
+should be provided. If updating an existing metadata record, a metadata id
+must be provided.
 
  Options:
-  -z, --access_token	Access token
-  -F, --filetoupload  The file containing the json metadata description to submit
-                      Use - to read from stdin and when piping.
-  -H, --hosturl       URL of the service
-  -d, --development   Run in dev mode using default dev server
-  -f, --force         Skip all user interaction
-  -i, --interactive   Prompt for values
-  -q, --quiet         Quiet (no output)
-  -v, --verbose       Verbose output
-  -V, --veryverbose   Very verbose output
-  -h, --help          Display this help and exit
-      --version       Output version information and exit
+  -z, --access_token    Access token
+  -F, --filetoupload    The file containing the json metadata description to submit
+                        Use - to read from stdin and when piping
+  -H, --hosturl         URL of the service
+  -d, --development     Run in dev mode using default dev server
+  -f, --force           Skip all user interaction
+  -i, --interactive     Prompt for values
+  -q, --quiet           Quiet (no output)
+  -v, --verbose         Verbose output
+  -V, --veryverbose     Very verbose output
+  -h, --help            Display this help and exit
+      --version         Output version information and exit
 "
 }
 

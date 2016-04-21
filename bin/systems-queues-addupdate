@@ -23,13 +23,13 @@ usage() {
   echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
 
 Provides a mechanism for adding and updating batch queues on a system.
-Setting a role to empty or NONE deletes the user's rold on the system.
+Setting a role to empty or NONE deletes the user's role on the system.
 
  Options:
   -z, --access_token    Access token
   -F, --filetoupload    The file containing the json batch queue description to submit
-                        Use - to read from stdin and when piping.
-  -h, --hosturl         URL of the service
+                        Use - to read from stdin and when piping
+  -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
   -i, --interactive     Prompt for values

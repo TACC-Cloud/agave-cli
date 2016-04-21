@@ -26,21 +26,22 @@ usage() {
 Subscribe a client to one or all apis.
 
  Options:
-  -u, --apiusername	API username
-  -p, --apipassword	API password
-  -N, --apiNname	    The name of the API to subscribe the client application to. Use a wildcard to subscribe to all APIs.
-  -T, --tier		The subscription tier
-  -R, --apiVersion	The version of the API to subscribe the client application to.
-  -P, --apiPprovider	The user who registered the API
-  -H, --hosturl     URL of the service
-  -d, --development Run in dev mode using default dev server
-  -f, --force       Skip all user interaction
-  -i, --interactive Prompt for values
-  -q, --quiet       Quiet (no output)
-  -v, --verbose     Verbose output
-  -V, --veryverbose Very verbose output
-  -h, --help        Display this help and exit
-      --version     Output version information and exit
+  -u, --apiusername    API username
+  -p, --apipassword    API password
+  -N, --apiName        The name of the API to subscribe the client application to.
+                       Use a wildcard to subscribe to all APIs
+  -T, --tier           The subscription tier
+  -R, --apiVersion     The version of the API to subscribe the client application to
+  -P, --apiProvider    The user who registered the API
+  -H, --hosturl        URL of the service
+  -d, --development    Run in dev mode using default dev server
+  -f, --force          Skip all user interaction
+  -i, --interactive    Prompt for values
+  -q, --quiet          Quiet (no output)
+  -v, --verbose        Verbose output
+  -V, --veryverbose    Very verbose output
+  -h, --help           Display this help and exit
+      --version        Output version information and exit
 "
 }
 

@@ -24,28 +24,28 @@ usage() {
 $(basename $0) [OPTION]... [APP_ID]
 
 List all applications available to the user. Results can be filtered by
-partial name, tag, or ontology term.
-
+partial name, tag, or ontology term. A more flexible solution is provided
+by the apps-search command.
 
  Options:
-  -z, --access_token	Access token
-  -n, --name		      Search for app by name
-  -t, --tag			      Search for app by tag
-  -S, --system    	  Search for app by system id
-  -O, --ontology      Search for app by ontology term
-  -P, --publiconly	  Only return public apps. Ignored if apps id is given.
-  -Q, --privateonly	  Only return private apps. Ignored if apps id is given.
-  -l, --limit         Maximum number of results to return
-  -o, --offset        Number of results to skip from the start
-  -H, --hosturl       URL of the service
-  -d, --development   Run in dev mode using default dev server
-  -f, --force         Skip all user interaction
-  -i, --interactive   Prompt for values
-  -q, --quiet         Quiet (no output)
-  -v, --verbose       Verbose output
-  -V, --veryverbose   Very verbose output
-  -h, --help          Display this help and exit
-      --version       Output version information and exit
+  -z, --access_token    Access token
+  -n, --name            Search for app by name
+  -t, --tag             Search for app by tag
+  -S, --system          Search for app by system id
+  -O, --ontology        Search for app by ontology term
+  -P, --publiconly      Only return public apps. Ignored if apps id is given
+  -Q, --privateonly     Only return private apps. Ignored if apps id is given
+  -l, --limit           Maximum number of results to return
+  -o, --offset          Number of results to skip from the start
+  -H, --hosturl         URL of the service
+  -d, --development     Run in dev mode using default dev server
+  -f, --force           Skip all user interaction
+  -i, --interactive     Prompt for values
+  -q, --quiet           Quiet (no output)
+  -v, --verbose         Verbose output
+  -V, --veryverbose     Very verbose output
+  -h, --help            Display this help and exit
+      --version         Output version information and exit
 "
 }
 

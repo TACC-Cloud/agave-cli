@@ -31,20 +31,20 @@ be on the work folder if it still exists. Either way, the data will be
 available from this script.
 
  Options:
-  -z, --access_token	Access token
-  -N, --filename      Name to give the downloaded file/folder
-  -r, --recursive     Recursively download all data from the remote path.
-  -R, --range		      Byte range to retrieve in <start>-<end> format
-  -P, --print		      Print contents to stdout
-  -H, --hosturl       URL of the service
-  -d, --development   Run in dev mode using default dev server
-  -f, --force         Skip all user interaction
-  -i, --interactive   Prompt for values
-  -q, --quiet         Quiet (no output)
-  -v, --verbose       Verbose output
-  -V, --veryverbose   Very verbose output
-  -h, --help          Display this help and exit
-      --version       Output version information and exit
+  -z, --access_token    Access token
+  -N, --filename        Name to give the downloaded file/folder
+  -r, --recursive       Recursively download all data from the remote path
+  -R, --range           Byte range to retrieve in <start>-<end> format
+  -P, --print           Print contents to stdout
+  -H, --hosturl         URL of the service
+  -d, --development     Run in dev mode using default dev server
+  -f, --force           Skip all user interaction
+  -i, --interactive     Prompt for values
+  -q, --quiet           Quiet (no output)
+  -v, --verbose         Verbose output
+  -V, --veryverbose     Very verbose output
+  -h, --help            Display this help and exit
+      --version         Output version information and exit
 "
 }
 

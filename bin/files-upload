@@ -23,20 +23,20 @@ usage() {
   echo -n "$(basename $0) [OPTION]... [PATH]
 
 Uploads a local file or folder to a remote storage system. The upload will occur
-via HTTP. The subsequent staging will be done via the native data protocol for
+via HTTPS. The subsequent staging will be done via the native data protocol for
 the destination system. If the given file type requires import filtering, it will
-be applied prior to the callback being sent. If not system id is specified, the
+be applied prior to the callback being sent. If no system id is specified, the
 user's default storage system will be used.
 
  Options:
-  -z, --access_token	  Access token
-  -F, --filetoupload    The file or folder to upload. Use - to read from stdin
-                        and when piping.
+  -z, --access_token    Access token
+  -F, --filetoupload    The file or folder to upload. Use - to read from STDIN
+                        and when piping
   -C, --callbackurl     The email address or webhook to notify upon completion
                         of all import filtering
-  -T, --filetype	      The filetype associated with this file. See transforms-list
+  -T, --filetype        The filetype associated with this file. See transforms-list
                         for a full list of supported file types. Defaults to 'raw'
-  -N, --filename	      The name of the file once uploaded
+  -N, --filename        The name of the file once uploaded
   -S, --systemid        The system to which the file or folder will be uploaded
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server

@@ -24,7 +24,7 @@ usage() {
   echo -n "$(basename $0) [OPTION]... [PATH]
 
 Moves a file or folder from one location to another on a remote system. This
-is akin to the unix 'mv' command.If no system is specified, your default
+is akin to the UNIX 'mv' command. If no system is specified, your default
 storage system will be used. By specifying a system, the path given will be
 resolved on that remote system. Note that the system id, not hostname must be
 given.

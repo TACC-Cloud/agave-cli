@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# auth-token-status.sh
+# auth-check
 #
 # author: dooley@tacc.utexas.edu
 #
@@ -22,23 +22,19 @@ interactive_opts=()
 usage() {
   echo -n "$(basename $0) [OPTION]...
 
-Obtain a new oauth bearer token. Tokens can be used repeatedly until they
-expire at which point you can simply do an oauth-renew with your API
-username and password to refresh your token. This step is required to
-interact with any Agave services
-
-For ease of use, the -S option can be specified to store the new
-credential for reuse in subsequent calls to the API.
+Check the status of the current Oauth bearer token. If the token is expired,
+you can simply do an auth-tokens-refresh with your API username and password
+to refresh your token.
 
  Options:
-  -d, --development   Run in dev mode using default dev server
-  -f, --force         Skip all user interaction
-  -i, --interactive   Prompt for values
-  -q, --quiet         Quiet (no output)
-  -v, --verbose       Verbose output
-  -V, --veryverbose   Very verbose output
-  -h, --help          Display this help and exit
-      --version       Output version information and exit
+  -d, --development    Run in dev mode using default dev server
+  -f, --force          Skip all user interaction
+  -i, --interactive    Prompt for values
+  -q, --quiet          Quiet (no output)
+  -v, --verbose        Verbose output
+  -V, --veryverbose    Very verbose output
+  -h, --help           Display this help and exit
+      --version        Output version information and exit
 "
 }
 

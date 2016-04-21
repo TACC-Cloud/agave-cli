@@ -27,34 +27,35 @@ work folder to your default storage system and running the code inside a docker
 container. You may optionally specify the name of your job, work directory, and
 an email address to receive nofications of job completion. By default, the
 generic agave/centos-base image is used. You may specify an alternative image
-from the main docker index or supply your own Dockerfile.
+from the public Docker Hub index or supply your own Dockerfile.
 
  Options:
-  -z, --access_token  Access token
-  -w, --workdir       The directory containing your exe and its dependencies
-  -S, --systemid      The system where the data will be staged and archived
-  -n, --name          The name of your job, defaults to <username>-runner
-  -c, --command       This is the actual executable needed to run your program in the
-                      Docker container. ex. Rscript, python, java, mvn, php, sh.
-                      If not specified, a best-guess attempt will be made.
-  -e, --email         The email address where a notificiation of job completion will be sent
-  -I, --dockerimage   The Docker image to use. This must be valid and in the
-                      Docker public index. If not specified, agaveapi/scipyrj will
-                      be used.
-  -D, --dockerfile    URL to a Dockerfile that will be used build the Docker
-                      container prior to running. If you include a Dockerfile in
-                      your work directory, that will be used automatically.
-  -W, --watch         Watch the job history once it has been submitted, updating
-                      every few seconds until it completes.
-  -H, --hosturl       URL of the service
-  -d, --development   Run in dev mode using default dev server
-  -f, --force         Skip all user interaction
-  -i, --interactive   Prompt for values
-  -q, --quiet         Quiet (no output)
-  -v, --verbose       Verbose output
-  -V, --veryverbose   Very verbose output
-  -h, --help          Display this help and exit
-      --version       Output version information and exit
+  -z, --access_token    Access token
+  -w, --workdir         The directory containing your exe and its dependencies
+  -S, --systemid        The system where the data will be staged and archived
+  -n, --name            The name of your job, defaults to <username>-runner
+  -c, --command         This is the actual executable needed to run your program in the
+                        Docker container. ex. Rscript, python, java, mvn, php, sh.
+                        If not specified, a best-guess attempt will be made
+  -e, --email           The email address where a notificiation of job completion will
+                        be sent
+  -I, --dockerimage     The Docker image to use. This must be valid and in the
+                        Docker public index. If not specified, agaveapi/scipyrj will
+                        be used
+  -D, --dockerfile      URL to a Dockerfile that will be used build the Docker
+                        container prior to running. If you include a Dockerfile in
+                        your work directory, that will be used automatically
+  -W, --watch           Watch the job history once it has been submitted, updating
+                        every few seconds until it completes
+  -H, --hosturl         URL of the service
+  -d, --development     Run in dev mode using default dev server
+  -f, --force           Skip all user interaction
+  -i, --interactive     Prompt for values
+  -q, --quiet           Quiet (no output)
+  -v, --verbose         Verbose output
+  -V, --veryverbose     Very verbose output
+  -h, --help            Display this help and exit
+      --version         Output version information and exit
 "
 }
 
@@ -273,9 +274,9 @@ main() {
     # check history for a terminal status: TRANSFORMING_COMPLETED, TRANSFORMING_FAILED
     filehistory=$(files-history -z $REMOTE_PATH $appbundleparam)
     transferstatus=$(jsonquery "$filehistory" "result.[].status" | tail -n 1)
-    if [[ "$transferstatus" = "TRANSFORMING_COMPLETED" -o "$transferstatus" = "$STAGING_COMPLETED" ]]; then
+    if [ "$transferstatus" == "TRANSFORMING_COMPLETED" -o "$transferstatus" == "STAGING_COMPLETED" ]; then
       break;
-    elif [[ "$transferstatus" = "TRANSFORMING_FAILED" -o "$transferstatus" = "$STAGING_FAILED" -o "$transferstatus" = "$FAILED" ]]; then
+    elif [ "$transferstatus" == "TRANSFORMING_FAILED" -o "$transferstatus" == "STAGING_FAILED" -o "$transferstatus" == "FAILED" ]; then
       err "Failed to upload local assets to remote system"
     else
       echo -e "."

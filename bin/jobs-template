@@ -27,7 +27,6 @@ Creates a JSON job submission template for the given app id. Additional
 options and flags can be used to set defaults and create more verbose
 job descriptions.
 
-
  Options:
   -z, --access_token    Access token
   -N, --name            Use the provided name for the job
@@ -40,7 +39,7 @@ job descriptions.
   -i, --interactive     Prompt for values
   -q, --quiet           Quiet (no output)
   -v, --verbose         Verbose output
-  -V, --verbose     Very verbose output
+  -V, --veryverbose     Very verbose output
   -h, --help            Display this help and exit
       --version         Output version information and exit
 "
@@ -608,7 +607,7 @@ while [[ $1 = -?* ]]; do
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
-    -V|--verbose) veryverbose=1; verbose=1 ;;
+    -V|--veryverbose) veryverbose=1; verbose=1 ;;
     -q|--quiet) quiet=1 ;;
     -i|--interactive) interactive=1 ;;
     -f|--force) force=1 ;;
