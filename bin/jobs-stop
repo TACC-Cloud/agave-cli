@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # jobs-stop
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -49,11 +49,11 @@ source "$DIR/jobs-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
-	if [ -z "$args" ]; then 
+
+	if [ -z "$args" ]; then
 		err "Please specify a job id to stop"
 	else
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"action=stop\" $hosturl$args?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X POST -d \"action=stop\" '$hosturl$args?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"

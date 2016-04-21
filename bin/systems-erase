@@ -59,7 +59,7 @@ main() {
 		err "Please specify a valid system id to erase"
 	else
 
-		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=erase\" $hosturl$args?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=erase\" '$hosturl$args?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"

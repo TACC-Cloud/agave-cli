@@ -119,8 +119,7 @@ main() {
       err "$upload_response"
 
     else
-
-
+      
       basefilename=$(basename $filetoupload)
 
       remoteurl=$(echo "$upload_response" | grep -i "media/.*/$args/$basefilename\"\$" | sed 's/"href" : //g' | sed 's/"//g' | sed 's/ //g' )

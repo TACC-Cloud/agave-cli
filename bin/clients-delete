@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # clients-delete
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -54,17 +54,17 @@ source "$DIR/clients-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [ -z "$args" ]; then
 		err "Please specify a valid client to delete"
 	else
-	
-		cmd="curl -sku \"${apiusername}:xxxx\" -X DELETE $hosturl$args?pretty=true"
+
+		cmd="curl -sku \"${apiusername}:xxxx\" -X DELETE '$hosturl$args?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-	
+
 		response=`curl -sku "${apiusername}:${apipassword}" -X DELETE "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
@@ -74,7 +74,7 @@ main() {
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
 		fi
-	fi	
+	fi
 }
 
 format_api_json() {

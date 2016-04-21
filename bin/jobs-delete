@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # jobs-delete
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -49,17 +49,17 @@ source "$DIR/jobs-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [ -z "$args" ]; then
 		err "Please specify a valid app id to delete"
 	else
-	
-		cmd="curl -sk -H \"${authheader}\" -X DELETE $hosturl$args?pretty=true"
+
+		cmd="curl -sk -H \"${authheader}\" -X DELETE '$hosturl$args?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-	
+
 		response=`curl -sk -H "${authheader}" -X DELETE "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
@@ -69,7 +69,7 @@ main() {
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
 		fi
-	fi	
+	fi
 }
 
 format_api_json() {

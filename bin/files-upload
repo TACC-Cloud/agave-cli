@@ -80,9 +80,9 @@ main() {
 		fi
 
 		if [ -n "$systemid" ]; then
-			filesurl="${hosturl}media/system/${systemid}/"
+			hosturl="${hosturl}media/system/${systemid}/"
 		else
-			filesurl="${hosturl}media/"
+			hosturl="${hosturl}media/"
 		fi
 
 		if [ -n "$filename" ]; then
@@ -97,30 +97,30 @@ main() {
 		# If the filetoupload is a file, then just copy it up.
 		if [ -f "$filetoupload" ]; then
 
-      		out "Uploading ${filetoupload}..."
+      out "Uploading ${filetoupload}..."
 			#recursively copy the folder applying filename to the root
 
-      		if [ -n "$post_options" ]; then
+      if [ -n "$post_options" ]; then
 
 				post_options=${post_options%&}
 
-				cmd="curl $quietarg -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" -F \"${post_options}\" $filesurl$args?pretty=true"
+				cmd="curl $quietarg -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" -F \"${post_options}\" '$hosturl$args?pretty=true'"
 
 				if ((veryverbose)); then
 					[ "$piped" -eq 0 ] && log "Calling $cmd"
 				fi
 				#response='{"status":"success","response":{},"message":null}'
-				response=`curl $quietarg -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" -F "${post_options}" "$filesurl$args?pretty=true"`
+				response=`curl $quietarg -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" -F "${post_options}" "$hosturl$args?pretty=true"`
 
 			else
 
-				cmd="curl $quietarg -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" $filesurl$args?pretty=true"
+				cmd="curl $quietarg -k -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" '$hosturl$args?pretty=true'"
 
 				if ((veryverbose)); then
 					[ "$piped" -eq 0 ] && log "Calling $cmd"
 				fi
 				#response='{"status":"success","response":{},"message":null}'
-				response=`curl $quietarg -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$filesurl$args?pretty=true"`
+				response=`curl $quietarg -k -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$hosturl$args?pretty=true"`
 
 			fi
 		# if the file is coming from stdin, verify we have a filename and feed it to curl
@@ -137,23 +137,23 @@ main() {
 
 				  post_options=${post_options%&}
 
-				  cmd="curl $quietarg -k -H \"${authheader}\" -X POST -F \"fileToUpload=@-\" -F \"${post_options}\" $filesurl$args?pretty=true"
+				  cmd="curl $quietarg -k -H \"${authheader}\" -X POST -F \"fileToUpload=@-\" -F \"${post_options}\" '$hosturl$args?pretty=true'"
 
 				  if ((veryverbose)); then
 					[ "$piped" -eq 0 ] && log "Calling $cmd"
 				  fi
 				  #response='{"status":"success","response":{},"message":null}'
-				  response=`curl $quietarg -k -H "${authheader}" -X POST -F "fileToUpload=@-" -F "${post_options}" "$filesurl$args?pretty=true"`
+				  response=`curl $quietarg -k -H "${authheader}" -X POST -F "fileToUpload=@-" -F "${post_options}" "$hosturl$args?pretty=true"`
 
 				else
 
-				  cmd="curl $quietarg -k -H \"${authheader}\" -X POST -F \"fileToUpload=@-\" $filesurl$args?pretty=true"
+				  cmd="curl $quietarg -k -H \"${authheader}\" -X POST -F \"fileToUpload=@-\" '$hosturl$args?pretty=true'"
 
 				  if ((veryverbose)); then
 					[ "$piped" -eq 0 ] && log "Calling $cmd"
 				  fi
 				  #response='{"status":"success","response":{},"message":null}'
-				  response=`curl $quietarg -k -H "${authheader}" -X POST -F "fileToUpload=@-" "$filesurl$args?pretty=true"`
+				  response=`curl $quietarg -k -H "${authheader}" -X POST -F "fileToUpload=@-" "$hosturl$args?pretty=true"`
 
 				fi
 
@@ -226,12 +226,12 @@ main() {
 			done
 
 			if [ -n "$systemid" ]; then
-				filesurl="${hosturl}listings/system/${systemid}/${newdirpath}"
+				hosturl="${hosturl}listings/system/${systemid}/${newdirpath}"
 			else
-				filesurl="${hosturl}listings/${newdirpath}"
+				hosturl="${hosturl}listings/${newdirpath}"
 			fi
-			#echo "Calling curl -sk -H ${authheader} \"${filesurl%/}?pretty=true\""
-			response=`curl -sk -H "${authheader}"  "${filesurl%/}?pretty=true"`
+			#echo "Calling curl -sk -H ${authheader} \"${hosturl%/}?pretty=true\""
+			response=`curl -sk -H "${authheader}"  "${hosturl%/}?pretty=true"`
 		fi
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then

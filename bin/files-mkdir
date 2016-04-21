@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # files-mkdir
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -53,21 +53,21 @@ source "$DIR/files-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [ -n "$systemId" ]; then
-		filesurl="${hosturl}media/system/${systemId}/${args}?pretty=true"
+		hosturl="${hosturl}media/system/${systemId}/"
 	else
-		filesurl="${hosturl}media/${args}?pretty=true"
+		hosturl="${hosturl}media/"
 	fi
-	
-	cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=mkdir&path=${name}\" ${filesurl}"
+
+	cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=mkdir&path=${name}\" '${hosturl}${args}?pretty=true'"
 
 	if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-	
-	response=`curl -sk -H "${authheader}" -X PUT -d "action=mkdir&path=${name}" "${filesurl}"`
-	
+
+	response=`curl -sk -H "${authheader}" -X PUT -d "action=mkdir&path=${name}" "${hosturl}${args}?pretty=true"`
+
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
 		success "$result"
@@ -78,7 +78,7 @@ main() {
 }
 
 format_api_json() {
-	
+
 	if ((veryverbose)); then
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
@@ -134,4 +134,3 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
-

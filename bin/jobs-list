@@ -68,7 +68,7 @@ main() {
     querystring="${querystring}&status=$status"
   fi
 
-  cmd="curl -sk -H \"${authheader}\" $jobsurl?${querystring}$(pagination)"
+  cmd="curl -sk -H \"${authheader}\" '$jobsurl?${querystring}$(pagination)'"
 
 	if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"

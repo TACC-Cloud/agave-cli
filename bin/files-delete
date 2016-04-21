@@ -22,8 +22,8 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [PATH]
 
-Deletes a remote file or folder. If no system is specified, your default storage 
-system will be used. By specifying a system, the path given will be resolved on 
+Deletes a remote file or folder. If no system is specified, your default storage
+system will be used. By specifying a system, the path given will be resolved on
 that remote system. Note that the system id, not hostname must be given.
 
  Options:
@@ -64,12 +64,12 @@ main() {
 			filesurl="${hosturl}media/${args}?pretty=true"
 		fi
 
-		cmd="curl -sk -H \"${authheader}\" -X DELETE ${filesurl}"
+		cmd="curl -sk -H \"${authheader}\" -X DELETE '${filesurl}'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-		
+
 		response=`curl -sk -H "${authheader}" -X DELETE "${filesurl}"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then

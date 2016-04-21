@@ -62,18 +62,18 @@ main() {
 	#set -x
 
 	if [ -n "$systemId" ]; then
-		filesurl="${hosturl}index/system/${systemId}/${args}"
+		hosturl="${hosturl}index/system/${systemId}/"
 	else
-		filesurl="${hosturl}index/${args}"
+		hosturl="${hosturl}index/"
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" ${filesurl}?pretty=true$(pagination)"
+	cmd="curl -sk -H \"${authheader}\" '${hosturl}${args}?pretty=true$(pagination)'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 
-	response=`curl -sk -H "${authheader}" "${filesurl}?pretty=true"`
+	response=`curl -sk -H "${authheader}" "${hosturl}${args}?pretty=true$(pagination)"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")

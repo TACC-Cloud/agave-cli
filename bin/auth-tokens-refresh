@@ -74,7 +74,7 @@ main() {
 	#
 	#post_options=${post_options%&}
 
-	cmd="curl -sku \"$apikey:XXXXXX\" -X POST -d \"${post_options}\" -H \"Content-Type:application/x-www-form-urlencoded\" ${hosturl%/}"
+	cmd="curl -sku \"$apikey:XXXXXX\" -X POST -d \"${post_options}\" -H \"Content-Type:application/x-www-form-urlencoded\" '${hosturl%/}'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"

@@ -64,18 +64,18 @@ main() {
 	else
 
 		if [ -n "$systemId" ]; then
-			filesurl="${hosturl}pems/system/${systemId}/${args}?pretty=true"
+			hosturl="${hosturl}pems/system/${systemId}/"
 		else
-			filesurl="${hosturl}pems/${args}?pretty=true"
+			hosturl="${hosturl}pems/"
 		fi
 
-    cmd="curl -sk -H \"${authheader}\" -X DELETE ${filesurl}"
+    cmd="curl -sk -H \"${authheader}\" -X DELETE '${hosturl}${args}?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X DELETE "${filesurl}"`
+		response=`curl -sk -H "${authheader}" -X DELETE "${hosturl}${args}?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
@@ -96,7 +96,7 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		echo "Successfully removed all permissions on $filesurl"
+		echo "Successfully removed all permissions on $hosturl"
 	fi
 }
 

@@ -55,7 +55,7 @@ main() {
 		err "Please specify a valid app id to enable"
 	else
 
-		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=disable\" $hosturl$args?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=disable\" '$hosturl$args?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"

@@ -89,7 +89,7 @@ main() {
         monitorurl="${hosturl}/${monitorId}/checks?${querystring}"
     fi
 
-	cmd="curl -sk -H \"${authheader}\" ${monitorurl}$(pagination)"
+	cmd="curl -sk -H \"${authheader}\" '${monitorurl}$(pagination)'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"

@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # systems-clone
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -52,21 +52,21 @@ source "$DIR/systems-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [ -z "$args" ]; then
 		err "Please specify a valid system id to clone"
 	else
-		
+
 		if [ -n "$id" ]; then
 			new_system_id="&id=$id"
 		fi
-		
-		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=clone$new_system_id\" $hosturl$args?pretty=true"
+
+		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=clone$new_system_id\" '$hosturl$args?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-	
+
 		response=`curl -sk -H "${authheader}" -X PUT -d "action=clone$new_system_id" "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
@@ -76,11 +76,11 @@ main() {
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
 		fi
-	fi	
+	fi
 }
 
 format_api_json() {
-	
+
 	if ((veryverbose)); then
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then

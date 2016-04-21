@@ -60,7 +60,7 @@ main() {
 		err "Please specify a job for which to fetch the history"
 	else
 
-    cmd="curl -sk -H \"${authheader}\" $hosturl$args/history?pretty=true$(pagination)"
+    cmd="curl -sk -H \"${authheader}\" '$hosturl$args/history?pretty=true$(pagination)'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"

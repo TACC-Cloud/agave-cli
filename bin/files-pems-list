@@ -55,18 +55,18 @@ main() {
 	#set -x
 
 	if [ -n "$systemId" ]; then
-		filesurl="${hosturl}pems/system/${systemId}/${args}?pretty=true$(pagination)"
+		hosturl="${hosturl}pems/system/${systemId}/"
 	else
-		filesurl="${hosturl}pems/${args}?pretty=true$(pagination)"
+		hosturl="${hosturl}pems/"
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" ${filesurl}"
+	cmd="curl -sk -H \"${authheader}\" '${hosturl}${args}?pretty=true$(pagination)'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 
-	response=`curl -sk -H "${authheader}" "${filesurl}"`
+	response=`curl -sk -H "${authheader}" "${hosturl}${args}?pretty=true$(pagination)"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		format_api_json "$response"

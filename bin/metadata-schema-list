@@ -70,7 +70,7 @@ main() {
 		metaurl="$hosturl/schemas/?pretty=true"
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" $metaurl$(pagination)"
+	cmd="curl -sk -H \"${authheader}\" '$metaurl$(pagination)'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"

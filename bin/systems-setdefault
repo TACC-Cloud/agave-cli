@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # systems-setdefault
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -24,7 +24,7 @@ usage() {
   echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
 
 Sets the given system as the user's default system of that type. If the -G
-argument is provided, the system will be set as the global default system 
+argument is provided, the system will be set as the global default system
 of that type. Note, admin privileges are needed to set global default
 systems.
 
@@ -54,23 +54,23 @@ source "$DIR/systems-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [ -z "$args" ]; then
 		err "Please specify a valid system id to publish"
 	else
-		
+
 		if [[ $global -eq 1 ]]; then
 			action="setGlobalDefault";
 		else
 			action="setDefault";
 		fi
-		
-		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=${action}\" $hosturl$args?pretty=true"
+
+		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=${action}\" '$hosturl$args?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-	
+
 		response=`curl -sk -H "${authheader}" -X PUT -d "action=${action}" "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
@@ -80,7 +80,7 @@ main() {
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
 		fi
-	fi	
+	fi
 }
 
 format_api_json() {

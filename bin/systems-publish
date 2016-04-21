@@ -1,11 +1,11 @@
 #!/bin/bash
-# 
+#
 # systems-publish
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It publishes the system for public use. Global admin privileges are 
+# It publishes the system for public use. Global admin privileges are
 # required to publish a system.
 #
 
@@ -23,7 +23,7 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
 
-Publishes a system for public use. Global admin privileges are 
+Publishes a system for public use. Global admin privileges are
 required to publish a system.
 
  Options:
@@ -51,17 +51,17 @@ source "$DIR/systems-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [ -z "$args" ]; then
 		err "Please specify a valid system id to publish"
 	else
-		
-		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=publish\" $hosturl$args?pretty=true"
+
+		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=publish\" '$hosturl$args?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-	
+
 		response=`curl -sk -H "${authheader}" -X PUT -d "action=publish" "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
@@ -71,7 +71,7 @@ main() {
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
 		fi
-	fi	
+	fi
 }
 
 format_api_json() {

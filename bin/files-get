@@ -202,7 +202,7 @@ main() {
 
     else
        # set -x
-      cmd="curl -k -H \"${authheader}\" ${filerange} ${outputarg} ${filesurl}"
+      cmd="curl -k -H \"${authheader}\" ${filerange} ${outputarg} '${filesurl}'"
 
 
       if ((veryverbose)); then

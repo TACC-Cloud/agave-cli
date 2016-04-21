@@ -60,7 +60,7 @@ main() {
 		transformsurl="$hosturl"
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" ${transformsurl}?pretty=true$(pagination)"
+	cmd="curl -sk -H \"${authheader}\" '${transformsurl}?pretty=true$(pagination)'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"

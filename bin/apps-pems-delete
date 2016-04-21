@@ -57,7 +57,7 @@ main() {
 	if [ -z "$args" ]; then
 		err "Please specify an app id for which to set the permissions"
 	else
-		cmd="curl -sk -H \"${authheader}\" -X DELETE $hosturl$args/pems/$pemusername?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X DELETE '$hosturl$args/pems/$pemusername?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"

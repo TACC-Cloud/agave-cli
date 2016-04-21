@@ -61,18 +61,18 @@ main() {
 		err "Please specify a valid source path to copy"
 	else
 		if [ -n "$systemId" ]; then
-			filesurl="${hosturl}media/system/${systemId}/${args}?pretty=true"
+			hosturl="${hosturl}media/system/${systemId}/"
 		else
-			filesurl="${hosturl}media/${args}?pretty=true"
+			hosturl="${hosturl}media/"
 		fi
 
-		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=move&path=${destination}\" ${filesurl}"
+		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=move&path=${destination}\" '${hosturl}${args}?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X PUT -d "action=move&path=${destination}" "${filesurl}"`
+		response=`curl -sk -H "${authheader}" -X PUT -d "action=move&path=${destination}" "${hosturl}${args}?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")

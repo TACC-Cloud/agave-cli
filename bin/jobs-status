@@ -60,15 +60,15 @@ main() {
 		err "Please specify a valid app id for which to retrieve permissions"
 	else
 
-		jobsurl="$hosturl/$args/status"
+		hosturl="$hosturl/$args/status"
 
-		cmd="curl -sk -H \"${authheader}\" $jobsurl?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" '$hosturl?pretty=true$(paginate)'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" "$jobsurl?pretty=true"`
+		response=`curl -sk -H "${authheader}" "$hosturl?pretty=true$(paginate)"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
@@ -95,7 +95,7 @@ format_api_json() {
 
   if ((watch)); then
     clear
-    echo "Watching job $args" 
+    echo "Watching job $args"
     date
   fi
 

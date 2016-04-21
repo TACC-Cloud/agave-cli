@@ -57,7 +57,7 @@ main() {
 		err "Please specify a valid system id for which to retrieve permissions"
 	else
 
-		cmd="curl -sk -H \"${authheader}\" $hosturl$args/roles/$roleusername?pretty=true$(pagination)"
+		cmd="curl -sk -H \"${authheader}\" '$hosturl$args/roles/$roleusername?pretty=true$(pagination)'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"

@@ -235,7 +235,7 @@ main() {
 
       else
 
-        cmd="curl -k -H \"${authheader}\" ${filerange} ${outputarg} ${filesurl}"
+        cmd="curl -k -H \"${authheader}\" ${filerange} ${outputarg} '${filesurl}'"
 
         if ((veryverbose)); then
          [ "$piped" -eq 0 ] && log "Calling $cmd"

@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # apps-delete
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
@@ -23,7 +23,7 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [APP_ID]
 
-Delete an app. Once deleted, an app cannot be undeleted. The app's 
+Delete an app. Once deleted, an app cannot be undeleted. The app's
 unique id will be unavailable for reassignment to future apps.
 
  Options:
@@ -51,18 +51,18 @@ source "$DIR/apps-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [ -z "$args" ]; then
 		response="Please specify a valid app id to delete"
-		err $response 
+		err $response
 	else
-	
-		cmd="curl -sk -H \"${authheader}\" -X DELETE $hosturl/$args?pretty=true"
+
+		cmd="curl -sk -H \"${authheader}\" -X DELETE '$hosturl/$args?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-	
+
 		response=`curl -sk -H "${authheader}" -X DELETE "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
@@ -72,7 +72,7 @@ main() {
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
 		fi
-	fi	
+	fi
 }
 
 format_api_json() {

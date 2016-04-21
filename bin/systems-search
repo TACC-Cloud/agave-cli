@@ -131,7 +131,7 @@ main() {
         done
     fi
 
-    cmd="curl -G -sk -H \"${authheader}\" $systemsurl?pretty=true$(pagination) ${querystring}"
+    cmd="curl -G -sk -H \"${authheader}\" '$systemsurl?pretty=true$(pagination)' ${querystring}"
 
 	if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"

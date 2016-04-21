@@ -1,12 +1,12 @@
 #!/bin/bash
-# 
+#
 # apps-clone
-# 
+#
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
 # It creates a private copy of a publicly published app. Only public
-# apps may be cloned. The cloning process will create a copy of the 
+# apps may be cloned. The cloning process will create a copy of the
 # application assets in the cloning user's default storage system.
 #
 
@@ -25,7 +25,7 @@ usage() {
   echo -n "$(basename $0) [OPTION]... [APP_ID]
 
 Creates a private copy of a published app. Only public
-apps may be cloned. The cloning process will create a copy of the 
+apps may be cloned. The cloning process will create a copy of the
 application assets in the cloning user's default storage system.
 
  Options:
@@ -64,45 +64,45 @@ source "$DIR/apps-common.sh"
 main() {
 	#echo -n
 	#set -x
-	
+
 	if [ -z "$args" ]; then
 		err "Please specify a valid app id to clone"
 	else
-		
+
 		form_params=""
 		if [ -n "$appname" ]; then
 			dat="name=${appname}"
 			form_params="${form_params} --data-urlencode "${dat}
 		fi
-		
+
 		if [ -n "$appversion" ]; then
 			dat="version=${appversion}"
 			form_params="${form_params} --data-urlencode "${dat}
 		fi
-		
+
 		if [ -n "$deploymentSystem" ]; then
 			dat="deploymentSystem=${deploymentSystem}"
 			form_params="${form_params} --data-urlencode "${dat}
 		fi
-		
+
 		if [ -n "$executionSystem" ]; then
 			dat="executionSystem=${executionSystem}"
 			form_params="${form_params} --data-urlencode "${dat}
 		fi
-		
+
 		if [ -n "$deploymentPath" ]; then
 			dat="deploymentPath=${deploymentPath}"
 			form_params="${form_params} --data-urlencode "${dat}
 		fi
-		
-		cmd="curl -sk  -H \"${authheader}\" -X PUT $hosturl$args?pretty=true --data-urlencode "action=clone" ${form_params}"
+
+		cmd="curl -sk  -H \"${authheader}\" -X PUT '$hosturl$args?pretty=true' --data-urlencode "action=clone" '${form_params}'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
-	
+
 		response=`curl -sk  -H "${authheader}" -X PUT -d "$form_params" "$hosturl$args?pretty=true" --data-urlencode "action=clone" ${form_params}`
-		
+
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
 			success "$result"
@@ -110,7 +110,7 @@ main() {
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
 		fi
-	fi	
+	fi
 }
 
 format_api_json() {

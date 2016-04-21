@@ -64,7 +64,7 @@ main() {
 			filesurl="${hosturl}media/${args}?pretty=true"
 		fi
 
-		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=copy&path=${destination}\" ${filesurl}"
+		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=copy&path=${destination}\" '${filesurl}'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"

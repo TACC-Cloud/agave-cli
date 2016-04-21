@@ -102,7 +102,7 @@ main() {
         fi
 
 
-		cmd="curl -sk -H \"${authheader}\" -X PUT --data-urlencode \"action=publish\" ${publicAppparams} $hosturl$args?pretty=true"
+		cmd="curl -sk -H \"${authheader}\" -X PUT --data-urlencode \"action=publish\" ${publicAppparams} '$hosturl$args?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"

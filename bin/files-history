@@ -56,19 +56,19 @@ main() {
 	#set -x
 
 	if [ -n "$systemId" ]; then
-		filesurl="${hosturl}history/system/${systemId}/${args}?pretty=true$(pagination)"
+		hosturl="${hosturl}history/system/${systemId}/${args}?pretty=true$(pagination)"
 	else
-		filesurl="${hosturl}history/${args}?pretty=true$(pagination)"
+		hosturl="${hosturl}history/${args}?pretty=true$(pagination)"
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" ${filesurl}"
+	cmd="curl -sk -H \"${authheader}\" '${hosturl}'"
 
 	if ((veryverbose)); then
 		version;
 		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 
-	response=`curl -sk -H "${authheader}" "${filesurl}"`
+	response=`curl -sk -H "${authheader}" "${hosturl}"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
