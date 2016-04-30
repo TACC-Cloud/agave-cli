@@ -87,8 +87,10 @@ function out() {
 function die() { out "$@"; exit 1; } >&2
 function err() {
 	if [[ -n $(ishtmlstring "$response") ]]; then
-		jsonresponsemessage="{\"status\":\"error\",\"message\":\"Unexpected response from the API server\",\"result\":null}"
-		response=`echo $jsonresponsemessage | python -mjson.tool`
+    response=$(get_html_message "$response")
+		# jsonresponsemessage="{\"status\":\"error\",\"message\":\"Unexpected response from the API server\",\"result\":null}"
+		response=$(to_json_error_message "$response" | python -mjson.tool)
+    # response=`echo $jsonresponsemessage | python -mjson.tool`
 	elif [[ -n $(isxmlstring "$response") ]]; then
 		#response=`echo "$response" | xmllint --format -`
 #		responsemessage=${1#*<ams:message>}
@@ -99,13 +101,13 @@ function err() {
 		response=$@
 	fi
 
-  	if (($verbose)); then
+  if (($verbose)); then
 		if ((piped)); then
 		  out "${response}"
 		else
 		  out "\033[1;31m${response}\033[0m"
 		fi
-  	else
+  else
 		if ((piped)); then
 		  out "$@"
     	else
@@ -206,7 +208,7 @@ function jsonval {
 function ishtmlstring {
 	if [[ -n "$1" ]]; then
 		firstelement=${1:0:5}
-		if [[ "$firstelement" = "<html" ]]; then
+		if [[ "$firstelement" = "<html" ]] || [[ "$firstelement" = "<!DOC" ]]; then
 			echo 1
 		fi
 	fi
@@ -225,14 +227,28 @@ function isxmlstring {
 	fi
 }
 
+function get_html_message() {
+  if [[ -n $(echo "$1" | grep "<title") ]]; then
+    echo "$1" | grep -om1 "<title>[^<]*" | sed -e 's/<title>//'
+  elif [[ -n $(echo "$1" | grep "<p") ]]; then
+    echo "$1" | grep -om1 "<p>[^<]*" | sed -e 's/<p>//'
+  else
+		echo "Unexpected response from the API server."
+	fi
+}
+
 function get_xml_message() {
+  set -x
 	if [[ -n $(echo "$1" | grep -om1 "<ams:message>[^<]*") ]]; then
 		echo "$1" | grep -om1 "<ams:message>[^<]*" | sed -e 's/<ams:message>//'
 	elif [[ -n $(echo "$1" | grep -om1 "<am:description>[^<]*") ]]; then
 		echo "$1" | grep -om1 "<am:description>[^<]*" | sed -e 's/<am:description>//'
-	else
+  elif [[ -n $(echo "$1" | grep "<title") ]]; then
+    echo "$1" | grep -om1 "<title>[^<]*" | sed -e 's/<title>//'
+  else
 		echo "$1"
 	fi
+  set +x
 }
 
 function to_json_error_message() {
@@ -271,23 +287,33 @@ function pagination {
 }
 
 function jsonquery {
-
+    # set -x
   	if [[ -z "$1" ]]; then
     	if [[ "$2" = "message" ]]; then
       		echo "Unable to contact api server at $hosturl"
     	fi
+    elif [[ -n "$(echo $1 | grep '^{"fault":{"code"')" ]]; then
+      if [[ "$2" = "message" ]]; then
+        if (( $veryverbose )); then
+				  echo "$1"
+        else
+          apimerr=$(echo "$1" | grep -om1 '"message":"[^"]*"' | sed -e 's/"message":"//' | sed -e 's/"//')
+          echo "$apimerr"
+        fi
+      fi
   	elif [[ -n $(ishtmlstring "$1") ]]; then
-		if [[ "$2" = "message" ]]; then
-			if (( $veryverbose )); then
-				echo "$1"
-			else
-				echo "Unexpected response from the API server."
-			fi
-		fi
-	elif [[ -n $(isxmlstring "$1") ]]; then
-		if [[ "$2" = "message" ]]; then
+		  if [[ "$2" = "message" ]]; then
+			  if (( $veryverbose )); then
+				  echo "$1"
+			  else
+          echo $(get_html_message "$1")
+				  # echo "Unexpected response from the API server."
+			  fi
+		  fi
+	  elif [[ -n $(isxmlstring "$1") ]]; then
+	    if [[ "$2" = "message" ]]; then
 
-			echo $(get_xml_message "$1")
+			  echo $(get_xml_message "$1")
 
 			# echo $(echo "$1" | grep -oPm1 "(?<=<ams:message>)[^<]+")
 
@@ -306,16 +332,16 @@ function jsonquery {
 			elif [[ 'jq' == "$AGAVE_JSON_PARSER" ]]; then
 
 				jpath=".${2}"
-				
+
 				if [[ -n "$3" ]]; then
-				
+
 				        if [[ "$jpath" =~ \[\] ]]; then
 						oIFS="$IFS"
 						IFS="[]" read fbefore fmiddle fafter <<< "$jpath"
 						IFS="$oIFS"
 						unset oIFS
 						fbefore_noperiod="${fbefore%?}"
-				 
+
 						if [[ -z "$fbefore_noperiod" ]]; then
 				                	echo "$1" | jq ".[] | $fafter"
 						else
@@ -325,7 +351,7 @@ function jsonquery {
 				                echo "$1" | jq "$jpath"
 				        fi
 				else
-				
+
 				        if [[ "$jpath" =~ \[\] ]]; then
 						oIFS="$IFS"
 						IFS="[]" read fbefore fmiddle fafter <<< "$jpath"
@@ -346,7 +372,7 @@ function jsonquery {
 			elif [[ 'json' == "$AGAVE_JSON_PARSER" ]]; then
 
 				if [[ -n "$3" ]]; then
-				
+
 					if [[ "$2" =~ \[\] ]]; then
 						oIFS="$IFS"
 						IFS="[]" read fbefore fmiddle fafter <<< "$2"
@@ -357,7 +383,7 @@ function jsonquery {
 						echo "$1" | json -j $2
 					fi
 				else
-				
+
 					if [[ "$2" =~ \[\] ]]; then
 						oIFS="$IFS"
 						IFS="[]" read fbefore fmiddle fafter <<< "$2"

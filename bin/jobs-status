@@ -62,13 +62,13 @@ main() {
 
 		hosturl="$hosturl/$args/status"
 
-		cmd="curl -sk -H \"${authheader}\" '$hosturl?pretty=true$(paginate)'"
+		cmd="curl -sk -H \"${authheader}\" '$hosturl?pretty=true$(pagination)'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" "$hosturl?pretty=true$(paginate)"`
+		response=`curl -sk -H "${authheader}" "$hosturl?pretty=true$(pagination)"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
