@@ -1,11 +1,12 @@
 #!/bin/bash
 #
-# jobs-search
+# notifications-list
 #
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It retrieves a list jobs based on search criteria.
+# It retrieves a list of pending notifications. Optionally, one can search by
+# an uuid to get all notifiations for a given object
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -20,47 +21,37 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTIONS]... [QUERY_TERM]...
+  echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... [QUERY_TERM]...
 
-Search for jobs based on job attribute values. Valid values should be
-specified in key pairs such as appid=foo-1.0.0 or archive=true. Multiple
-search terms should be provided as a URL query string. For example,
-'batchqueue=normal' 'system=compute.example.com' 'status=RUNNING'.
+Search for notifications based on attribute values. Valid values should be
+specified in key pairs such as url.like=*example.com/jobs* or persist=true.
+Multiple search terms may be provided as consecutive arguments. For example,
+'associatedUuid.in=6642824771244912155-242ac11a-0001-006,7087597638212260326-b0b0b0bb0b-0001-002'
+'event.like=*CONTENT_CHANGE*'.
 
  Query parameters:
-  appid                The id of the app run by the job.
-  archive              Boolean flag stating whether the job output
-                       was archived.
-  archivepath          Path on the archive system where the job output
-                       was archived if the archive flag was true.
-  archivesystem        The id of the system where the job output was
-                       archived if the archive flag was true.
-  batchqueue           The system queue in which the job ran.
-  executionsystem      The execution system where the job ran.
-  id                   The id of the job.
-  inputs               The job inputs. Note, this is currently a
-                       full text match.
-  localid              The local job id of the job on the execution system.
-  maxruntime           The maximum run time of the job in HH:mm:ss format.
-  memorypernode        The memory requested by the job specified in GB.
-  name                 The name of the job.
-  nodecount            The number of nodes requested for the job.
-  outputpath           The remote work directory path of the job.
-  parameters           The job parameters. Note, this is currently a
-                       full text match.
-  processorspernode    The number of processors per node requested
-                       by the job.
-  retries              The number of retry attempts made on this job.
-  starttime            The date the job began running. Results are rounded by
-                       day. You may specify using YYYY-MM-DD format or free
-                       form timeframes such as 'yesterday' or '3 days ago'.
-  status               The job status.
-  submittime           The date the job was submitted to the remote execution
-                       system to run. Results are rounded by day. You may
-                       specify using YYYY-MM-DD format or free form timeframes
-                       such as 'yesterday' or '3 days ago'.
-  visible              Boolean flag indicating whether or not to show deleted
-                       jobs. Defaults to false.
+  available                     Whether the notification is available. Boolean, default true
+  created                       The timestamp when the notification was first registered. Results are
+                                rounded by day. You may specify using YYYY-MM-DD format or free
+                                form timeframes such as 'yesterday' or '3 days ago'.
+  associatedUuid                The uuid of an Agave resource for which this notification will fire.
+                                Boolean, default false.
+  event                         The name of the event for which the notification will fire.
+  id                            The unique id of a notification.
+  lastsent                      The timestamp of the last time an attempt was made for this notification.
+  lastupdated                   The timestamp of the last time the notification was updated. Results are
+                                rounded by minute. You may specify using YYYY-MM-DD format or free
+                                form timeframes such as 'yesterday' or '3 days ago'.
+  owner                         The username of the principal who originally registered the system.
+  persistent                        Whether the system is publicly available for use. Boolean, if true
+                                only public systems will be returned. If false, only private systems
+                                will be returned. If unset, both public and private will be returned.
+                                Default null.
+  status                        The status of the system. Possible values are: ACTIVE, INACTIVE, FAILED,
+                                UNKNOWN.
+  success                       Whether the notification has been a success. Booelan, default true
+  url                           The callback url to which deliveries should be made.
 
  Options:
   -z, --access_token    Access token
@@ -84,13 +75,13 @@ search terms should be provided as a URL query string. For example,
 ##################################################################
 ##################################################################
 
-source "$DIR/jobs-common.sh"
+source "$DIR/notifications-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 
-	jobsurl=${hosturl%/}
+	hosturl=${hosturl%/}
 
   querystring=""
 
@@ -101,13 +92,13 @@ main() {
       done
   fi
 
-  cmd="curl -G -sk -H \"${authheader}\" '$jobsurl?pretty=true$(pagination)' ${querystring}"
+  cmd="curl -G -sk -H \"${authheader}\" '$hosturl?pretty=true$(pagination)' ${querystring}"
 
 	if ((veryverbose)); then
-		[ "$piped" -eq 0 ] && log "Calling $cmd"
-	fi
+      [ "$piped" -eq 0 ] && log "Calling $cmd"
+  fi
 
-	response=`curl -G -sk -H "${authheader}" $jobsurl?pretty=true$(pagination) $querystring`
+  response=`curl -sk -H "${authheader}" "hosturl?pretty=true$(pagination)" ${querystring}"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
@@ -126,18 +117,14 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		echo "${result}" | python -mjson.tool
 	else
-		jobids=( $(jsonquery "$1" "result.[].id") )
+        if [[ -z "$args" ]]; then
+            results=$(jsonquery "$1" "result.[].id")
+            echo "$results";
+        else
+            id=$(jsonquery "$1" "result.id")
+            echo "$id"
+        fi
 
-		n=0
-		for i in $(jsonquery "$1" "result.[].status")
-		do
-			jobids[$n]="${jobids[$n]} $i"
-			n=$[n+1]
-		done
-
-		for i in "${jobids[@]}"; do
-			echo "$i"
-		done
 	fi
 }
 
@@ -163,6 +150,7 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
+    -U|--uuid) shift; uuid=$1 ;;
     -l|--limit) shift; limit=$1;;
     -o|--offset) shift; offset=$1;;
     -H|--hosturl) shift; hosturl=$1;;

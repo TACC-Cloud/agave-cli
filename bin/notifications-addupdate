@@ -34,6 +34,16 @@ information as a JSON object or via command line arguments.
   -U, --url               The callback url or email address for this notification
   -E, --event             The event about which to send notifications
   -P, --persistent        Whether this event should expire after the first occurence
+  -R, --retrystrategy     The retry strategy to apply: IMMEDIATE, DELAYED, EXPONENTIAL
+  -D, --retrydelay        The number of seconds to delay after the initial notification
+                          attempt before beginning retry attempts. Max is 1 day.
+  -L, --retrylimit        Maximum number of retries before failing and terminating
+                          subsequent attempts. Max 1440 or once per minute for an
+                          entire day.
+  -I, --retryrate         Number of seconds between retries. A value of zero indicates
+                          the attempt should be retired immediately.
+  -S, --saveonfailure     Whether a failed attempt will be stored if delivery cannot
+                          be made before the retry policy parameters are violated.
   -A, --associatedUuid    The uuid of the object for which this notification applies
   -H, --hosturl           URL of the service
   -d, --development       Run in dev mode using default dev server
@@ -84,7 +94,49 @@ main() {
         persistent="false"
     fi
 
-    cmd="curl -sk -H \"${authheader}\" -X POST -d \"event=${event}&persistent=${persistent}&associatedUuid=${associatedUuid}&url=${url}\" '${hosturl}$args?pretty=true'"
+    # boolean field
+    if [[ -n "$saveonfailure" ]]; then
+      if [[ "$saveonfailure" == "true" ]] || [[ "$saveonfailure" = "1" ]]; then
+        saveonfailure="true"
+      else
+        saveonfailure="false"
+      fi
+    else
+      saveonfailure="false"
+    fi
+
+    # IMMEDIATE, DELAYED, EXPONENTIAL
+    if [[ -z "$retrystrategy" ]]; then
+        retrystrategy="IMMEDIATE"
+    fi
+
+    re='^[0-9]+$'
+
+    if [[ -n "$retrydelay" ]]; then
+      if ! [[ $retrydelay =~ $re ]] ; then
+        err "Please specify a positive integer value for the delay before the first delivery retry attempt begins"
+      fi
+    else
+      retrylimit=5
+    fi
+
+    if [[ -n "$retrylimit" ]]; then
+      if ! [[ $retrylimit =~ $re ]] ; then
+        err "Please specify a positive integer value for the maximum delivery retry attempts to be made"
+      fi
+    else
+        retrylimit="5"
+    fi
+
+    if [[ -n "$retryrate" ]]; then
+      if ! [[ $retrylimit =~ $re ]] ; then
+        err "Please specify a positive integer value for the seconds to wait between retry attmepts"
+      fi
+    else
+        retryrate="5"
+    fi
+
+    cmd="curl -sk -H \"${authheader}\" -X POST -H 'Content-Type: application/json' --data-binary  '{\"event\":\"${event}\",\"persistent\":\"${persistent}\"&associatedUuid\":\"${associatedUuid}&url\":\"${url}\",\"policy\":{\"retryStrategy\":\"$retrystrategy\",\"retryLimit\":$retrylimit,\"retryRate\":$retryrate,\"retryDelay\":$retrydelay,\"saveOnFailure\":$saveonfailure}}' '${hosturl}$args?pretty=true'"
 
     if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"
