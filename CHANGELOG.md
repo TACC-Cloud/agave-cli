@@ -1,6 +1,21 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2.1.8 - 2016-06-13
+### ADDED
+- `jobs-kick` command to roll a job back to its previous status and retry processing from there.
+- Added search support to the `monitors-checks-list` command.
+- Added support for specify custom notification delivery retry policy in the `notifications-addupdate` script.
+- Adding support for strict validation of inputs and paramters in the `jobs-resubmit` script. You can now use the `-I` and `--strictinputs` to enforce strict reproducibility on the submissi    on syntax and `-P` and  `--strictparams` to enforce strict reproducibility on the input syntax. Thes allow you to shield yourself against changes to the app descriptions that would otherwise silently go through. 
+
+### FIXED
+- Fixed a bug in `monitors-addupdate` preventing json descriptions from being read from stdin.
+- Fixed a bug where the veryverbose output of the `systems-list` script did not quote the url.
+
+### REMOVED
+- No changes.
+
+
 ## 2.1.5 - 2016-03-09
 ### ADDED
 - No changes.

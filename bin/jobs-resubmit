@@ -30,6 +30,12 @@ a new job id is assigned.
   -z, --access_token    Access token
   -W, --watch           Watch the job history after it has been submitted, updating
                         every few seconds until the job reaches a terminal state
+  -I, --strictinputs   Forces strict checking of hidden job inputs. This will fail all
+                        resubmissions where the app description has changed the hidden
+                        input values.
+  -P, --strictparams   Forces strict checking of hidden job parameters. This will fail all
+                        resubmissions where the app description has changed the hidden
+                        parameter values.
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
@@ -57,13 +63,26 @@ main() {
 	if [[ -z "$args" ]]; then
 		err "Please specify a job id to resubmit"
 	else
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"action=resubmit\" '$hosturl$args?pretty=true'"
+
+        if ((strictinputs)); then
+            strictinputs='true'
+        else
+            strictinputs='false'
+        fi
+
+        if ((strictparams)); then
+            strictparams='true'
+        else
+            strictparams='false'
+        fi
+
+		cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary '{ \"action\": \"resubmit\", \"ignoreInputConflicts\": $strictinputs, \"ignoreParameterConflicts\": $strictparams }' '$hosturl$args?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X POST -d "action=resubmit" "$hosturl$args?pretty=true"`
+		response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary '{"action": "resubmit", "ignoreInputConflicts": '$strictinputs', "ignoreParameterConflicts": '$strictparams' }'  "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 
@@ -134,6 +153,8 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
+    -I|--strictinputs) strictinputs=1 ;;
+    -P|--strictparams) strictparams=1 ;;
     -W| --watch) watch=1;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;

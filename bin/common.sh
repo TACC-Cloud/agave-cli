@@ -238,7 +238,7 @@ function get_html_message() {
 }
 
 function get_xml_message() {
-  set -x
+  #set -x
 	if [[ -n $(echo "$1" | grep -om1 "<ams:message>[^<]*") ]]; then
 		echo "$1" | grep -om1 "<ams:message>[^<]*" | sed -e 's/<ams:message>//'
 	elif [[ -n $(echo "$1" | grep -om1 "<am:description>[^<]*") ]]; then
@@ -248,7 +248,7 @@ function get_xml_message() {
   else
 		echo "$1"
 	fi
-  set +x
+  #set +x
 }
 
 function to_json_error_message() {

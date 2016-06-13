@@ -57,7 +57,7 @@ main() {
 
 	hosturl=${hosturl%/}
 	if [ -z "$args" ]; then
-		err "Please specify a valid app id for which to retrieve permissions"
+		err "Please specify a valid job id for which to retrieve the status"
 	else
 
 		hosturl="$hosturl/$args/status"

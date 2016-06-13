@@ -66,44 +66,56 @@ main() {
 	#set -x
 
 	hosturl=${hosturl%/}
-	if [ -n "$args" ]; then
-		monitorurl="${hosturl}/${monitorId}/checks/${args}?pretty=true$(pagination)"
-	else
-        querystring="pretty=true"
-        if [ -n "$startDate" ]; then
-            querystring="startDate=${startDate}&${querystring}"
-        fi
 
-        if [ -n "$endDate" ]; then
-            querystring="endDate=${endDate}&${querystring}"
-        fi
+  if [ -n "$args" ]; then
 
-        if [ -n "$result" ]; then
-            querystring="result=${result}&${querystring}"
-        fi
+  	monitorurl="${hosturl}/${monitorId}/checks/${args}?pretty=true$(pagination)"
 
-        if [ -n "$type" ]; then
-            querystring="type=${type}&${querystring}"
-        fi
+  else
+      querystring="pretty=true"
+      if [ -n "$startDate" ]; then
+          querystring="startDate=${startDate}&${querystring}"
+      fi
 
-        monitorurl="${hosturl}/${monitorId}/checks?${querystring}"
-    fi
+      if [ -n "$endDate" ]; then
+          querystring="endDate=${endDate}&${querystring}"
+      fi
 
-	cmd="curl -sk -H \"${authheader}\" '${monitorurl}$(pagination)'"
+      if [ -n "$result" ]; then
+          querystring="result=${result}&${querystring}"
+      fi
 
-	if ((veryverbose)); then
-		[ "$piped" -eq 0 ] && log "Calling $cmd"
-	fi
+      if [ -n "$type" ]; then
+          querystring="type=${type}&${querystring}"
+      fi
 
-	response=`curl -sk -H "${authheader}" "${monitorurl}"`
+      monitorurl="${hosturl}/${monitorId}/checks?${querystring}"
+  fi
 
-	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-		result=$(format_api_json "$response")
-		success "$result"
-	else
-		errorresponse=$(jsonquery "$response" "message")
-		err "$errorresponse"
-	fi
+  if [ -z "$monitorId" ]; then
+
+    response="Please provide a valid monitor id"
+    err "$response"
+
+  else
+
+    cmd="curl -sk -H \"${authheader}\" '${monitorurl}$(pagination)'"
+
+  	if ((veryverbose)); then
+  		[ "$piped" -eq 0 ] && log "Calling $cmd"
+  	fi
+
+  	response=`curl -sk -H "${authheader}" "${monitorurl}$(pagination)"`
+
+  	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+  		result=$(format_api_json "$response")
+  		success "$result"
+  	else
+  		errorresponse=$(jsonquery "$response" "message")
+  		err "$errorresponse"
+  	fi
+
+  fi
 }
 
 format_api_json() {

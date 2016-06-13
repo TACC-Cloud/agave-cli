@@ -117,7 +117,11 @@ main() {
         err "Please specify a positive integer value for the delay before the first delivery retry attempt begins"
       fi
     else
-      retrylimit=5
+      if [[ "$retrystrategy" = 'IMMEDIATE' ]] || [[  "$retrystrategy" = "NONE" ]] || [[ "$retrystrategy" = 'immediate' ]] || [[  "$retrystrategy" = "none" ]]; then
+        retrydelay=0
+      else
+        retrydelay=5
+      fi
     fi
 
     if [[ -n "$retrylimit" ]]; then
@@ -136,13 +140,13 @@ main() {
         retryrate="5"
     fi
 
-    cmd="curl -sk -H \"${authheader}\" -X POST -H 'Content-Type: application/json' --data-binary  '{\"event\":\"${event}\",\"persistent\":\"${persistent}\"&associatedUuid\":\"${associatedUuid}&url\":\"${url}\",\"policy\":{\"retryStrategy\":\"$retrystrategy\",\"retryLimit\":$retrylimit,\"retryRate\":$retryrate,\"retryDelay\":$retrydelay,\"saveOnFailure\":$saveonfailure}}' '${hosturl}$args?pretty=true'"
+    cmd="curl -sk -H \"${authheader}\" -X POST -H 'Content-Type: application/json' --data-binary  '{\"event\":\"${event}\",\"persistent\": ${persistent},\"associatedUuid\":\"${associatedUuid}\", \"url\":\"${url}\",\"policy\":{\"retryStrategy\":\"$retrystrategy\",\"retryLimit\":$retrylimit,\"retryRate\":$retryrate,\"retryDelay\":$retrydelay,\"saveOnFailure\":$saveonfailure}}' '${hosturl}$args?pretty=true'"
 
     if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"
     fi
 
-    response=`curl -sk -H "${authheader}" -X POST -d "event=${event}&persistent=${persistent}&associatedUuid=${associatedUuid}&url=${url}" "${hosturl}$args?pretty=true"`
+    response=`curl -sk -H "${authheader}" -X POST -H 'Content-Type: application/json' --data-binary "{\"event\":\"${event}\",\"persistent\": $persistent,\"associatedUuid\":\"${associatedUuid}\", \"url\":\"${url}\",\"policy\":{\"retryStrategy\":\"$retrystrategy\",\"retryLimit\":$retrylimit,\"retryRate\":$retryrate,\"retryDelay\":$retrydelay,\"saveOnFailure\": $saveonfailure}}" "${hosturl}$args?pretty=true"`
 
   # reading from stdin
   elif [[ "$filetoupload" == "-"  ]]; then
@@ -221,9 +225,14 @@ while [[ $1 = -?* ]]; do
     -F|--filetoupload) shift; filetoupload=$1 ;;
     -U|--url) shift; url=$1 ;;
     -E|--event) shift; event=$1 ;;
-    -P|--persistent) shift; persistent=$1 ;;
+    -P|--persistent) persistent="true" ;;
     -A|--associatedUuid) shift; associatedUuid=$1 ;;
-    -H|--hosturl) shift; hosturl=$1;;
+    -R|--retrystrategy) shift; retrystrategy=$1 ;;
+    -D|--retrydelay) shift; retrydelay=$1 ;;
+    -L|--retrylimit) shift; retrylimit=$1 ;;
+    -I|--retryrate) shift; retryrate=$1 ;;
+    -S|--saveonfailure) saveonfailure="true" ;;
+    -H|--hosturl) shift; hosturl=$1 ;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
     -V|--veryverbose) veryverbose=1; verbose=1 ;;

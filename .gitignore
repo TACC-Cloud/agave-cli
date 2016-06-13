@@ -1,6 +1,7 @@
 # Binary targets
 target
 *~
+/bin/transforms-apply
 
 # Intellij metadata files
 *.idea

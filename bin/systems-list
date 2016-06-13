@@ -29,6 +29,7 @@ default designation, and scope is supported.
 
  Options:
   -z, --access_token     Access token
+  -w, --filter           Only return the named fields in the response object.
   -S, --storageonly      Only return storage systems. Ignored if system id is given
   -E, --executiononly    Only return execution systems. Ignored if system id is given
   -D, --defaultonly      Only return default systems. Ignored if system id is given
@@ -85,7 +86,7 @@ main() {
 		systemsurl="${hosturl}?${querystring}"
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" ${systemsurl}"
+	cmd="curl -sk -H \"${authheader}\" '${systemsurl}'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"

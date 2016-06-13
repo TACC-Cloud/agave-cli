@@ -72,11 +72,6 @@ main() {
     response="Directory input is not supported"
     err "$response"
 
-  elif [[ ! -e "$filetoupload" ]] && [[ "$filetoupload" != "-" ]]; then
-
-    response="No JSON monitor object found at $filetoupload"
-    err "$response"
-
   else
 
     # no file input, using builder arguments instead
@@ -119,6 +114,12 @@ main() {
 
       # make sure we specify content type as application/json
       response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary @- "${hosturl}${args}?pretty=true"`
+
+    # check file exists
+    elif [[ ! -e "$filetoupload" ]]; then
+
+      response="No JSON monitor object found at $filetoupload"
+      err "$response"
 
     # standard file upload
     else
