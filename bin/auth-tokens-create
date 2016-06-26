@@ -41,7 +41,7 @@ credential for reuse in subsequent calls to the API.
   -p, --password       Agave tenant password
   -s, --apisecret      Consumer secret
   -k, --apikey         Consumer Key
-  -x, --proxyuser      API username for whom the returned token should apply, requires admin permissions
+  -x, --tokenuser      API username for whom the returned token should apply, requires admin permissions
   -S, --storetoken     Store the token for later use so you can work without reauthenticating on
                        every command. This is the default behavior
   -D, --displayonly    Display the fetched auth credentials, but do not save. The local auth cache
@@ -69,26 +69,29 @@ source "$DIR/auth-common.sh"
 main() {
 	#echo -n
 	#set -x
-	#hosturl=https://agave.iplantc.org/token
-	local post_options="username=${username}&password=${password}&grant_type=password&scope=PRODUCTION"
+	hosturl=${hosturl%/}/token
 
-	# if [ -n "$tenant" ]; then
-# 		post_options="tenant=${tenant}"
-# 	fi
-#
-# 	if [ -n "$proxyuser" ]; then
-# 		post_options="enduser=${proxyuser}&${post_options}"
-# 	fi
-	#
-	#post_options=${post_options%&}
+	if [ -n "$tokenuser" ]; then
+		#authUsername=$username
+		username=$tokenuser
+		authUsername=$tokenuser
+		#proxyUserQuery='--data-urlencode "token_username='$tokenuser'"'
+		grantType=admin_password
+		passField=adminPassword
+	else
+		authUsername=$username
+		proxyUserQuery=''
+		grantType=password
+		passField=password
+	fi
 
-	cmd="curl -sku \"$apikey:XXXXX\" -X POST --data-urlencode \"username=${username}\" --data-urlencode \"password=XXXXX\" --data-urlencode \"grant_type=password\" --data-urlencode \"scope=PRODUCTION\" -H \"Content-Type:application/x-www-form-urlencoded\" '${hosturl%/}'"
+	cmd="curl -sku \"$apikey:XXXXX\" -X POST ${proxyUserQuery} --data-urlencode \"username=${authUsername}\" --data-urlencode \"${passField}=XXXXX\" --data-urlencode \"grant_type=${grantType}\" --data-urlencode \"scope=PRODUCTION\" '${hosturl}'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 
-	response=`curl -sku "$apikey:$apisecret" -X POST --data-urlencode "username=${username}" --data-urlencode "password=${password}" --data-urlencode "grant_type=password" --data-urlencode "scope=PRODUCTION" -H "Content-Type:application/x-www-form-urlencoded" "${hosturl%/}" | python -mjson.tool`
+	response=`json_prettyify $(curl -sku "$apikey:$apisecret" -X POST ${proxyUserQuery} --data-urlencode "username=${authUsername}" --data-urlencode "${passField}=${password}" --data-urlencode "grant_type=${grantType}" --data-urlencode "scope=PRODUCTION" "$hosturl")`
 
 	if [[ $(jsonquery "$response" "token_type") = 'bearer' ]]; then
 		result=$(format_api_json "$response")
@@ -105,12 +108,14 @@ format_api_json() {
 		jsonval access_token "$1" "access_token"
 		jsonval refresh_token "$1" "refresh_token"
 		jsonval expires_in "$1" "expires_in"
+
 		created_at=$(date +%s)
-    if date --version >/dev/null 2>&1 ; then
-      expires_at=`date -d @$(expr $created_at + $expires_in)`
-    else
-      expires_at=`date -r $(expr $created_at + $expires_in)`
-    fi
+
+		if date --version >/dev/null 2>&1 ; then
+		  expires_at=`date -d @$(expr $created_at + $expires_in)`
+		else
+		  expires_at=`date -r $(expr $created_at + $expires_in)`
+		fi
 
 		kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
 
@@ -120,7 +125,7 @@ format_api_json() {
 	if ((veryverbose)); then
 		echo "${1}"
 	elif [[ $verbose -eq 1 ]]; then
-		echo "${1}" | python -mjson.tool
+		json_prettyify "${1}"
 	else
 		result=$(jsonquery "$1" "access_token")
 		echo "${result}"
@@ -153,7 +158,7 @@ while [[ $1 = -?* ]]; do
   	-p|--password) shift; password=$1 ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
-    -x|--proxyuser) shift; proxyuser=$1;;
+    -x|--tokenuser) shift; tokenuser=$1;;
     -S|--storetoken) storetoken=1 ;;
     -D|--displayonly) storetoken=0 ;;
     -H|--hosturl) shift; hosturl=$1;;
@@ -176,3 +181,15 @@ args+=("$@")
 
 # Run the script logic
 source "$DIR/runner.sh"
+
+
+#		print_options='-d "grant_type=admin_password" -d "username='$proxyuser'" -d "scope=PRODUCTION" -d "adminPassword=XXXXX"'
+#		post_options='--data-urlencode  "grant_type=admin_password" --data-urlencode  "username='$proxyuser'" --data-urlencode  "scope=PRODUCTION" --data-urlencode  "adminPassword='$password'"'
+#		cmd="curl -sku \"$apikey:XXXXX\" -X POST --data-binary '$print_options' '$hosturl'"
+#	else
+#		print_options='{ "password": "admin_password", "username": "'$username'", "scope": "PRODUCTION", "password": "XXXXX"}'
+#		post_options='{ "password": "admin_password", "username": "'$username'", "scope": "PRODUCTION", "password": "'$password'"}'
+#		cmd="curl -sku \"$apikey:XXXXX\" -X POST --data-binary '$print_options' '$hosturl'"
+#	fi
+
+#	cmd="curl -sku \"$apikey:XXXXX\" -X POST --data-binary '$print_options' '$hosturl'"

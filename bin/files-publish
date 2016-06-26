@@ -45,6 +45,7 @@ id is specified, the user's default storage system will be used.
                             requires admin permissions
   -M, --method              HTTP method the postit should perform: GET, POST, PUT, DELETE.
                             Defaults to GET
+      --filter              Comma separated list of fields to return in the response
   -H, --hosturl             URL of the service
   -d, --development         Run in dev mode using default dev server
   -f, --force               Skip all user interaction
@@ -119,7 +120,7 @@ main() {
       err "$upload_response"
 
     else
-      
+
       basefilename=$(basename $filetoupload)
 
       remoteurl=$(echo "$upload_response" | grep -i "media/.*/$args/$basefilename\"\$" | sed 's/"href" : //g' | sed 's/"//g' | sed 's/ //g' )
@@ -175,6 +176,7 @@ while [[ $1 = -?* ]]; do
     -m|--maxUses) shift; maxUses=$1 ;;
     -u|--internalUsername) shift; internalUsername=$1 ;;
     -M|--method) shift; method=$1;;
+    --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

@@ -34,17 +34,17 @@ The Agave CLI is a collection of Bash shell scripts allowing you to interact wit
 
 The CLI is a set of interactive scripts. You can run them individually by running a separate container each time, or via an interactive terminal session.
 
-  > docker run -i -t --rm agaveapi/agave-cli bash
+  > docker run -i -t --rm agaveapi/cli bash
 
 You need to initialize your environment prior to using the CLI. This will create a cache file holding your session authentication info, api keys, and API endpoints. Rather than repeat this every time you run the container, we recommend creating a local directory to hold the cache info and attaching it as a volume.
 
-  > docker run -i -t --rm -v `$HOME`/.agave:/root/.agave agaveapi/agave-cli bash
+  > docker run -i -t --rm -v `$HOME`/.agave:/root/.agave agaveapi/cli bash
 
 ## Getting started
 
 From here on, we assume you are running an interactive container with the following command. All future commands are given inside the container's interactive shell. We will start the container with a local cache directory attached as a volume.
 
-  > docker run -i -t --rm -v `$HOME`/.agave:/root/.agave agaveapi/agave-cli bash
+  > docker run -i -t --rm -v `$HOME`/.agave:/root/.agave agaveapi/cli bash
 
 We assume you either set or will replace the following environment variables:
 

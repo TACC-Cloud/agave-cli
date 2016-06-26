@@ -36,6 +36,7 @@ a new job id is assigned.
   -P, --strictparams   Forces strict checking of hidden job parameters. This will fail all
                         resubmissions where the app description has changed the hidden
                         parameter values.
+      --filter          Comma separated list of fields to return in the response
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
@@ -120,10 +121,10 @@ main() {
 format_api_json() {
 
 	if ((veryverbose)); then
-		echo "$1" | python -mjson.tool
+		json_prettyify "${1}"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
-		echo "${result}" | python -mjson.tool
+		json_prettyify "${result}"
 	else
 		jobid=$(jsonquery "$1" "result.id")
 		echo "Successfully resubmitted job $args as $jobid"
@@ -156,6 +157,7 @@ while [[ $1 = -?* ]]; do
     -I|--strictinputs) strictinputs=1 ;;
     -P|--strictparams) strictparams=1 ;;
     -W| --watch) watch=1;;
+    --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

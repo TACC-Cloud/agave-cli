@@ -38,6 +38,7 @@ user's default storage system will be used.
                         for a full list of supported file types. Defaults to 'raw'
   -N, --filename        The name of the file once uploaded
   -S, --systemid        The system to which the file or folder will be uploaded
+      --filter          Comma separated list of fields to return in the response
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
@@ -252,11 +253,8 @@ format_api_json() {
 		out "$1"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
-		out "${result}" | python -mjson.tool
-	# else
-  #   if [ -f "$filetoupload" ]; then
-	# 	  exit
-  #   fi
+		#out "${result}" | python -mjson.tool
+		json_prettyify out "${result}"
 	fi
 }
 
@@ -288,6 +286,7 @@ while [[ $1 = -?* ]]; do
     -T|--filetype) shift; filetype=$1 ;;
     -N|--filename) shift; filename=$1 ;;
     -S|--systemid) shift; systemid=$1 ;;
+    --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

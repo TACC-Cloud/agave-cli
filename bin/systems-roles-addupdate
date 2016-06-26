@@ -30,6 +30,7 @@ Setting a role to empty or NONE deletes the user's role on the system.
   -u, --roleusername    The user whose permissions should be set
   -r, --role            The role to set for the user. Valid roles are GUEST,
                         USER, PUBLISHER, ADMIN, and OWNER
+      --filter          Comma separated list of fields to return in the response
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
@@ -81,7 +82,7 @@ format_api_json() {
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
-		echo "${result}" | python -mjson.tool
+		json_prettyify "${result}"
 	else
 		if [ -n "$roleusername" ]; then
 			echo "Successfully updated roles for user $roleusername on $args"
@@ -116,7 +117,8 @@ while [[ $1 = -?* ]]; do
     -z|--access_token) shift; access_token=$1 ;;
     -u|--roleusername) shift; roleusername=$1 ;;
     -r|--role) shift; role=$1 ;;
-    -H|--hosturl) shift; hosturl=$1;;
+    --filter) shift; responsefilter=$1;;
+    -H|--hosturl) shift; hosturl=$1 ;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
     -V|--veryverbose) veryverbose=1; verbose=1 ;;

@@ -11,7 +11,7 @@ filter_service_url() {
 	if [[ -z $hosturl ]]; then
 		if (($development)); then
 			if [[ -n "$AGAVE_DEV_TENANTS_API_BASEURL" ]]; then
-				hosturl="$AGAVE_DEV_TENANTS_API_BASEURL"
+				hosturl="$AGAVE_DEV_TENANTS_API_BASEURL/tenants"
 			elif [[ -n "$devurl" ]]; then
 				hosturl="${devurl}/tenants"
 			else

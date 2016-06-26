@@ -28,6 +28,7 @@ publish and unpublish a system.
 
  Options:
   -z, --access_token    Access token
+      --filter          Comma separated list of fields to return in the response
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
@@ -80,7 +81,7 @@ format_api_json() {
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
-		echo "${result}" | python -mjson.tool
+		json_prettyify "${result}"
 	else
 		system_id=$(jsonquery "$1" "result.id")
 		echo "Successfully removed system $args from public use"
@@ -111,7 +112,8 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
     -a|--action) shift; action=$1 ;;
-    -H|--hosturl) shift; hosturl=$1;;
+    --filter) shift; responsefilter=$1;;
+    -H|--hosturl) shift; hosturl=$1 ;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
     -V|--veryverbose) veryverbose=1; verbose=1 ;;

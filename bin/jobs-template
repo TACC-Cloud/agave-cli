@@ -140,7 +140,7 @@ main() {
         if ((verbose)); then
           [ "$piped" -eq 0 ] && log "Fetching system description for execution system $execution_system_id..."
         fi
-        execution_system=$(systems-list $debug_flag -v $execution_system_id)
+        execution_system=`echo $(systems-list $debug_flag -v $execution_system_id)`
       fi
 
       queue_names=(`jsonquery "${execution_system}" "queues.[].name"`)

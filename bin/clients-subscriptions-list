@@ -79,10 +79,10 @@ main() {
 format_api_json() {
 
 	if ((veryverbose)); then
-		echo "$1" | python -mjson.tool
+		json_prettyify "${1}"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
-		echo "${result}" | python -mjson.tool
+		json_prettyify "${result}"
 	elif [ -n "$args" ]; then
 		result=$(jsonquery "$1" "result.apiName")
 		echo "${result}"
@@ -118,6 +118,7 @@ while [[ $1 = -?* ]]; do
     -p|--apipassword) shift; apipassword=$1;;
     -l|--limit) shift; limit=$1;;
     -o|--offset) shift; offset=$1;;
+    --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

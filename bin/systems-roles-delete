@@ -79,7 +79,7 @@ format_api_json() {
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
-		echo "${result}" | python -mjson.tool
+		json_prettyify "${result}"
 	else
 		if [ -n "$username" ]; then
 			echo "Successfully deleted roles for user $username"

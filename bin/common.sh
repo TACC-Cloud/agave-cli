@@ -48,7 +48,7 @@ quiet=0
 verbose=0
 veryverbose=0
 interactive=0
-development=0
+development=$( (("$AGAVE_DEVEL_MODE")) && echo "1" || echo "0" )
 
 disable_cache=0 # set to 1 to prevent using auth cache.
 args=()
@@ -87,33 +87,27 @@ function out() {
 function die() { out "$@"; exit 1; } >&2
 function err() {
 	if [[ -n $(ishtmlstring "$response") ]]; then
-    response=$(get_html_message "$response")
-		# jsonresponsemessage="{\"status\":\"error\",\"message\":\"Unexpected response from the API server\",\"result\":null}"
-		response=$(to_json_error_message "$response" | python -mjson.tool)
-    # response=`echo $jsonresponsemessage | python -mjson.tool`
+		response=$(get_html_message "$response")
+		response=`json_prettyify $(to_json_error_message "$response")`
 	elif [[ -n $(isxmlstring "$response") ]]; then
-		#response=`echo "$response" | xmllint --format -`
-#		responsemessage=${1#*<ams:message>}
-#		responsemessage=${responsemessage%</ams:message>*}
 		response=$(get_xml_message "$1")
-		response=$(to_json_error_message "$response" | python -mjson.tool)
+		response=`json_prettyify $(to_json_error_message "$response")`
 	else
 		response=$@
 	fi
 
-  if (($verbose)); then
+	if (($verbose)); then
 		if ((piped)); then
-		  out "${response}"
+		  	out "${response}"
 		else
-		  out "\033[1;31m${response}\033[0m"
+		  	out "\033[1;31m${response}\033[0m"
 		fi
-  else
+	else
 		if ((piped)); then
-		  out "$@"
-    	else
-      	  #out " \033[1;31m✖\033[0m  $@";
-		  out "\033[1;31m${@}\033[0m"
-    	fi
+			out "$@"
+		else
+			out "\033[1;31m${@}\033[0m"
+		fi
 	fi
 } >&2
 
@@ -279,6 +273,10 @@ function getpagination {
     pagination="${pagination}&offset=$2"
   fi
 
+  if [[ -n "$responsefilter" ]]; then
+    pagination="${pagination}&filter=$responsefilter"
+  fi
+  
   echo $pagination
 }
 
@@ -500,7 +498,7 @@ function prompt_options() {
 
 	#echo -n "$desc: "
 
-    # In case this is a password field, hide the user input
+	# In case this is a password field, hide the user input
     if [[ $val == "apikey" ]]; then
     	jsonval savedapikey "${tokenstore}" "apikey"
       if [[ -n "$force" ]]; then
@@ -625,6 +623,9 @@ if [[ "auth-switch" != "$calling_cli_command" ]] && [[ "tenants-init" != "$calli
   fi
 
   devurl=$(jsonquery "$currentconfig" "devurl")
+  if [[ -n "$AGAVE_DEVURL" ]]; then
+	devurl=${AGAVE_DEVURL%/}
+  fi
   if [[ -z "devurl" ]]; then
     err "Please run $DIR/tenants-init to configure your development endpoints before attempting to interact with the APIs."
     exit
@@ -662,11 +663,10 @@ function json_prettyify {
 	# If all else fails, we can use the jsonparser api
 	#elif [[ -z "$AGAVE_JSON_PARSER" -o 'json-mirror' == "$AGAVE_JSON_PARSER" ]]; then
 	else
-
-		jsonparserresponse=$(curl -sk -H "ContentType: application/json" -F @- "http://agaveapi.co/jsonparser?pretty=true&q=.")
+		jsonparserresponse=$(echo "${1}" | curl -s --globoff -X POST -H "Content-Type: application/json" --data-binary @- "https://agaveapi.co/json-mirror?pretty=true")
 
 		if [ $? ]; then
-			echo $jsonparserresponse
+			echo -e "${jsonparserresponse}"
 		else
 			echo "$@"
 		fi

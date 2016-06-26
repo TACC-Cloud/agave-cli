@@ -31,6 +31,7 @@ example of how one could query for job information when bandwidth is an issue.
   -z, --access_token    Access token
   -W, --watch           Watches the job status, updating every few seconds
                         until the job reaches a terminal state
+      --filter          Comma separated list of fields to return in the response
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
@@ -103,7 +104,7 @@ format_api_json() {
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
-		echo "${result}" | python -mjson.tool
+		json_prettyify "${result}"
 	else
 		jobstatus=$(jsonquery "$1" "result.status")
 		echo "$jobstatus"
@@ -133,6 +134,7 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
     -W| --watch) watch=1;;
+    --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

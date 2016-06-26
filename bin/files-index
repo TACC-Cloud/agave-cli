@@ -34,9 +34,10 @@ Note that the system id, not hostname must be given. Notifications may be
 added for asynchronous indexing.
 
  Options:
-  -z, --access_token	Access token
-  -S, --systemId	    Specify the system id
+  -z, --access_token	  Access token
+  -S, --systemId	      Specify the system id
   -L, --long            Print response in unix-style ls -l format
+      --filter          Comma separated list of fields to return in the response
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
@@ -90,10 +91,10 @@ main() {
 format_api_json() {
 
 	if ((veryverbose)); then
-		echo "$1" | python -mjson.tool
+		json_prettyify "${1}"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
-		echo "${result}" | python -mjson.tool
+		json_prettyify "${result}"
 	elif [[ $long -eq 1 ]]; then
         lstng=$(lsify "$1" | awk '{ printf("%-10s %+12s %+18s %+32s %s\n", $1, $2, $3, $4, $5); }')
         echo "$lstng"
@@ -172,6 +173,7 @@ while [[ $1 = -?* ]]; do
     -L|--long) long=1;;
     -l|--limit) shift; limit=$1;;
     -o|--offset) shift; offset=$1;;
+    --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

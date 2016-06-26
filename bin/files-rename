@@ -31,6 +31,7 @@ must be given.
   -z, --access_token    Access token
   -S, --systemId        Specify the system id
   -N, --name            Name of the new file or folder
+      --filter          Comma separated list of fields to return in the response
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
@@ -116,6 +117,7 @@ while [[ $1 = -?* ]]; do
     -z|--access_token) shift; access_token=$1 ;;
     -S|--systemId) shift; systemId=$1 ;;
     -N|--name) shift; name=$1 ;;
+    --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

@@ -90,10 +90,10 @@ main() {
 format_api_json() {
 
 	if ((veryverbose)); then
-		echo "$1" | python -mjson.tool
+		json_prettyify "${1}"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
-		echo "${result}" | python -mjson.tool
+		json_prettyify "${result}"
 	else
 		result=$(jsonquery "$1" "result.[].apiName")
 		echo "${result}"

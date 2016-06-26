@@ -173,7 +173,7 @@ main() {
 format_api_json() {
 
 	if [[ $verbose -eq 1 ]]; then
-		echo "$1" | python -mjson.tool
+		json_prettyify "${1}"
 	else
 		success "Current token for $username valid for another $time_left seconds"
 	fi

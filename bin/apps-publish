@@ -49,6 +49,7 @@ Global admin privileges are required to publish a system.
   -e, --executionSystem    The target execution system for the public app
   -n, --name               The new name of the public app
   -x, --appVersion         The new version of the public app
+      --filter             Comma separated list of fields to return in the response
   -H, --hosturl            URL of the service
   -d, --development        Run in dev mode using default dev server
   -f, --force              Skip all user interaction
@@ -126,7 +127,7 @@ format_api_json() {
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
-		echo "${result}" | python -mjson.tool
+		json_prettyify "${result}"
 	else
 		result=$(jsonquery "$1" "result.id")
         success "Successfully published app $args as $result"
@@ -159,6 +160,7 @@ while [[ $1 = -?* ]]; do
     -n|--name) shift; name=$1 ;;
     -x|--appVersion) shift; appVersion=$1 ;;
     -z|--access_token) shift; access_token=$1 ;;
+    --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1 ;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

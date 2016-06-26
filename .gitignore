@@ -1,7 +1,6 @@
 # Binary targets
 target
 *~
-/bin/transforms-apply
 
 # Intellij metadata files
 *.idea
@@ -32,12 +31,11 @@ Icon
 .Trashes
 
 # Dev scripts
-notifications-fire
-monitors-fire
+transforms-apply
 auth-filter.sh
+auth-switch-filter.sh
 playground
-
-auth-switch
+actors-*
 transfers-*
 
 *.pyc

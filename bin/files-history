@@ -31,6 +31,7 @@ failure, and hiccups that may have occurred in the transfer process.
   -S, --systemId        Specify the system id
   -l, --limit           Maximum number of results to return
   -o, --offset          Number of results to skip from the start
+      --filter          Comma separated list of fields to return in the response
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
@@ -82,10 +83,10 @@ main() {
 format_api_json() {
 
 	if ((veryverbose)); then
-		echo $response | python -mjson.tool
+		json_prettyify "${1}"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
-		echo "${result}" | python -mjson.tool
+		json_prettyify "${result}"
 	else
 		result=$(jsonquery "$1" "result.[].description")
 		echo "${result}"
@@ -117,6 +118,7 @@ while [[ $1 = -?* ]]; do
     -S|--systemId) shift; systemId=$1 ;;
     -l|--limit) shift; limit=$1;;
     -o|--offset) shift; offset=$1;;
+    --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

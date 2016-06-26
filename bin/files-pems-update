@@ -38,6 +38,7 @@ Also remember that no permissions can be set on public files and folders.
                         WRITE_EXECUTE, ALL, and NONE
   -R, --recursive       Recursively apply permissions to folder contents
   -S, --systemId        Specify the system id
+      --filter          Comma separated list of fields to return in the response
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
@@ -103,7 +104,7 @@ format_api_json() {
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
-		echo "${result}" | python -mjson.tool
+		json_prettyify "${result}"
 	else
 		echo "Successfully updated permission for $pemusername"
 	fi
@@ -136,6 +137,7 @@ while [[ $1 = -?* ]]; do
     -P|--permission) shift; permission=$1 ;;
     -R|--recursive) recursive=1 ;;
     -S|--systemId) shift; systemId=$1 ;;
+    --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

@@ -88,7 +88,7 @@ format_api_json() {
 
 	if ((storeclient)); then
 
-		formatted_response=`echo "$1" | python -mjson.tool`
+		formatted_response=`json_prettyify "${1}"`
 		client_secret=$(jsonquery "$formatted_response" "result.consumerSecret")
 		client_key=$(jsonquery "$formatted_response" "result.consumerKey")
 
@@ -103,12 +103,12 @@ format_api_json() {
 	fi
 
 	if ((veryverbose)); then
-		echo "$1" | python -mjson.tool
+		json_prettyify "${1}"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
-		echo "${result}" | python -mjson.tool
+		json_prettyify "${result}"
 	else
-		formatted_response=`echo "$1" | python -mjson.tool`
+		formatted_response=`json_prettyify "${1}"`
 		client_secret=$(jsonquery "$formatted_response" "result.consumerSecret")
 		client_key=$(jsonquery "$formatted_response" "result.consumerKey")
 		success "Successfully created client $client_name\nkey: $client_key \nsecret: $client_secret"
