@@ -607,7 +607,7 @@ function is_valid_url() {
 # load tenant-specific settings
 calling_cli_command=$(basename $0)
 currentconfig=$(kvget current)
-
+set -x
 if [[ "auth-switch" != "$calling_cli_command" ]] && [[ "tenants-init" != "$calling_cli_command" ]] && [[ "tenants-list" != "$calling_cli_command" ]]; then
   if [[ -z $currentconfig ]]; then
     err "Please run $DIR/tenants-init to initialize your client before attempting to interact with the APIs."
@@ -626,10 +626,7 @@ if [[ "auth-switch" != "$calling_cli_command" ]] && [[ "tenants-init" != "$calli
   if [[ -n "$AGAVE_DEVURL" ]]; then
 	devurl=${AGAVE_DEVURL%/}
   fi
-  if [[ -z "$devurl" ]]; then
-    err "Please run $DIR/tenants-init to configure your development endpoints before attempting to interact with the APIs."
-    exit
-  else
+  if [[ -n "$devurl" ]]; then
     devurl="${devurl%/}"
   fi
 
