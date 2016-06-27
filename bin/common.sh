@@ -626,7 +626,7 @@ if [[ "auth-switch" != "$calling_cli_command" ]] && [[ "tenants-init" != "$calli
   if [[ -n "$AGAVE_DEVURL" ]]; then
 	devurl=${AGAVE_DEVURL%/}
   fi
-  if [[ -z "devurl" ]]; then
+  if [[ -z "$devurl" ]]; then
     err "Please run $DIR/tenants-init to configure your development endpoints before attempting to interact with the APIs."
     exit
   else
@@ -634,7 +634,7 @@ if [[ "auth-switch" != "$calling_cli_command" ]] && [[ "tenants-init" != "$calli
   fi
 
   tenantid=$(jsonquery "$currentconfig" "tenantid")
-  if [[ -z "tenantid" ]]; then
+  if [[ -z "$tenantid" ]]; then
     err "Please run $DIR/tenants-init to configure your client id before attempting to interact with the APIs."
     exit
   fi
