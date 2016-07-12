@@ -16,7 +16,7 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey username role)
+interactive_opts=(apisecret apikey roleusername role)
 
 # Print usage
 usage() {
@@ -58,13 +58,22 @@ main() {
 	if [ -z "$args" ]; then
 		err "Please specify a valid system id for which to retrieve the user roles"
 	else
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"role=$role\" '$hosturl$args/roles/$username?pretty=true'"
+
+		if [[ -z "$role" ]]; then
+			role=NONE
+		fi
+
+		if [[ -z "$roleusername" ]]; then
+			err "Please specify a valid username to whom the granted role should apply"
+		fi
+
+		cmd="curl -sk -H \"${authheader}\"  -H \"Content-Type: application/json\" -X POST --data-binary '{\"role\":\"$role\"}' '$hosturl$args/roles/$roleusername?pretty=true$(pagination)'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X POST -d "role=$role" "$hosturl$args/roles/$roleusername?pretty=true"`
+		response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary "{\"role\":\"$role\"}" "$hosturl$args/roles/$roleusername?pretty=true$(pagination)"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")

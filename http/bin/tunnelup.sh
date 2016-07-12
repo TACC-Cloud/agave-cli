@@ -18,6 +18,9 @@ fi
 
 # start the http mirror server.
 export WEBHOOK_LOG=$AGAVE_CLI_HOME/http/log/httpmirror.log
+if [[ ! -f "$WEBHOOK_LOG" ]]; then
+    touch "$WEBHOOK_LOG"
+fi
 ((VERBOSE)) && printf "Starting an Agave HttpMirror server..."
 $DIR/HttpMirror -port $HTTP_PORT -log $WEBHOOK_LOG  >> /dev/null &
 ((VERBOSE)) && echo "done"

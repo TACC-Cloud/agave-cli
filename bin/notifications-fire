@@ -51,13 +51,13 @@ main() {
 	#echo -n
 	#set -x
 
-	cmd="curl -sk -H \"${authheader}\" -X POST -d \"foo=bar\" '${hosturl}fire/$args?pretty=true'"
+	cmd="curl -sk -H \"${authheader}\" -X POST -d \"foo=bar\" '${hosturl}$args/attempts?pretty=true'"
 
 	if ((veryverbose)); then
 		log "Calling $cmd"
 	fi
 
-	response=`curl -sk -H "${authheader}" -X POST -d "foo=bar" "${hosturl}fire/$args?pretty=true"`
+	response=`curl -sk -H "${authheader}" -X POST -d "foo=bar" "${hosturl}$args/attempts?pretty=true"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")

@@ -58,6 +58,7 @@ RUN curl -sk -o /ngrok.zip 'https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-li
     rm -f ngrok.zip && \
 
     mkdir -p $AGAVE_CLI_HOME/http/log && \
+    touch $AGAVE_CLI_HOME/http/log/httpmirror.log && \
     chown -R $CLI_USER:$CLI_USER $AGAVE_CLI_HOME/http/log && \
     mkdir /.ngrok2 && \
     echo "web_addr: 0.0.0.0:4040" >> /.ngrok2/ngrok.yml && \
