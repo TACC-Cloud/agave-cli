@@ -1,6 +1,17 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2.1.8.1 - 2016-07-13
+### ADDED
+- `Dockerfile` to build a minimal image with embedded webhook server written in Golang and `ngrok.com` reverse tunnel for local webhook inspection behind a proxy. 
+
+### FIXED
+- Fixed a bug in `systems-roles-addupdate` where the curl statement was misprinting.
+
+### REMOVED
+- No changes.
+
+
 ## 2.1.8 - 2016-06-13
 ### ADDED
 - `jobs-kick` command to roll a job back to its previous status and retry processing from there.

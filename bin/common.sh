@@ -29,7 +29,7 @@ fi
 
 # versioning info
 version="v2"
-release="2.1.6"
+release="2.1.8"
 if [ -e "$DIR/../.git/refs/heads/master" ];
 then
   revision="${version}-r$(head -c 5 $DIR/../.git/refs/heads/master)"
@@ -160,7 +160,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 function disclaimer() {
 	out "Documentation on the Agave API, client libaries, and developer tools is
-available online at the Agave Developer Portal, http://agaveapi.co. For
+available online from the Agave Website, http://agaveapi.co. For
 localized help of the various CLI commands, run any command with the -h
 or --help option.
 "
