@@ -587,7 +587,9 @@ function get_token_remaining_time() {
   if [[ -z "$expires_in" ]] || [[ -z "$created_at" ]]; then
     echo 0
   else
-  	expiration_time=`expr $created_at + $expires_in`
+    created_at=${created_at%.*}
+	expires_in=${expires_in%.*}
+	expiration_time=`expr $created_at + $expires_in`
   	current_time=`date +%s`
 
   	time_left=`expr $expiration_time - $current_time`

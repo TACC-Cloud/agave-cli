@@ -65,13 +65,13 @@ main() {
 
 	local post_options='';
 
-	if [ ! -e "$filetoupload" -a "$filetoupload" != "-" ]; then
+		if [[ ! -e "$filetoupload" ]] && [[ "$filetoupload" != "-" ]]; then
 
 		response="Local file $filetoupload does not exist"
 		err "$response"
 
 	else
-
+		baseurl=${hosturl}
 		if [ -n "$callbackurl" ]; then
 			post_options="notifications=${callbackurl}"
 		fi
@@ -227,9 +227,9 @@ main() {
 			done
 
 			if [ -n "$systemid" ]; then
-				hosturl="${hosturl}listings/system/${systemid}/${newdirpath}"
+				hosturl="${baseurl}listings/system/${systemid}/${newdirpath}"
 			else
-				hosturl="${hosturl}listings/${newdirpath}"
+				hosturl="${baseurl}listings/${newdirpath}"
 			fi
 			#echo "Calling curl -sk -H ${authheader} \"${hosturl%/}?pretty=true\""
 			response=`curl -sk -H "${authheader}"  "${hosturl%/}?pretty=true"`
