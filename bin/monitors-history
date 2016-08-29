@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# systems-disable
+# monitors-list
 #
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# Toggles the availability of the system
+# It retrieves a the history of the named monitor
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -16,26 +16,31 @@ source "$DIR/common.sh"
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
+interactive_opts=(access_token)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
+  echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... [SYSTEM_ID]
 
-Toggles the availability of the system off. System admin privileges are required.
+List the history of events for a specific monitor. This will give more descriptive
+information related to changes and updates on a given monitor.
 
  Options:
-  -z, --access_token    Access token
-      --filter          Comma separated list of fields to return in the response
-  -H, --hosturl         URL of the service
-  -d, --development     Run in dev mode using default dev server
-  -f, --force           Skip all user interaction
-  -i, --interactive     Prompt for values
-  -q, --quiet           Quiet (no output)
-  -v, --verbose         Verbose output
-  -V, --veryverbose     Very verbose output
-  -h, --help            Display this help and exit
-      --version         Output version information and exit
+  -z, --access_token     Access token
+  -W, --watch            Watches the monitor history, updating every few seconds
+  -l, --limit            Maximum number of results to return
+  -o, --offset           Number of results to skip from the start
+      --filter           Comma separated list of fields to return in the response
+  -H, --hosturl          URL of the service
+  -d, --development      Run in dev mode using default dev server
+  -f, --force            Skip all user interaction
+  -i, --interactive      Prompt for values
+  -q, --quiet            Quiet (no output)
+  -v, --verbose          Verbose output
+  -V, --veryverbose      Very verbose output
+  -h, --help             Display this help and exit
+      --version          Output version information and exit
 "
 }
 
@@ -45,28 +50,33 @@ Toggles the availability of the system off. System admin privileges are required
 ##################################################################
 ##################################################################
 
-source "$DIR/systems-common.sh"
+source "$DIR/monitors-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 
-	if [ -z "$args" ]; then
-		err "Please specify a valid system id to disable"
+  if [ -z "$args" ]; then
+		err "Please specify a monitor for which to fetch the history"
 	else
-		action="disable"
 
-		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=${action}\" '$hosturl$args?pretty=true'"
+    cmd="curl -sk -H \"${authheader}\" '$hosturl$args/history?pretty=true$(pagination)'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X PUT -d "action=${action}" "$hosturl$args?pretty=true"`
+		response=`curl -sk -H "${authheader}" "${hosturl}${args}/history?pretty=true$(pagination)"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-			result=$(format_api_json "$response")
+
+      result=$(format_api_json "$response")
 			success "$result"
+
+      if ((watch)); then
+          sleep 5
+          main
+      fi
 		else
 			errorresponse=$(jsonquery "$response" "message")
 			err "$errorresponse"
@@ -81,10 +91,12 @@ format_api_json() {
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
+	elif [ -n "$args" ]; then
+		result=$(jsonquery "$1" "result.id")
+		echo "${result}"
 	else
-		system_id=$(jsonquery "$1" "result.id")
-		system_type=$(jsonquery "$1" "result.type")
-		echo "Successfully disabled $system_id"
+		result=$(jsonquery "$1" "result.[].id")
+		echo "${result}"
 	fi
 }
 
@@ -103,7 +115,7 @@ source "$DIR/options.sh"
 # Main loop {{{
 
 # Print help if no arguments were passed.
-[[ $# -eq 0 ]] && set -- "-i"
+#[[ $# -eq 0 ]] && set -- "--help"
 
 # Read the options and set stuff
 while [[ $1 = -?* ]]; do
@@ -111,8 +123,11 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
-    --filter) shift; responsefilter=$1;;
-    -H|--hosturl) shift; hosturl=$1 ;;
+    -W| --watch) watch=1;;
+    -l|--limit) shift; limit=$1;;
+    -o|--offset) shift; offset=$1;;
+    --filter) shift; responsefilter=$1 ;;
+    -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
     -V|--veryverbose) veryverbose=1; verbose=1 ;;

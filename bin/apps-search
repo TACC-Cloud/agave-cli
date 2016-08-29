@@ -109,23 +109,25 @@ main() {
 	#set -x
     appsurl=${hosturl%/}
 
-    querystring=""
+    querystring=" "
 
     if [ -n "$args" ]; then
         for i in "${args[@]}"
         do
-            querystring="${querystring} --data-urlencode "${i}
+            if [[ -n "$i" ]]; then
+                querystring+=$(echo -e " --data-urlencode ${i}")
+            fi
         done
+
     fi
 
-    cmd="curl -G -sk -H \"${authheader}\" '$appsurl?pretty=true$(pagination)' ${querystring}"
+    cmd="curl -G -sk -H \"${authheader}\" '$appsurl?pretty=true$(pagination)' $querystring)"
 
 	if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"
     fi
 
-
-	response=`curl -G -sk -H "${authheader}" $appsurl?pretty=true$(pagination) $querystring`
+    response=`curl -G -sk -H "${authheader}" $appsurl?pretty=true$(pagination) ${querystring}`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")

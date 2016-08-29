@@ -52,7 +52,7 @@ main() {
 	#set -x
 
 	if [ -z "$args" ]; then
-		err "Please specify a valid system id to publish"
+		err "Please specify a valid system id to enable"
 	else
 		action="enable"
 

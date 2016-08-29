@@ -262,26 +262,25 @@ function trim() {
 	echo -n "$var"
 }
 
-function getpagination {
-  pagination=''
-  re='^[0-9]+$'
-  if [[ $1 =~ $re ]] ; then
-    pagination="&limit=$1"
-  fi
-
-  if [[ $2 =~ $re ]] ; then
-    pagination="${pagination}&offset=$2"
-  fi
-
-  if [[ -n "$responsefilter" ]]; then
-    pagination="${pagination}&filter=$responsefilter"
-  fi
-  
-  echo $pagination
-}
-
+# Adds the pagination params to each curl call by checking and formatting the url query
+# values associated with the $limit, $offset, and $filter variables common to all scripts.
 function pagination {
-  getpagination $limit $offset
+
+	pagination=''
+	re='^[0-9]+$'
+	if [[ "$limit" =~ $re ]] ; then
+		pagination="&limit=$limit"
+	fi
+
+	if [[ "$offset" =~ $re ]] ; then
+		pagination="${pagination}&offset=$offset"
+	fi
+
+	if [[ -n "$responsefilter" ]]; then
+		pagination="${pagination}&filter=$responsefilter"
+	fi
+
+	echo $pagination
 }
 
 function jsonquery {

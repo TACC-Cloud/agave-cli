@@ -98,7 +98,7 @@ main() {
       [ "$piped" -eq 0 ] && log "Calling $cmd"
   fi
 
-  response=`curl -sk -H "${authheader}" "hosturl?pretty=true$(pagination)" ${querystring}"`
+  response=`curl -sk -H "${authheader}" "${hosturl}?pretty=true$(pagination)" ${querystring}`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")

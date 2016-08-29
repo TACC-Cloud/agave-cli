@@ -72,10 +72,10 @@ main() {
 	hosturl=${hosturl%/}/token
 
 	if [ -n "$tokenuser" ]; then
-		#authUsername=$username
+		authUsername=$username
 		username=$tokenuser
-		authUsername=$tokenuser
-		#proxyUserQuery='--data-urlencode "token_username='$tokenuser'"'
+		#authUsername=$tokenuser
+		proxyUserQuery='--data-urlencode "token_username='$tokenuser'"'
 		grantType=admin_password
 		passField=adminPassword
 	else
@@ -85,7 +85,7 @@ main() {
 		passField=password
 	fi
 
-	cmd="curl -sku \"$apikey:XXXXX\" -X POST ${proxyUserQuery} --data-urlencode \"username=${authUsername}\" --data-urlencode \"${passField}=XXXXX\" --data-urlencode \"grant_type=${grantType}\" --data-urlencode \"scope=PRODUCTION\" '${hosturl}'"
+	cmd="curl -sku \"$apikey:$apisecret\" -X POST ${proxyUserQuery} --data-urlencode \"username=${authUsername}\" --data-urlencode \"${passField}=${password}\" --data-urlencode \"grant_type=${grantType}\" --data-urlencode \"scope=PRODUCTION\" '${hosturl}'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"

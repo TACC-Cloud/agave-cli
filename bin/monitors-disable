@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# systems-disable
+# monitors-enable
 #
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# Toggles the availability of the system
+# Toggles the availability of the monitor off
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -22,7 +22,7 @@ interactive_opts=(apisecret apikey)
 usage() {
   echo -n "$(basename $0) [OPTION]... [SYSTEM_ID]
 
-Toggles the availability of the system off. System admin privileges are required.
+Toggles the availability of the monitor off.
 
  Options:
   -z, --access_token    Access token
@@ -45,24 +45,23 @@ Toggles the availability of the system off. System admin privileges are required
 ##################################################################
 ##################################################################
 
-source "$DIR/systems-common.sh"
+source "$DIR/monitors-common.sh"
 
 main() {
 	#echo -n
 	#set -x
 
 	if [ -z "$args" ]; then
-		err "Please specify a valid system id to disable"
+		err "Please specify a valid monitor id to enable"
 	else
-		action="disable"
 
-		cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=${action}\" '$hosturl$args?pretty=true'"
+		cmd="curl -sk -H \"${authheader}\" -H "Content-Type: application/json" -X PUT -d '{\"action\":\"disable\"}' '$hosturl$args?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X PUT -d "action=${action}" "$hosturl$args?pretty=true"`
+		response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X PUT --date-binary '{"action":"disable"}'  "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
@@ -82,9 +81,8 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
 	else
-		system_id=$(jsonquery "$1" "result.id")
-		system_type=$(jsonquery "$1" "result.type")
-		echo "Successfully disabled $system_id"
+		monitor_id=$(jsonquery "$1" "result.id")
+		echo "Successfully disabled $monitor_id"
 	fi
 }
 
