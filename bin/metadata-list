@@ -32,6 +32,7 @@ a custom query string following MongoDB conventions.
   -Q, --query           Search for metadata by custom query
   -P, --parentid        Search for metadata associated with the given parent
                         object id
+  -u, --unprivileged    Maximum number of results to return
   -l, --limit           Maximum number of results to return
   -o, --offset          Number of results to skip from the start
       --filter          Comma separated list of fields to return in the response
@@ -70,6 +71,10 @@ main() {
 	else
 		metaurl="$hosturl/data/?pretty=true"
 	fi
+
+  if ((unprivileged)); then
+    metaurl="$metaurl&privileged=false"
+  fi
 
 	cmd="curl -sk -H \"${authheader}\" '$metaurl$(pagination)'"
 
@@ -128,6 +133,7 @@ while [[ $1 = -?* ]]; do
     -z|--access_token) shift; access_token=$1 ;;
     -Q|--query) shift; query=$1 ;;
     -P|--parentid) shift; parentid=$1 ;;
+    -u|--unprivileged) unprivileged=1 ;;
     -l|--limit) shift; limit=$1;;
     -o|--offset) shift; offset=$1;;
     --filter) shift; responsefilter=$1 ;;
