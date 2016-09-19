@@ -86,8 +86,11 @@ main() {
 
 format_api_json() {
 
-	if ((verbose)); then
+	if ((veryverbose)); then
 		echo "$1"
+	elif [[ $verbose -eq 1 ]]; then
+		result=$(jsonquery "$1" "result" 1)
+		json_prettyify "${result}"
 	else
 		success "Successfully renamed ${args}"
 	fi

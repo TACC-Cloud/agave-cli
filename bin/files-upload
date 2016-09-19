@@ -90,18 +90,20 @@ main() {
 			post_options="fileName=${filename}&${post_options}"
 		fi
 
+
 		quietarg="-#"
 		if ((quiet)); then
 			quietarg="-s"
 		fi
 
 		# If the filetoupload is a file, then just copy it up.
-		if [ -f "$filetoupload" ]; then
+	  	if [ -f "$filetoupload" ]; then
 
-      out "Uploading ${filetoupload}..."
+			((!piped)) && out "Uploading ${filetoupload}..."
+
 			#recursively copy the folder applying filename to the root
 
-      if [ -n "$post_options" ]; then
+		  	if [ -n "$post_options" ]; then
 
 				post_options=${post_options%&}
 
@@ -127,12 +129,12 @@ main() {
 		# if the file is coming from stdin, verify we have a filename and feed it to curl
 		elif [[ "$filetoupload" == "-" ]]; then
 
-      		if [[ -z "$filename" ]]; then
+			if [[ -z "$filename" ]]; then
 
 				response="Please provide a filename for the piped file"
 				err "$response"
 
-      		else
+			else
 
 				if [ -n "$post_options" ]; then
 
@@ -158,7 +160,7 @@ main() {
 
 				fi
 
-      		fi
+			fi
 
 		# if it is a directory, then create the remote directory, using the $filename value
 		# or the basename of the $filetoupload, then recursively uploading the contents
@@ -238,7 +240,7 @@ main() {
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
 			if [ -n "$result" ]; then
-				   success "$result"
+				   success "${result}"
 			fi
 		else
 			errorresponse=$(jsonquery "$response" "message")
@@ -252,9 +254,9 @@ format_api_json() {
 	if ((veryverbose)); then
 		out "$1"
 	elif [[ $verbose -eq 1 ]]; then
-		result=$(jsonquery "$1" "result" 1)
-		#out "${result}" | python -mjson.tool
-		json_prettyify out "${result}"
+		jsonquery "$response" "result"
+#		#out "${result}" | python -mjson.tool
+#		json_prettyify out "${result}"
 	fi
 }
 

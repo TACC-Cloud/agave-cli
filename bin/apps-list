@@ -69,15 +69,19 @@ main() {
 		hosturl="$hosturl/$args"
 	else
 		if [ -n "$name" ]; then
-			hosturl="$hosturl/name/$name"
-		elif [ -n "$tag" ]; then
-			hosturl="$hosturl/tag/$tag"
-		elif [ -n "$ontology" ]; then
-			hosturl="$hosturl/ontology/$ontology"
-		elif [ -n "$system" ]; then
-			hosturl="$hosturl/system/$system"
-		else
-			hosturl="$hosturl"
+			querystring="name.eq=$name&${querystring}"
+		fi
+
+		if [ -n "$tag" ]; then
+			querystring="tag.eq=$tag&${querystring}"
+		fi
+
+		if [ -n "$ontology" ]; then
+			querystring="ontology.eq=$ontology&${querystring}"
+		fi
+
+		if [ -n "$system" ]; then
+			querystring="executionSystem.eq=$system&${querystring}"
 		fi
 
 		if [ -n "$publiconly" ]; then
