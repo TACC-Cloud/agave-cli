@@ -74,24 +74,27 @@ main() {
 	if [ -n "$tokenuser" ]; then
 		authUsername=$username
 		username=$tokenuser
-		#authUsername=$tokenuser
-		proxyUserQuery='--data-urlencode "token_username='$tokenuser'"'
-		grantType=admin_password
-		passField=adminPassword
+
+		cmd="curl -sku \"$apikey:$apisecret\" -X POST --data-urlencode \"token_username=${tokenuser}\" --data-urlencode \"username=${authUsername}\" --data-urlencode \"password=${password}\" --data-urlencode \"grant_type=admin_password\" --data-urlencode \"scope=PRODUCTION\" '${hosturl}'"
+
+		if ((veryverbose)); then
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
+		fi
+
+		response=`json_prettyify $(curl -sku "$apikey:$apisecret" -X POST --data-urlencode "token_username=${tokenuser}" --data-urlencode "username=${authUsername}" --data-urlencode "password=${password}" --data-urlencode "grant_type=admin_password" --data-urlencode "scope=PRODUCTION" "$hosturl")`
+
 	else
 		authUsername=$username
-		proxyUserQuery=''
-		grantType=password
-		passField=password
+
+		cmd="curl -sku \"$apikey:$apisecret\" -X POST --data-urlencode \"username=${authUsername}\" --data-urlencode \"password=${password}\" --data-urlencode \"grant_type=password\" --data-urlencode \"scope=PRODUCTION\" '${hosturl}'"
+
+		if ((veryverbose)); then
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
+		fi
+
+		response=`json_prettyify $(curl -sku "$apikey:$apisecret" -X POST --data-urlencode "username=${authUsername}" --data-urlencode "password=${password}" --data-urlencode "grant_type=password" --data-urlencode "scope=PRODUCTION" "$hosturl")`
+
 	fi
-
-	cmd="curl -sku \"$apikey:$apisecret\" -X POST ${proxyUserQuery} --data-urlencode \"username=${authUsername}\" --data-urlencode \"${passField}=${password}\" --data-urlencode \"grant_type=${grantType}\" --data-urlencode \"scope=PRODUCTION\" '${hosturl}'"
-
-	if ((veryverbose)); then
-		[ "$piped" -eq 0 ] && log "Calling $cmd"
-	fi
-
-	response=`json_prettyify $(curl -sku "$apikey:$apisecret" -X POST ${proxyUserQuery} --data-urlencode "username=${authUsername}" --data-urlencode "${passField}=${password}" --data-urlencode "grant_type=${grantType}" --data-urlencode "scope=PRODUCTION" "$hosturl")`
 
 	if [[ $(jsonquery "$response" "token_type") = 'bearer' ]]; then
 		result=$(format_api_json "$response")

@@ -32,8 +32,10 @@ Also remember that no permissions can be set on public files and folders.
 
  Options:
   -z, --access_token    Access token
-  -U, --username        The user whose permissions should be listed
-  -P, --permission      The permission to set. Valid values are READ,
+  -U, --pemusername     *deprecated* Same as -u
+  -u, --pemusername     The user whose permissions should be listed
+  -P, --permission      *deprecated* Same as -p
+  -p, --permission      The permission to set. Valid values are READ,
                         WRITE, EXECUTE, READ_WRITE, READ_EXECUTE,
                         WRITE_EXECUTE, ALL, and NONE
   -R, --recursive       Recursively apply permissions to folder contents
@@ -133,8 +135,8 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
-    -U|--pemusername) shift; pemusername=$1 ;;
-    -P|--permission) shift; permission=$1 ;;
+    -u|-U|--pemusername) shift; pemusername=$1 ;;
+    -p|-P|--permission) shift; permission=$1 ;;
     -R|--recursive) recursive=1 ;;
     -S|--systemId) shift; systemId=$1 ;;
     --filter) shift; responsefilter=$1 ;;
