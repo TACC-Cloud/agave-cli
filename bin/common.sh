@@ -30,13 +30,19 @@ fi
 # versioning info
 version="v2"
 release="2.1.8"
-revision=$(git --git-dir=$DIR/../.git rev-parse --short HEAD)
-if [[ -n "$revision" ]];
+revision=""
+if [ -e "$DIR/../.git" ];
 then
-  revision="${version}-r$revision"
-elif [ -e "$DIR/../.git/refs/heads/master" ];
-then
-  revision="${version}-r$(git --git-dir=$DIR/../.git rev-parse --short HEAD)"
+  revision=$(git --git-dir=$DIR/../.git rev-parse --short HEAD)
+  if [[ -n "$revision" ]];
+  then
+    revision="${version}-r$revision"
+  elif [ -e "$DIR/../.git/refs/heads/master" ];
+  then
+    revision="${version}-r$(git --git-dir=$DIR/../.git rev-parse --short HEAD)"
+  else
+    revision="${version}"
+  fi
 else
   revision="${version}"
 fi
