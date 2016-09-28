@@ -58,7 +58,7 @@ main() {
 	#set -x
 
 	if [ -z "$args" ]; then
-		err "Please specify a system for which to fetch the history"
+		err "Please specify a job for which to fetch the history"
 	else
 
     cmd="curl -sk -H \"${authheader}\" '$hosturl$args/history?pretty=true$(pagination)'"
