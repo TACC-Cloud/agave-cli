@@ -63,18 +63,21 @@ main() {
     # public keys are escaped one way
     elif [[ "$1" = "--public" ]]; then
 
-      out $(cat $2 | sed -e 's/\\/\\\\/g' -e 's/\//\\\//g' -e 's/&/\\\&/g')
+      #out $(cat $2 | sed -e 's/\\/\\\\/g' -e 's/\//\\\//g' -e 's/&/\\\&/g')
+      out $(cat $2 | sed -e 's/\\/\\\\/g' -e 's/&/\\\&/g')
 
-      # passwords are escaped another
+    # passwords are escaped another
     elif [[ "$1" = "--password" ]]; then
 
-      out $(cat $2 | sed -e 's/\\/\\\\/g' -e 's/\//\\\//g' -e 's/&/\\\&/g' -e 's/\$/\\\$/g')
+      #out $(cat $2 | sed -e 's/\\/\\\\/g' -e 's/\//\\\//g' -e 's/&/\\\&/g' -e 's/\$/\\\$/g')
+      out $(cat $2 | sed -e 's/\\/\\\\/g' -e 's/&/\\\&/g' -e 's/\$/\\\$/g')
 
     elif [[ "$1" = "--private" ]]; then
 
       # private keys are escaped yet one way
-      out $(cat $2 | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' -e 's/\//\\\//g')
-
+      #out $(cat $2 | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' -e 's/\//\\\//g')
+      out $(cat - | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\\\n/g' )
+    
     else
 
       err "Invalid command specified"
@@ -90,17 +93,20 @@ main() {
 
     elif [[ "$1" = "--public" ]]; then
 
-      out $(cat - | sed -e 's/\\/\\\\/g' -e 's/\//\\\//g' -e 's/&/\\\&/g')
+      #out $(cat - | sed -e 's/\\/\\\\/g' -e 's/\//\\\//g' -e 's/&/\\\&/g')
+      out $(cat - | sed -e 's/\\/\\\\/g' -e 's/&/\\\&/g')
 
-      # passwords are escaped another
+    # passwords are escaped another
     elif [[ "$1" = "--password" ]]; then
 
-      out $(cat - | sed -e 's/\\/\\\\/g' -e 's/\//\\\//g' -e 's/&/\\\&/g' -e 's/\$/\\\$/g')
+      #out $(cat - | sed -e 's/\\/\\\\/g' -e 's/\//\\\//g' -e 's/&/\\\&/g' -e 's/\$/\\\$/g')
+      out $(cat - | sed -e 's/\\/\\\\/g' -e 's/&/\\\&/g' -e 's/\$/\\\$/g')
 
     elif [[ "$1" = "--private" ]]; then
 
       # private keys are escaped yet one way
-      out $(cat - | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\\\n/g' -e 's/\//\\\//g')
+      #out $(cat - | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\\\n/g' -e 's/\//\\\//g')
+      out $(cat - | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\\\n/g' )
 
     else
 
