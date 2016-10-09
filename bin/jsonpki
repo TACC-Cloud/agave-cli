@@ -77,7 +77,7 @@ main() {
       # private keys are escaped yet one way
       #out $(cat $2 | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' -e 's/\//\\\//g')
       out $(cat - | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\\\n/g' )
-    
+
     else
 
       err "Invalid command specified"
