@@ -68,7 +68,6 @@ main() {
     # Pull in the full app description to get the info and references for
     # the job template
 
-
     if ((cache)); then
       if [ -z "$(kvget jtapp)" ]; then
         if ((verbose)); then
@@ -110,16 +109,19 @@ main() {
     # Fetch the full execution system description so we can use the default
     # queue to fill in any missing default runtime configuration info in the
     # job template.
-    if ((allfields)); then
 
-      execution_system_id=$(jsonquery "${app_description}" "executionSystem")
+    app_execution_system_id=$(apps-list $debug_flag -v --filter=executionSystem $args 2>/dev/null)
+
+    execution_system_id=$(jsonquery "$app_execution_system_id" "executionSystem")
+
+    if ((allfields)); then
 
       if ((cache)); then
         if [ -z "$(kvget jtexe)" ]; then
           if ((verbose)); then
             [ "$piped" -eq 0 ] && log "Fetching system description for execution system $execution_system_id..."
           fi
-          execution_system=$(systems-list $debug_flag -v $execution_system_id)
+          execution_system=`echo $(systems-list $debug_flag -v $execution_system_id)`
           kvset jtexe "$execution_system"
         else
           execution_system=$(kvget jtexe)
@@ -143,10 +145,14 @@ main() {
         execution_system=`echo $(systems-list $debug_flag -v $execution_system_id)`
       fi
 
+
+      # set -x
       queue_names=(`jsonquery "${execution_system}" "queues.[].name"`)
+      # set +x
       queue_defaults=(`jsonquery "${execution_system}" "queues.[].default"`)
       queue_memories=(`jsonquery "${execution_system}" "queues.[].maxMemoryPerNode"`)
       queue_ppns=(`jsonquery "${execution_system}" "queues.[].maxProcessorsPerNode"`)
+
 
       for i in "${queue_defaults[@]}"; do
         if [ "$i" == 'rue' ] || [ "$i" == "true" ] || [ "$i" == "True" ]; then
@@ -230,12 +236,12 @@ main() {
     if ((verbose)); then
       [ "$piped" -eq 0 ] && log "Parsing app inputs..."
     fi
-    input_ids=(`jsonquery "${app_description}" "inputs.[].id"`)
-    input_defaults=(`jsonquery "${app_description}" "inputs.[].value.default"`)
-    input_requireds=(`jsonquery "${app_description}" "inputs.[].value.required"`)
-    input_visibles=(`jsonquery "${app_description}" "inputs.[].value.visible"`)
-    input_min_cardinality=(`jsonquery "${app_description}" "inputs.[].semantics.minCardinality"`)
-    input_max_cardinality=(`jsonquery "${app_description}" "inputs.[].semantics.maxCardinality"`)
+    input_ids=(`jsonquery "$app_description" "inputs.[].id"`)
+    input_defaults=(`jsonquery "$app_description" "inputs.[].value.default"`)
+    input_requireds=(`jsonquery "$app_description" "inputs.[].value.required"`)
+    input_visibles=(`jsonquery "$app_description" "inputs.[].value.visible"`)
+    input_min_cardinality=(`jsonquery "$app_description" "inputs.[].semantics.minCardinality"`)
+    input_max_cardinality=(`jsonquery "$app_description" "inputs.[].semantics.maxCardinality"`)
     input_count=${#input_ids[@]}
 
 
@@ -269,13 +275,17 @@ main() {
               if [[ "$tmpDefaultsCount" -eq "$[zz+1]" ]]; then
                 tc=''
               fi
-              inputs=$(printf "%s\n      \"%s\"%s" "$inputs" "$z" "$tc")
+              if [[ "$z" != "null" ]]; then
+                inputs=$(printf "%s\n      \"%s\"%s" "$inputs" "$z" "$tc")
+              fi
               zz=$[zz+1]
             done
 
             inputs=$(printf "%s\n    ]%s" "$inputs" "$trailingcomma")
           else
-            inputs=$(printf "%s\n    \"%s\": \"%s\"%s" "$inputs" "$i" "${input_defaults[$n]}" "$trailingcomma")
+            if [[ "${input_defaults[$n]}" != "null" ]]; then
+              inputs=$(printf "%s\n    \"%s\": \"%s\"%s" "$inputs" "$i" "${input_defaults[$n]}" "$trailingcomma")
+            fi
           fi
         fi
       fi
@@ -445,27 +455,36 @@ main() {
       if ((verbose)); then
         [ "$piped" -eq 0 ] && log "Fetching your profile description..."
       fi
-      profiles_description=$(profiles-list $debug_flag -v me)
-      user_email=$(jsonquery "$profiles_description" "email")
+      profiles_description=$(profiles-list $debug_flag -v me 2>/dev/null)
+      if [[ -z "$profiles_description" ]]; then
+	       EMPTY_PROFILE=1
+      else
+        user_email=$(jsonquery "$profiles_description" "email")
+      fi
 
       if ((verbose)); then
         [ "$piped" -eq 0 ] && log "Creating a new webhook url for your job..."
       fi
-      requestbin=$(curl -sk -XPOST http://requestbin.agaveapi.co/api/v1/bins)
+      requestbin=$(requestbin-create -v)
       requestbin_id=$(jsonquery "$requestbin" "name")
-      webhookurl="http://requestbin.agaveapi.co/${requestbin_id}?job_id=\${JOB_ID}&status=\${JOB_STATUS}"
+      webhookurl="https://requestbin.agaveapi.co/${requestbin_id}?job_id=\${JOB_ID}&status=\${JOB_STATUS}"
 
       if ((verbose)); then
         [ "$piped" -eq 0 ] && log "Creating notifications..."
       fi
-      notifications=$(printf "    {\n      \"url\":\"%s\",\n      \"event\":\"*\",\n      \"persistent\":true\n    },\n    {\n      \"url\":\"%s\",\n      \"event\":\"FINISHED\",\n      \"persistent\":false\n    },\n    {\n      \"url\":\"%s\",\n      \"event\":\"FAILED\",\n      \"persistent\":false\n    }" "$webhookurl" "$user_email" "$user_email")
+
+      if ((EMPTY_PROFILE)); then
+        notifications=$(printf "    {\n      \"url\":\"%s\",\n      \"event\":\"*\",\n      \"persistent\":true\n    }" "$webhookurl")
+      else
+        notifications=$(printf "    {\n      \"url\":\"%s\",\n      \"event\":\"*\",\n      \"persistent\":true\n    },\n    {\n      \"url\":\"%s\",\n      \"event\":\"FINISHED\",\n          \"persistent\":false\n    },\n    {\n      \"url\":\"%s\",\n      \"event\":\"FAILED\",\n      \"persistent\":false\n    }" "$webhookurl" "$user_email" "$user_email")
+      fi
     fi
 
     # Allow the user to pass in a job name by default. Otherwise, generate one
     # derived from the job id
     if [[ -z "$name" ]]; then
       timestamp=$(date +%s)
-      name="$(jsonquery "$app_description" "name") test-$timestamp"
+      job_name="$(jsonquery "$app_description" "name") test-$timestamp"
     fi
 
     if ((verbose)); then
@@ -473,7 +492,7 @@ main() {
     fi
 
     if ((allfields)); then
-      printf "{\n  \"name\":\"%s\",\n  \"appId\": \"%s\",\n  \"batchQueue\": \"%s\",\n  \"executionSystem\": \"%s\",\n  \"maxRunTime\": \"%s\",\n  \"memoryPerNode\": \"%sGB\",\n  \"nodeCount\": %s,\n  \"processorsPerNode\": %s,\n  \"archive\": %s,\n  \"archiveSystem\": \"%s\",\n  \"archivePath\": %s,\n  \"inputs\": {%s\n  },\n  \"parameters\": {%s\n  },\n  \"notifications\": [\n%s\n  ]\n}\n" "$name" "$args" "$queue" "$execution_system_id" "$maxRunTime" "$memoryPerNode" "$nodeCount" "$processorsPerNode" "$archive" "$archiveSystem" "$archivePath" "$inputs" "$parameters" "$notifications"
+      printf "{\n  \"name\":\"%s\",\n  \"appId\": \"%s\",\n  \"batchQueue\": \"%s\",\n  \"executionSystem\": \"%s\",\n  \"maxRunTime\": \"%s\",\n  \"memoryPerNode\": \"%sGB\",\n  \"nodeCount\": %s,\n  \"processorsPerNode\": %s,\n  \"archive\": %s,\n  \"archiveSystem\": \"%s\",\n  \"archivePath\": %s,\n  \"inputs\": {%s\n  },\n  \"parameters\": {%s\n  },\n  \"notifications\": [\n%s\n  ]\n}\n" "$job_name" "$args" "$queue" "$execution_system_id" "$maxRunTime" "$memoryPerNode" "$nodeCount" "$processorsPerNode" "$archive" "$archiveSystem" "$archivePath" "$inputs" "$parameters" "$notifications"
     else
       printf "{\n  \"name\": \"%s\",\n  \"appId\": \"%s\",\n  \"archive\": %s,\n  \"inputs\": {%s\n  },\n  \"parameter\": {%s\n  }\n}\n" "$job_name" "$args" "$archive" "$inputs" "$parameters"
     fi
