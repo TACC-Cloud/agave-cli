@@ -29,7 +29,7 @@ fi
 
 # versioning info
 version="v2"
-release="2.1.8"
+release="2.1.9"
 revision=""
 if [ -e "$DIR/../.git" ];
 then
