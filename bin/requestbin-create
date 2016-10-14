@@ -73,8 +73,8 @@ format_api_json() {
 
 	if ((veryverbose)); then
 		json_prettyify "${1}"
-	elif [[ $verbose -eq 1 ]]; then
-		json_prettyify "${result}"
+	elif (($verbose)); then
+		json_prettyify "${1}"
 	else
 		binname=$(jsonquery "$1" "name")
 		echo "${hosturl}${binname}"

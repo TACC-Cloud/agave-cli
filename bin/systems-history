@@ -97,11 +97,8 @@ format_api_json() {
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
-	elif [ -n "$args" ]; then
-		result=$(jsonquery "$1" "result.id")
-		echo "${result}"
 	else
-		result=$(jsonquery "$1" "result.[].id")
+		result=$(jsonquery "$1" "result.[].description")
 		echo "${result}"
 	fi
 }
