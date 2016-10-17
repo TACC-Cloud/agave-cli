@@ -58,6 +58,7 @@ quiet=0
 verbose=0
 veryverbose=0
 interactive=0
+rich=0
 development=$( (("$AGAVE_DEVEL_MODE")) && echo "1" || echo "0" )
 
 disable_cache=0 # set to 1 to prevent using auth cache.
@@ -679,4 +680,61 @@ function json_prettyify {
 			echo "$@"
 		fi
 	fi
+}
+
+function richify {
+
+	#
+	# Generate rich plaintext response
+	#
+
+	# the first parameter passed here is the json response
+	json_response=$1
+	shift
+
+	array_of_values=()
+	return_string="| "
+	return_string_divider="| "
+	n=1
+
+	# If json values have spaces in them, the loop below balks; IFS fixes it
+	oldIFS="$IFS"
+	IFS=$'\n'
+
+	# the rest of the parameters in $@ are fields to parse
+	for params; do
+
+		# save parameter names for table header
+		return_string="$return_string $params\t| "
+
+		# dynamically create table divider
+		return_string_divider="$return_string_divider ${params//[A-Za-z0-9]/-}\t| "
+
+		# grab array of values from json response
+		results=($(jsonquery "$json_response" "result.[].$params"))
+
+		# add these json values to the array of all json values
+		for (( i=0; i<${#results[@]}; i++ )); do
+			array_of_values[$n]="${results[$i]}"
+			n=$(expr $n + 1)
+		done
+	done
+
+	IFS="$oldIFS"
+
+	# print table header and dividing line
+	echo $return_string
+	echo $return_string_divider
+
+	length_of_array=$(expr $n - 1)
+	number_of_responses=$(( $length_of_array / $# ))
+
+	# Print responses
+	for (( i=1; i<=$number_of_responses; i++ )); do
+		echo -n "| "
+		for (( j=0; j<$length_of_array; j+=$number_of_responses )); do
+			echo -n "${array_of_values[$(expr $i+$j)]}\t| "
+		done
+		echo ""
+	done
 }
