@@ -712,6 +712,9 @@ function richify {
 
 		# grab array of values from json response
 		results=($(jsonquery "$json_response" "result.[].$params"))
+		if [[ -z $results ]]; then
+			results=($(jsonquery "$json_response" "result.$params"))
+		fi
 
 		# add these json values to the array of all json values
 		for (( i=0; i<${#results[@]}; i++ )); do
