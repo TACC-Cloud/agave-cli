@@ -708,12 +708,15 @@ function richify {
 		return_string="$return_string $params\t| "
 
 		# dynamically create table divider
-		return_string_divider="$return_string_divider ${params//[A-Za-z0-9]/-}\t| "
+		return_string_divider="$return_string_divider ${params//[A-Za-z0-9\[\]\.]/-}\t| "
 
 		# grab array of values from json response
 		results=($(jsonquery "$json_response" "result.[].$params"))
 		if [[ -z $results ]]; then
 			results=($(jsonquery "$json_response" "result.$params"))
+		fi
+		if [[ -z $results ]]; then
+			results="null"
 		fi
 
 		# add these json values to the array of all json values
