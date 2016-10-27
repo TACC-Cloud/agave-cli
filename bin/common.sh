@@ -719,8 +719,18 @@ function richify {
 			results="null"
 		fi
 
+
 		# add these json values to the array of all json values
 		for (( i=0; i<${#results[@]}; i++ )); do
+
+			# Parse times into something friendly
+			if [[ "$results" != "null" ]]; then
+			if [[ "$params" == "lastModified" || "$params" == "lastUpdated" ]]; then
+				thisdate=$(echo ${results[$i]} | sed -e 's/T/ /')
+				results[$i]=$(date -d "$thisdate" +"%b %d %Y %R")
+			fi
+			fi
+
 			array_of_values[$n]="${results[$i]}"
 			n=$(expr $n + 1)
 		done
