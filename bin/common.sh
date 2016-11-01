@@ -725,7 +725,7 @@ function richify {
 
 			# Parse times into something friendly
 			if [[ "$results" != "null" ]]; then
-			if [[ "$params" == "lastModified" || "$params" == "lastUpdated" ]]; then
+			if [[ "$params" == "lastModified" || "$params" == "lastUpdated" || "$params" == "created" || "$params" == "startTime" || "$params" == "endTime" ]]; then
 				thisdate=$(echo ${results[$i]} | sed -e 's/T/ /')
 				results[$i]=$(date -d "$thisdate" +"%b %d %Y %R")
 			fi

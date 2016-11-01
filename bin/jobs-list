@@ -95,8 +95,8 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
         elif [[ $rich -eq 1 ]]; then
-		result=$(richify "$1" "id" "name" "owner" "executionSystem" "appId" "status")
-		#result=$(richify "$1" "name" "created" "startTime" "endTime")
+		#result=$(richify "$1" "id" "name" "owner" "executionSystem" "appId" "status")
+		result=$(richify "$1" "name" "created" "startTime" "endTime" "status")
 		echo -e "$result" | column -t -s$'\t'
 	else
 		if [ -n "$args" ]; then
