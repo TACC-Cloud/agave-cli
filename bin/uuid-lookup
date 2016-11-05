@@ -18,9 +18,11 @@ source "$DIR/common.sh"
 # to be named exactly as the longname option definition in usage().
 interactive_opts=()
 
+expand=false
+
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]...
+  echo -n "$(basename $0) [OPTION]... UUID [UUID]
 
 Lookup the resource for a given UUID when the resource type is not known.
 
@@ -51,65 +53,55 @@ main() {
 	#set -x
 
 	baseuuidurl=${hosturl%/}
+
 	if [ -z "$args" ]; then
 		err "Please specify one or more valid uuid to resolve"
-	else
 
-		for uuid in "${args[@]}"
-		do
-			hosturl="$baseuuidurl/$uuid"
+	# only one uuid was provided. return an object
+	elif [[ ${#args[@]} -eq 1 ]]; then
 
-			cmd="curl -sk -H \"${authheader}\" '${hosturl}?pretty=true$(pagination)'"
+		hosturl="$baseuuidurl/$args"
+
+		cmd="curl -sk -H \"${authheader}\" '${hosturl}?expand=$expand&pretty=true$(pagination)'"
+
+		if ((veryverbose)); then
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
+		fi
+
+		response=`curl -sk -H "${authheader}" "${hosturl}?expand=$expand&pretty=true$(pagination)"`
+
+		# resolve the uuid. if successful, parse it
+		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 
 			if ((veryverbose)); then
-				[ "$piped" -eq 0 ] && log "Calling $cmd"
+				echo "$response"
 			fi
+		else
+			errorresponse=$(jsonquery "$response" "message")
+			err "$errorresponse"
+		fi
 
-			response=`curl -sk -H "${authheader}" "${hosturl}?pretty=true$(pagination)"`
+	# multiple uuid were provided. return an array
+	else
+		# convert them to a comma separated list
+		uuids=$(echo "${args}" | sed -e 's/ /,/g')
 
-			# resolve the uuid. if successful, parse it
-			if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+		cmd="curl -sk -H \"${authheader}\" '${hosturl}?uuids=$uuids&expand=$expand&pretty=true$(pagination)'"
 
-				if ((veryverbose)); then
-					echo "$response"
-				fi
+		if ((veryverbose)); then
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
+		fi
 
-				# if the user wants the uuid expanded into a resource representation,
-				# we'll use the returned URL and fetch the resource.
-				if ((expand)); then
+		response=`curl -sk -H "${authheader}" "${hosturl}?uuids=$uuids&expand=$expand&pretty=true$(pagination)"`
 
-					resourceurl=$(jsonquery "$response" "result._links.self.href")
-
-					if [[ -n "$resourceurl" ]]; then
-
-						hosturl="$resourceurl"
-
-						subcmd="curl -sk -H \"${authheader}\" '${hosturl}?pretty=true$(pagination)'"
-
-						if ((veryverbose)); then
-							[ "$piped" -eq 0 ] && log "Expanding resource at $hosturl.\nCalling $subcmd"
-						fi
-
-						# The expanded resource becomes the response to this command
-						response=`curl -sk -H "${authheader}" "${hosturl}?pretty=true$(pagination)"`
-					fi
-				fi
-
-				# standard success handling if successful.
-				if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-					result=$(format_api_json "$response")
-					success "$result"
-				# in the event expansion was requested and it failed,
-				else
-					errorresponse=$(jsonquery "$response" "message")
-					err "$errorresponse"
-				fi
-
-			else
-				errorresponse=$(jsonquery "$response" "message")
-				err "$errorresponse"
-			fi
-		done
+		# resolve the uuid. if successful, parse it
+		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+			result=$(format_api_json "$response")
+			success "$result"
+		else
+			errorresponse=$(jsonquery "$response" "message")
+			err "$errorresponse"
+		fi
 	fi
 }
 
@@ -121,9 +113,25 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
 	else
-		resource_type=$(jsonquery "$1" "result.type")
-		resource_url=$(jsonquery "$1" "result._links.self.href")
-		echo "$resource_type $resource_url"
+		if [[ ${#args[@]} -eq 1 ]]; then
+			resource_type=$(jsonquery "$1" "result.type")
+			resource_url=$(jsonquery "$1" "result._links.self.href")
+			echo "$resource_type $resource_url"
+		else
+			resource_types=( $(jsonquery "$1" "result.[].id") )
+			resource_urls=( $(jsonquery "$1" "result.[]._links.self.href") )
+
+			n=0
+			for i in "${args[@]}"
+			do
+				resources[$n]="$i ${resource_types[$n]} ${resource_urls[$n]}"
+				n=$[n+1]
+			done
+
+			for i in "${resources[@]}"; do
+				echo "$i"
+			done
+		fi
 	fi
 }
 
@@ -148,7 +156,7 @@ while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
-    -e|--expand) expand=1 ;;
+    -e|--expand) expand=true ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
