@@ -8,6 +8,13 @@
 # A lot of this is based on options.bash by Daniel Mills.
 # @see https://github.com/e36freak/tools/blob/master/options.bash
 
+# init the parent directory variable if not already present
+# this is needed when sourcing this script directly from
+# outside the CLI scripts.
+if [[ -z "$DIR" ]]; then
+	DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+fi
+
 # add keyvalue support
 source $DIR/kv-bash
 
