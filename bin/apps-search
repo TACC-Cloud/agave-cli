@@ -114,11 +114,8 @@ main() {
     if [ -n "$args" ]; then
         for i in "${args[@]}"
         do
-            if [[ -n "$i" ]]; then
-                querystring+=$(echo -e " --data-urlencode ${i}")
-            fi
+            querystring="${querystring} --data-raw "$(urlencode "${i}" | sed 's/%3D/=/')
         done
-
     fi
 
     cmd="curl -G -sk -H \"${authheader}\" '$appsurl?pretty=true$(pagination)' $querystring)"

@@ -30,12 +30,14 @@ as consecutive arguments.
   created                       The timestamp when the tag was first created. Results are
                                 rounded by day. You may specify using YYYY-MM-DD format or free
                                 form timeframes such as 'yesterday' or '3 days ago'.
-  id                            The unique id of this system.
-  lastupdated                   The timestamp of the last time the system was updated. Results are
+  id                            The unique id of this tag.
+  lastupdated                   The timestamp of the last time the tag was updated. Results are
                                 rounded by day. You may specify using YYYY-MM-DD format or free
                                 form timeframes such as 'yesterday' or '3 days ago'.
-  name                          The name of the system.
-  owner                         The username of the principal who originally registered the system.
+  associationIds                The set of resources associated with this tag. Searches should only
+                                use 'in' and 'nin' search operations.
+  name                          The name of the tag.
+  owner                         The username of the principal who originally registered the tag.
 
  Options:
   -z, --access_token    Access token
@@ -72,7 +74,7 @@ main() {
     if [ -n "$args" ]; then
         for i in "${args[@]}"
         do
-            querystring="${querystring} --data-urlencode "${i}
+            querystring="${querystring} --data-raw "$(urlencode "${i}" | sed 's/%3D/=/')
         done
     fi
 
@@ -83,7 +85,7 @@ main() {
     fi
 
 
-	response=`curl -G -sk -H "${authheader}" $tagsurl?pretty=true$(pagination) $querystring`
+	response=`curl -G -v -sk -H "${authheader}" $tagsurl?pretty=true$(pagination) $querystring`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
@@ -105,9 +107,20 @@ format_api_json() {
         names=$(jsonquery "$1" "result.[].name")
 
         n=0
+        local _name _id
         for i in $(jsonquery "$1" "result.[].id")
         do
-            tagdesc[$n]="${names[$n]} $i"
+            _name=""
+            if [[ -n "${names[$n]}" ]] && [[ "${names[$n]}" != "null" ]]; then
+                _name="${names[$n]} "
+            fi
+
+            _id=""
+            if [[ -n "${i}" ]] && [[ "${i}" != "null" ]]; then
+                _id="${i} "
+            fi
+
+            tagdesc[$n]="${_name}${_id}"
             n=$[n+1]
         done
 

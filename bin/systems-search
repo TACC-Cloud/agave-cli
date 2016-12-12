@@ -41,6 +41,7 @@ public=true. Multiple search terms may be provided as consecutive arguments. For
   lastupdated                   The timestamp of the last time the system was updated. Results are
                                 rounded by day. You may specify using YYYY-MM-DD format or free
                                 form timeframes such as 'yesterday' or '3 days ago'.
+  lastmodified                  Alias for lastupdated.
   name                          The name of the system.
   owner                         The username of the principal who originally registered the system.
   public                        Whether the system is publicly available for use. Boolean, if true
@@ -128,7 +129,7 @@ main() {
     if [ -n "$args" ]; then
         for i in "${args[@]}"
         do
-            querystring="${querystring} --data-urlencode "${i}
+            querystring="${querystring} --data-raw "$(urlencode "${i}" | sed 's/%3D/=/')
         done
     fi
 

@@ -156,10 +156,10 @@ while [[ $1 = -?* ]]; do
     -l|--lifetime) shift; lifetime=$1 ;;
   	-m|--maxUses) shift; maxUses=$1 ;;
   	-u|--internalUsername) shift; internalUsername=$1 ;;
-	  -M|--method) shift; method=$1;;
+    -M|--method) shift; method=$1;;
     -N|--noauth) noauth=1;;
     -x|--apiusername) shift; apiusername=$1;;
-	  -H|--hosturl) shift; hosturl=$1;;
+    -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;
     -V|--veryverbose) veryverbose=1; verbose=1 ;;
