@@ -38,6 +38,7 @@ Lists batch queues on a system.
   -V, --veryverbose     Very verbose output
   -h, --help            Display this help and exit
       --version         Output version information and exit
+      --rich            Provide rich response
 "
 }
 
@@ -92,6 +93,10 @@ format_api_json() {
 	elif ((verbose)); then
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
+	elif [[ $rich -eq 1 ]]; then
+		#result=$(richify "$1" "name" "load.running" "load.pending" "load.queued")
+		result=$(richify "$1" "name" "maxJobs" "maxNodes" "maxProcessorsPerNode" "maxMemoryPerNode" "maxRequestedTime")
+		echo -e "$result" | column -t -s$'\t'
 	else
 		if [[ -z "$queuename" ]]; then
 
@@ -146,6 +151,7 @@ while [[ $1 = -?* ]]; do
     -q|--quiet) quiet=1 ;;
     -i|--interactive) interactive=1 ;;
     -f|--force) force=1 ;;
+    --rich) rich=1 ;;
     --endopts) shift; break ;;
     *) die "invalid option: $1" ;;
   esac
