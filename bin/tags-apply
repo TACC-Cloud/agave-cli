@@ -1,0 +1,186 @@
+#!/bin/bash
+#
+# tags-apply
+#
+# author: dooley@tacc.utexas.edu
+#
+# This script is part of the Agave API command line interface (CLI).
+# It adds and updates resource tags.
+#
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "$DIR/common.sh"
+
+# Script logic -- TOUCH THIS {{{
+
+# A list of all variables to prompt in interactive mode. These variables HAVE
+# to be named exactly as the longname option definition in usage().
+interactive_opts=(apisecret apikey filetoupload)
+
+# Print usage
+usage() {
+  echo -n "$(basename $0) [OPTION]...
+$(basename $0) [OPTION]... [TAG_NAME|TAG_UUID]
+$(basename $0) [OPTION]... [TAG_NAME|TAG_UUID] [UUID]...
+
+Create or update a tag on a resource.
+
+ Options:
+  -z, --access_token      Access token
+  -N, --name              The name of the tagbx  containing the JSON notification description to submit
+  -F, --filetoupload      The file containing the JSON notification description to submit
+  -H, --hosturl           URL of the service
+  -d, --development       Run in dev mode using default dev server
+  -f, --force             Skip all user interaction
+  -i, --interactive       Prompt for values
+  -q, --quiet             Quiet (no output)
+  -v, --verbose           Verbose output
+  -V, --veryverbose       Very verbose output
+  -h, --help              Display this help and exit
+      --version           Output version information and exit
+"
+}
+
+##################################################################
+##################################################################
+#						Begin Script Logic						 #
+##################################################################
+##################################################################
+
+source "$DIR/tags-common.sh"
+
+main() {
+	#echo -n
+	#set -x
+
+  if [[ -d "$filetoupload" ]]; then
+
+    response="Directory input is not supported"
+    err "$response"
+
+  elif [[ -z "$filetoupload" ]]; then
+
+    tag_name="${args[0]}"
+    shift;
+    args="${args[@]:1}"
+
+    uuids=$(echo "${args}" | sed -e 's/ /","/g')
+
+    cmd="curl -sk -H \"${authheader}\" -X POST -H 'Content-Type: application/json' --data-binary  '{\"name\":\"${tag_name}\",\"associationIds\": [\"${uuids}\"]}' '${hosturl}?pretty=true'"
+
+    if ((veryverbose)); then
+        [ "$piped" -eq 0 ] && log "Calling $cmd"
+    fi
+    set -x
+
+    response=`curl -sk -H "${authheader}" -X POST -H 'Content-Type: application/json' --data-binary "{\"name\":\"${tag_name}\", \"associationIds\":[\"${uuids}\"]}" "${hosturl}?pretty=true"`
+    set +x
+  # reading from stdin
+  elif [[ "$filetoupload" == "-"  ]]; then
+
+    cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- '${hosturl}?pretty=true'"
+
+    if ((veryverbose)); then
+      [ "$piped" -eq 0 ] && log "Calling $cmd"
+    fi
+
+    # make sure we specify content type as application/json
+    response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary @- "${hosturl}?pretty=true"`
+
+  # standard file upload
+  elif [[ -f "$filetoupload" ]]; then
+
+    cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" '${hosturl}?pretty=true'"
+
+    if ((veryverbose)); then
+        [ "$piped" -eq 0 ] && log "Calling $cmd"
+    fi
+
+    response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}?pretty=true"`
+
+  fi
+
+  if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+    result=$(format_api_json "$response")
+    success "$result"
+  else
+    errorresponse=$(jsonquery "$response" "message")
+    err "$errorresponse"
+  fi
+}
+
+format_api_json() {
+
+	if ((veryverbose)); then
+		echo "$1"
+	elif [[ $verbose -eq 1 ]]; then
+		result=$(jsonquery "$1" "result" 1)
+		json_prettyify "${result}"
+	else
+		uuid=$(jsonquery "$response" "result.id")
+        name=$(jsonquery "$response" "result.name")
+        created=$(jsonquery "$response" "result.created")
+        lastupdated=$(jsonquery "$response" "result.lastUpdated")
+		if [[ "$created" != "$lastupdated" ]]; then
+            success "Successfully updated tag $name - $uuid"
+        else
+            success "Successfully created tag $name - $uuid"
+        fi
+	fi
+}
+
+##################################################################
+##################################################################
+#						End Script Logic						 #
+##################################################################
+##################################################################
+
+# }}}
+
+# Parse command line options
+source "$DIR/options.sh"
+
+
+# Main loop {{{
+
+# Print help if no arguments were passed.
+[[ $# -eq 0 ]] && set -- "-i"
+
+# Read the options and set stuff
+while [[ $1 = -?* ]]; do
+  case $1 in
+    -h|--help) usage >&2; safe_exit ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -z|--access_token) shift; access_token=$1 ;;
+    -F|--filetoupload) shift; filetoupload=$1 ;;
+    -U|--url) shift; url=$1 ;;
+    -E|--event) shift; event=$1 ;;
+    -P|--persistent) persistent="true" ;;
+    -A|--associatedUuid) shift; associatedUuid=$1 ;;
+    -R|--retrystrategy) shift; retrystrategy=$1 ;;
+    -D|--retrydelay) shift; retrydelay=$1 ;;
+    -L|--retrylimit) shift; retrylimit=$1 ;;
+    -I|--retryrate) shift; retryrate=$1 ;;
+    -S|--saveonfailure) saveonfailure="true" ;;
+    --filter) shift; responsefilter=$1 ;;
+    -H|--hosturl) shift; hosturl=$1 ;;
+  	-d|--development) development=1 ;;
+    -v|--verbose) verbose=1 ;;
+    -V|--veryverbose) veryverbose=1; verbose=1 ;;
+    -q|--quiet) quiet=1 ;;
+    -i|--interactive) interactive=1 ;;
+    -f|--force) force=1 ;;
+    --endopts) shift; break ;;
+    *) die "invalid option: $1" ;;
+  esac
+  shift
+done
+
+# Store the remaining part as arguments.
+args+=("$@")
+
+# }}}
+
+# Run the script logic
+source "$DIR/runner.sh"
