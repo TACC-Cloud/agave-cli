@@ -36,7 +36,7 @@ _check_cache() {
     local _response _resource _partial _cmd
 
     _resource=$1; shift
-    _partial=$(echo ${2} | sed 's/^"//' | sed 's/"$//'); shift
+    _partial=$(echo ${1} | sed 's/^"//' | sed 's/"$//'); shift
     _cmd="$CLI_DIR/"$( echo "$@" | sed 's/^"//')
 
     # force a cache cleanup prior to checking the cache so we don't
@@ -45,16 +45,18 @@ _check_cache() {
 
     AGAVE_CACHE_VAR="AGAVE_CLI_COMPLETION_CACHE_${_resource}"
     # check the
-    if [ "${!AGAVE_CACHE_VAR}" = "yes" ]; then
+    if [ -z "${!AGAVE_CACHE_VAR}" ] || [ "${!AGAVE_CACHE_VAR}" = "yes" ]; then
+#        set -x
         if [[ -e "$AGAVE_CACHE_DIR/${_resource}-CACHE-${_partial}" ]]; then
             response=$(kvget "${_resource}-CACHE-${_partial}")
         fi
 
         if [[ -z "$response" ]]; then
             response="$(${_cmd})"
-            echo ${_resource}-CACHE-${_partial}
+            #echo ${_resource}-CACHE-${_partial}
             kvset "${_resource}-CACHE-${_partial}" "${response}"
         fi
+    set +x
     else
         response="$(${_cmd})"
     fi
@@ -144,7 +146,7 @@ _apps-list () {
 
     case "$prev" in
         -z|-n|-t|-S|-O|-l|-o|-H|-u|-N|-h|-F) COMPREPLY=($(compgen -f $cur)) ;;
-        *) COMPREPLY=($(compgen -W "$(_check_cache 'APPS' "" \"apps-list --filter=id\")" -- $cur)) ;;
+        *) COMPREPLY=($(compgen -W "$(_check_cache 'APPS' "LISTINGS" \"apps-list --filter=id\")" -- $cur)) ;;
     esac
 
 }
@@ -160,7 +162,7 @@ _apps-clone () {
         -s) COMPREPLY=($(compgen -W "$(_check_cache 'SYSTEMS' 'storage' \"systems-search --filter=id type=STORAGE id.like=${cur}*\")" -- $cur)) ;;
     # -p
         -z|-n|-x|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
-        *) COMPREPLY=($(compgen -W "$(_check_cache 'APPS' '' 'apps-list --filter=id')" -- $cur)) ;;
+        *) COMPREPLY=($(compgen -W "$(_check_cache 'APPS' 'LISTINGS' 'apps-list --filter=id')" -- $cur)) ;;
     esac
 }
 
@@ -174,7 +176,7 @@ _apps-pems-update () {
         -u) COMPREPLY=($(compgen -W "$(profiles-list -v --filter=username -U ${cur} | grep "\"username\"" | sed 's/"//g' | sed 's/username\://g' | sed 's/ //g')" -- $cur)) ;;
         -p) COMPREPLY=($(compgen -W "READ WRITE EXECUTE READ_WRITE READ_EXECUTE WRITE_EXECUTE ALL NONE" -- $cur)) ;;
         -z|-u|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
-        *) COMPREPLY=($(compgen -W "$(_check_cache 'APPS' '' 'apps-list --filter=id')" -- $cur)) ;;
+        *) COMPREPLY=($(compgen -W "$(_check_cache 'APPS' 'LISTINGS' 'apps-list --filter=id')" -- $cur)) ;;
     esac
 }
 
@@ -187,7 +189,7 @@ _apps-publish () {
     case "$prev" in
         -e) COMPREPLY=($(compgen -W "$(_check_cache 'SYSTEMS' 'execution' 'systems-search --filter=id type=EXECUTION')" -- $cur)) ;;
         -z|-n|-x|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
-        *) COMPREPLY=($(compgen -W "$(_check_cache 'APPS' '' 'apps-list --filter=id')" -- $cur)) ;;
+        *) COMPREPLY=($(compgen -W "$(_check_cache 'APPS' 'LISTINGS' 'apps-list --filter=id')" -- $cur)) ;;
     esac
 }
 
@@ -249,7 +251,7 @@ _metadata-list() {
 
     case "$prev" in
         -z|-Q|-P|-l|-o|-H|-h|-u|-F) COMPREPLY=($(compgen -f $cur)) ;;
-        *) COMPREPLY=($(compgen -W "$(metadata-list -Q '{"uuid":"${cur}.*"}')" -- $cur)) ;;
+        *) COMPREPLY=($(compgen -W "$(metadata-list -Q '{"uuid":"'${cur}'.*"}')" -- $cur)) ;;
     esac
 }
 
@@ -309,7 +311,7 @@ _monitors-list() {
     case "$prev" in
         -T) COMPREPLY=($(compgen -W "$(_check_cache 'SYSTEMS' 'LISTING' 'systems-search --filter=id')" -- $cur)) ;;
         -z|-l|-o|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
-        *) COMPREPLY=($(compgen -W "$( _check_cache 'MONITORS' '' 'monitors-list --filter=id' )" -- $cur)) ;;
+        *) COMPREPLY=($(compgen -W "$( _check_cache 'MONITORS' 'LISTING' 'monitors-list --filter=id' )" -- $cur)) ;;
     esac
 }
 
@@ -324,11 +326,11 @@ _monitors-checks-list() {
 
 #    set -x
     case "$prev" in
-        -M) COMPREPLY=($(compgen -W "$(_check_cache 'MONITORS' '' 'monitors-list --filter=id')" -- $cur)) ;;
+        -M) COMPREPLY=($(compgen -W "$(_check_cache 'MONITORS' 'LISTINGS' 'monitors-list --filter=id')" -- $cur)) ;;
         -R) COMPREPLY=($(compgen -W "PASSED FAILED UNKNOWN" -- $cur)) ;;
         -T) COMPREPLY=($(compgen -W "STORAGE LOGIN" -- $cur)) ;;
         -z|-l|-o|-I|-A|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
-        *) COMPREPLY=($(compgen -W "$(_check_cache 'MONITORS' '' ${_monitors_check_cmd})" -- $cur)) ;;
+        *) COMPREPLY=($(compgen -W "$(_check_cache 'MONITORS' 'LISTINGS' ${_monitors_check_cmd})" -- $cur)) ;;
     esac
 #    set +x
 }
@@ -342,7 +344,7 @@ _monitors-addupdate() {
     case "$prev" in
         -S) COMPREPLY=($(compgen -W "$(_check_cache 'SYSTEMS' 'LISTING' 'systems-search --filter=id')" -- $cur)) ;;
         -z|-F|-I|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
-        *) COMPREPLY=($(compgen -W "$(_check_cache 'MONITORS' '' 'monitors-list --filter=id')" -- $cur)) ;;
+        *) COMPREPLY=($(compgen -W "$(_check_cache 'MONITORS' 'LISTING' 'monitors-list --filter=id')" -- $cur)) ;;
     esac
 }
 
@@ -360,7 +362,7 @@ _notifications-list () {
 
     case "$prev" in
         -z|-U|-l|-o|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
-        *) COMPREPLY=($(compgen -W "$(_check_cache 'NOTIFICATIONS' '' 'notifications-search --filter=id')" -- $cur)) ;;
+        *) COMPREPLY=($(compgen -W "$(_check_cache 'NOTIFICATIONS' 'LISTINGS' 'notifications-search --filter=id')" -- $cur)) ;;
     esac
 }
 
@@ -389,7 +391,7 @@ _notifications-addupdate() {
     case "$prev" in
         -R) COMPREPLY=($(compgen -W "IMMEDIATE DELAYED EXPONENTIAL" -- $cur)) ;;
         -z|-F|-U|-E|-D|-L|-I|-A|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
-        *) COMPREPLY=($(compgen -W "$(_check_cache 'NOTIFICATIONS' '' 'notifications-search --filter=id')" -- $cur)) ;;
+        *) COMPREPLY=($(compgen -W "$(_check_cache 'NOTIFICATIONS' 'LISTINGS' 'notifications-search --filter=id')" -- $cur)) ;;
     esac
 }
 
@@ -405,7 +407,7 @@ _postits-list () {
 
     case "$prev" in
         -z|-U|-l|-o|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
-        *) COMPREPLY=($(compgen -W "$(_check_cache 'POSTITS' '' 'postits-list --filter=id' | xargs -n 1 sh -c 'echo $0 | sed 's#^.*v2/##g'')" -- $cur)) ;;
+        *) COMPREPLY=($(compgen -W "$(_check_cache 'POSTITS' 'LISTINGS' 'postits-list --filter=id' | xargs -n 1 sh -c 'echo $0 | sed 's#^.*v2/##g'')" -- $cur)) ;;
     esac
 }
 
@@ -435,7 +437,7 @@ _postits-list () {
 
     case "$prev" in
         -z|-U|-l|-o|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
-        *) COMPREPLY=($(compgen -W "$(_check_cache 'POSTITS' '' 'postits-list --filter=id' | xargs -n 1 sh -c 'echo $0 | sed 's#^.*v2/##g'')" -- $cur)) ;;
+        *) COMPREPLY=($(compgen -W "$(_check_cache 'POSTITS' 'LISTINGS' 'postits-list --filter=id' | xargs -n 1 sh -c 'echo $0 | sed 's#^.*v2/##g'')" -- $cur)) ;;
     esac
 }
 
@@ -491,11 +493,12 @@ _systems-list () {
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
     prev=${COMP_WORDS[COMP_CWORD-1]}
-
+#    set -x
     case "$prev" in
         -z|-U|-l|-o|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
         *) COMPREPLY=($(compgen -W "$(_check_cache 'SYSTEMS' 'LISTING' 'systems-search --filter=id')" -- $cur)) ;;
     esac
+#set +x
 }
 
 _systems-roles-update () {
@@ -531,7 +534,7 @@ _profiles-list () {
     esac
 }
 
-complete -F _profiles-list profiles-list
+complete -F _profiles-list profiles-list profiles-delete profiles-addpdate
 
 # _files-list handles completion on file path.
 # Due to potential performance issues, this is disabled by default.
@@ -867,4 +870,4 @@ __agave_append_search_comparator() {
     fi
 }
 
-complete -o nospace -F __agave_search apps-search jobs-search monitors-search notifications-search systems-search tags-search transfers-search transforms-search groups-search postits-search
+complete -o nospace -F __agave_search apps-search jobs-search monitors-search notifications-search systems-search tags-search transfers-search transforms-search groups-search postits-search profiles-search
