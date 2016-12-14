@@ -69,7 +69,7 @@ main() {
 		hosturl="$hosturl/$args"
 	else
 		if [ -n "$name" ]; then
-			querystring="name.eq=$name&${querystring}"
+			querystring="name.like=*${name}*&${querystring}"
 		fi
 
 		if [ -n "$tag" ]; then
