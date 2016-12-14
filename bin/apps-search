@@ -114,7 +114,7 @@ main() {
     if [ -n "$args" ]; then
         for i in "${args[@]}"
         do
-            querystring="${querystring} --data-raw "$(urlencode "${i}" | sed 's/%3D/=/')
+            querystring="${querystring} --data "$(urlencode "${i}" | sed 's/%3D/=/')
         done
     fi
 

@@ -69,19 +69,19 @@ main() {
 		hosturl="$hosturl/$args"
 	else
 		if [ -n "$name" ]; then
-			querystring="name.eq=$name&${querystring}"
+			querystring="name.like=*${name}*&${querystring}"
 		fi
 
 		if [ -n "$tag" ]; then
-			querystring="tag.eq=$tag&${querystring}"
+			querystring="tag.like=*$tag*&${querystring}"
 		fi
 
 		if [ -n "$ontology" ]; then
-			querystring="ontology.eq=$ontology&${querystring}"
+			querystring="ontology.like=*$ontology&${querystring}"
 		fi
 
 		if [ -n "$system" ]; then
-			querystring="executionSystem.eq=$system&${querystring}"
+			querystring="executionSystem.like=*$system*&${querystring}"
 		fi
 
 		if [ -n "$publiconly" ]; then
