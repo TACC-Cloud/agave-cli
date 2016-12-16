@@ -123,7 +123,8 @@ format_api_json() {
 	elif [[ $rich -eq 1 ]]; then
 		#result=$(richify "$1" "id" "name" "version" "revision" "isPublic" "lastModified")
 		result=$(richify "$1" "id" "executionSystem" "revision" "isPublic" "lastModified")
-		echo -e "$result" | column -t -s$'\t'
+		#echo -e "$result" | column -t -s$'\t'
+		columnize "${result}"
 	else
 		if [ -n "$args" ]; then
 			result=$(jsonquery "$1" "result.id")

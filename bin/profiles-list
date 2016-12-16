@@ -99,7 +99,8 @@ format_api_json() {
 		json_prettyify "${result}"
 	elif [[ $rich -eq 1 ]]; then
 		result=$(richify "$1" "firstName" "lastName" "username" "email" "institution")
-		echo -e "$result" | column -t -s$'\t'
+		#echo -e "$result" | column -t -s$'\t'
+		columnize "${result}"
 	else
     if [ -n "$args" ]; then
 		    result=$(jsonquery "$1" "result.email")

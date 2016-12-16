@@ -705,10 +705,12 @@ function richify {
 	for params; do
 
 		# save parameter names for table header
-		return_string="$return_string $params\t| "
+		#return_string="$return_string $params\t| "
+		return_string="$return_string $params | "
 
 		# dynamically create table divider
-		return_string_divider="$return_string_divider ${params//[A-Za-z0-9\[\]\.]/-}\t| "
+		#return_string_divider="$return_string_divider ${params//[A-Za-z0-9\[\]\.]/-}\t| "
+		return_string_divider="$return_string_divider ${params//[A-Za-z0-9\[\]\.]/-} | "
 
 		# grab array of values from json response
 		results=($(jsonquery "$json_response" "result.[].$params"))
@@ -749,8 +751,47 @@ function richify {
 	for (( i=1; i<=$number_of_responses; i++ )); do
 		echo -n "| "
 		for (( j=0; j<$length_of_array; j+=$number_of_responses )); do
-			echo -n "${array_of_values[$(expr $i+$j)]}\t| "
+			#echo -n "${array_of_values[$(expr $i+$j)]}\t| "
+			echo -n "${array_of_values[$(expr $i+$j)]} | "
 		done
 		echo ""
 	done
+}
+
+function columnize {
+
+	#
+	# Use awk to put rich text with pipe '|' separators into column format
+	# (This replaces the bash 'column' command because 'column' is not 
+	# pervasive across all systems)
+	#
+
+	# Fields may contain special chars; currently splitting on '|'
+	# (subtract 2 because there are empty fields before the first column and after
+	# the last column)
+	number_of_columns=$( echo "${@}" | head -n1 | awk -F "|" '{print NF-2}' )
+
+	# 'lengths' is an array that stores the max number of characters per column
+	lengths=( $(echo "${@}" | awk -F "|" -v numcol="$number_of_columns" '
+	{
+		for (i=2; i<=numcol+1; i++)
+			if ( length($i) > maxchar[i] )
+				maxchar[i] = length($i)
+	}
+	END {
+		for (j=2; j<=numcol+1; j++)
+			printf "%d%s", maxchar[j], " "
+			#printf "|%*-s", maxchar[j], $j
+	}' ) )
+
+	# Printf each column with width based on maximum length
+	echo "${@}" | awk -F "|" -v numcol="$number_of_columns" -v len="${lengths[*]}" '
+	BEGIN {
+		split(len, list, " ")
+	}
+	{
+		for (i=2; i<=numcol+1; i++)
+			printf "|%*-s", list[i-1], $i
+		print "|"
+	}'
 }
