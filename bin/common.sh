@@ -671,7 +671,7 @@ function json_prettyify {
 	# If all else fails, we can use the jsonparser api
 	#elif [[ -z "$AGAVE_JSON_PARSER" -o 'json-mirror' == "$AGAVE_JSON_PARSER" ]]; then
 	else
-		jsonparserresponse=$(echo "${1}" | curl -s --globoff -X POST -H "Content-Type: application/json" --data-binary @- "https://agaveapi.co/json-mirror?pretty=true")
+		jsonparserresponse=$(echo "${1}" | curl -sk --globoff -X POST -H "Content-Type: application/json" --data-binary @- "https://agaveapi.co/json-mirror?pretty=true")
 
 		if [ $? ]; then
 			echo -e "${jsonparserresponse}"
