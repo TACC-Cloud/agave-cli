@@ -87,8 +87,9 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
 	elif [[ $rich -eq 1 ]]; then
-		result=$(richify "$1" "name" "consumerKey")
-		echo -e "$result" | column -t -s$'\t'
+		fields=($( grep $( basename $0 ) $( dirname "${BASH_SOURCE[0]}" )/richtext ))
+		result=$(richify "$1" ${fields[*]:1} )
+		columnize "${result}"
 	elif [ -n "$args" ]; then
 		result=$(jsonquery "$1" "result.name")
 		echo "${result}"

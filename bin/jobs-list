@@ -94,10 +94,10 @@ format_api_json() {
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
-        elif [[ $rich -eq 1 ]]; then
-		#result=$(richify "$1" "id" "name" "owner" "executionSystem" "appId" "status")
-		result=$(richify "$1" "name" "created" "startTime" "endTime" "status")
-		echo -e "$result" | column -t -s$'\t'
+	elif [[ $rich -eq 1 ]]; then
+		fields=($( grep $( basename $0 ) $( dirname "${BASH_SOURCE[0]}" )/richtext ))
+		result=$(richify "$1" ${fields[*]:1} )
+		columnize "${result}"
 	else
 		if [ -n "$args" ]; then
 			jobstatus=$(jsonquery "$1" "result.status")

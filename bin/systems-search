@@ -159,9 +159,9 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
 	elif [[ $rich -eq 1 ]]; then
-		result=$(richify "$1" "id" "type" "status" "public" "default" "lastUpdated")
-		#result=$(richify "$1" "id" "name")
-		echo -e "$result" | column -t -s$'\t'
+		fields=($( grep $( basename $0 ) $( dirname "${BASH_SOURCE[0]}" )/richtext ))
+		result=$(richify "$1" ${fields[*]:1} )
+		columnize "${result}"
 	else
 		systemids=$(jsonquery "$1" "result.[].id")
 
