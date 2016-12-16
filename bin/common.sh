@@ -678,7 +678,7 @@ function json_prettyify {
 	# If all else fails, we can use the jsonparser api
 	#elif [[ -z "$AGAVE_JSON_PARSER" -o 'json-mirror' == "$AGAVE_JSON_PARSER" ]]; then
 	else
-		jsonparserresponse=$(echo "${1}" | curl -s --globoff -X POST -H "Content-Type: application/json" --data-binary @- "https://agaveapi.co/json-mirror?pretty=true")
+		jsonparserresponse=$(echo "${1}" | curl -sk --globoff -X POST -H "Content-Type: application/json" --data-binary @- "https://agaveapi.co/json-mirror?pretty=true")
 
 		if [ $? ]; then
 			echo -e "${jsonparserresponse}"
@@ -686,4 +686,35 @@ function json_prettyify {
 			echo "$@"
 		fi
 	fi
+}
+
+function auto_auth_refresh {
+
+	# If this function is entered, it assumes the user already stores keys in ~/.agave/current,
+	# and that the bearer and refresh tokens have previously been created, and that the bearer token
+	# is expired
+
+	__hosturl="$baseurl"
+	__hosturl=${__hosturl}/token
+	__post_options="grant_type=refresh_token&refresh_token=${refresh_token}&scope=PRODUCTION"
+
+	response=`curl -sku "$apikey:$apisecret" -X POST -d "${__post_options}" -H "Content-Type:application/x-www-form-urlencoded" "$__hosturl"`
+
+	jsonval access_token "$response" "access_token"
+	jsonval refresh_token "$response" "refresh_token"
+	jsonval expires_in "$response" "expires_in"
+	created_at=$(date +%s)
+	expires_at=`date -d @$(expr $created_at + $expires_in)`
+
+	kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
+
+	if [[ $verbose -ne 1 ]]; then
+		echo "Token for ${tenantid}:${username} successfully refreshed and cached for ${expires_in} seconds"
+	fi
+
+	jsonval result "$response" "access_token"
+	echo "${result}"
+
+	# The command call below here also works, if un-commented. But perhaps the above is preferable?
+	#( /bin/bash $DIR/auth-tokens-refresh )
 }

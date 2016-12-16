@@ -39,7 +39,19 @@ else
 			if [ -z "$access_token" ]; then
 				jsonval access_token "${tokenstore}" "access_token"
 			fi
-				jsonval refresh_token "${tokenstore}" "refresh_token"
+			jsonval refresh_token "${tokenstore}" "refresh_token"
+
+			# Mechanism to auto-refresh expired bearer tokens
+			if [ -n "$refresh_token" ]; then
+				jsonval created_at "${tokenstore}" "created_at"
+				jsonval expires_in "${tokenstore}" "expires_in"
+				if [ `date +%s`  -gt  $(expr $created_at + $expires_in) ]; then
+					#echo "Token exists and is expired. Refreshing..."
+					auto_auth_refresh
+					jsonval access_token "$(kvget current)" "access_token"
+					jsonval refresh_token "$(kvget current)" "refresh_token"
+				fi
+			fi
 		fi
 	fi
 
