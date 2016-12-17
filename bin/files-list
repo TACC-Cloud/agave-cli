@@ -96,7 +96,7 @@ format_api_json() {
         #lstng=$(lsify "$1" | awk '{ printf("%-10s %+12s %+18s %+32s %s\n", $1, $2, $3, $4, $5); }')
         lsify "$1" | column -t -s$'\t'
 	elif [[ $rich -eq 1 ]]; then
-		fields=($( grep $( basename $0 ) $( dirname "${BASH_SOURCE[0]}" )/richtext ))
+		fields=($( grep -m1 $( basename $0 ) $( dirname "${BASH_SOURCE[0]}" )/richtext ))
 		result=$(richify "$1" ${fields[*]:1} )
 		columnize "${result}"
     else

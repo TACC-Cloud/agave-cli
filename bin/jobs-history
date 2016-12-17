@@ -106,7 +106,7 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
 	elif [[ $rich -eq 1 ]]; then
-		fields=($( grep $( basename $0 ) $( dirname "${BASH_SOURCE[0]}" )/richtext ))
+		fields=($( grep -m1 $( basename $0 ) $( dirname "${BASH_SOURCE[0]}" )/richtext ))
 		result=$(richify "$1" ${fields[*]:1} )
 		columnize "${result}"
 	else
