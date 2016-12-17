@@ -65,6 +65,7 @@ quiet=0
 verbose=0
 veryverbose=0
 interactive=0
+rich=0
 development=$( (("$AGAVE_DEVEL_MODE")) && echo "1" || echo "0" )
 
 disable_cache=0 # set to 1 to prevent using auth cache.
@@ -115,15 +116,15 @@ function err() {
 
 	if (($verbose)); then
 		if ((piped)); then
-		  	out "${response}"
+		  	die "${response}"
 		else
-		  	out "\033[1;31m${response}\033[0m"
+		  	die "\033[1;31m${response}\033[0m"
 		fi
 	else
 		if ((piped)); then
-			out "$@"
+			die "$@"
 		else
-			out "\033[1;31m${@}\033[0m"
+			die "\033[1;31m${@}\033[0m"
 		fi
 	fi
 } >&2
@@ -704,7 +705,11 @@ function auto_auth_refresh {
 	jsonval refresh_token "$response" "refresh_token"
 	jsonval expires_in "$response" "expires_in"
 	created_at=$(date +%s)
-	expires_at=`date -d @$(expr $created_at + $expires_in)`
+	if date --version >/dev/null 2>&1 ; then
+		expires_at=`date -d @$(expr $created_at + $expires_in)`
+	else
+		expires_at=`date -r $(expr $created_at + $expires_in)`
+	fi
 
 	kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
 
@@ -717,4 +722,234 @@ function auto_auth_refresh {
 
 	# The command call below here also works, if un-commented. But perhaps the above is preferable?
 	#( /bin/bash $DIR/auth-tokens-refresh )
+}
+
+function richify {
+
+	#
+	# Generate rich plaintext response
+	#
+
+	# the first parameter passed here is the json response
+	json_response=$1
+	shift
+
+	array_of_values=()
+	return_string="| "
+	return_string_divider="| "
+	n=1
+
+	# lookup the calling function to determine the
+	# resource type from the calling script name. This
+	# keeps the call to this function clean and lets
+	# us localize the field name lookup.
+	# Here we exec rather than subshell so we keep the reference
+	# to the caller of this script
+	cli_command=`caller |  awk '{print $2}' | basename $0`
+
+	# If the user is filtering the response, then we need to override the
+	# default fields for the given response. Because we introspect the calling
+	# script rather than passing in the script name, we can isolate the
+	# field lookup here rather than including it in all the calling scripts
+	if [[ -n "$responsefilter" && "*" != "$responsefilter" ]]; then
+		richargs=($(echo $responsefilter | sed 's/,/ /g' | xargs -n 1))
+	else
+		richargs=($(grep -m1 $cli_command "${DIR}/richtext" | sed 's#^.*\:##'))
+	fi
+
+	# If json values have spaces in them, the loop below balks; IFS fixes it
+	oldIFS="$IFS"
+	IFS=$'\n'
+
+
+
+	# the rest of the parameters in $@ are fields to parse
+	for params in "${richargs[@]}"; do
+
+		# save parameter names for table header
+		#return_string="$return_string $params\t| "
+		return_string="$return_string $params | "
+
+		# dynamically create table divider
+		#return_string_divider="$return_string_divider ${params//[A-Za-z0-9\[\]\.]/-}\t| "
+		return_string_divider="$return_string_divider ${params//[A-Za-z0-9\[\]\.]/-} | "
+
+		# grab array of values from json response
+		results=($(jsonquery "$json_response" "result.[].$params"))
+		if [[ -z $results ]]; then
+			results=($(jsonquery "$json_response" "result.$params"))
+		fi
+		if [[ -z $results ]]; then
+			results="null"
+		fi
+
+
+		# add these json values to the array of all json values
+		for (( i=0; i<${#results[@]}; i++ )); do
+
+			# Parse times into something friendly
+			if [[ "$results" != "null" ]]; then
+				if [[ "$params" == "lastModified" || "$params" == "lastUpdated" || "$params" == "created" || "$params" =~ /.*Time$/ || "$params" =~ /.*At$/ || "$params" =~ /.*Date$/ ]]; then
+					# break date formatting out to its own function so we can
+					# consistently reuse it across the cli
+					results[$i]=$(format_iso8601_date_and_time "${results[$i]}" 1)
+
+				fi
+			fi
+
+			array_of_values[$n]="${results[$i]}"
+			n=$(expr $n + 1)
+		done
+	done
+
+	IFS="$oldIFS"
+
+	# print table header and dividing line
+	echo $return_string
+	echo $return_string_divider
+
+	length_of_array=$(expr $n - 1)
+	number_of_responses=$(( $length_of_array / ${#richargs[@]} ))
+
+	# Print responses
+	for (( i=1; i<=$number_of_responses; i++ )); do
+		echo -n "| "
+		for (( j=0; j<$length_of_array; j+=$number_of_responses )); do
+			#echo -n "${array_of_values[$(expr $i+$j)]}\t| "
+			echo -n "${array_of_values[$(expr $i+$j)]} | "
+		done
+		echo ""
+	done
+}
+
+function columnize {
+
+	#
+	# Use awk to put rich text with pipe '|' separators into column format
+	# (This replaces the bash 'column' command because 'column' is not 
+	# pervasive across all systems)
+	#
+
+	# Fields may contain special chars; currently splitting on '|'
+	# (subtract 2 because there are empty fields before the first column and after
+	# the last column)
+	number_of_columns=$( echo "${@}" | head -n1 | awk -F "|" '{print NF-2}' )
+
+	# 'lengths' is an array that stores the max number of characters per column
+	lengths=( $(echo "${@}" | awk -F "|" -v numcol="$number_of_columns" '
+	{
+		for (i=2; i<=numcol+1; i++)
+			if ( length($i) > maxchar[i] )
+				maxchar[i] = length($i)
+	}
+	END {
+		for (j=2; j<=numcol+1; j++)
+			printf "%d%s", maxchar[j], " "
+			#printf "|%*-s", maxchar[j], $j
+	}' ) )
+
+	# Printf each column with width based on maximum length
+	echo "${@}" | awk -F "|" -v numcol="$number_of_columns" -v len="${lengths[*]}" '
+	BEGIN {
+		split(len, list, " ")
+	}
+	{
+		for (i=2; i<=numcol+1; i++)
+			printf "|%*-s", list[i-1], $i
+		print "|"
+	}'
+}
+
+# parses ISO8601 datetime to human readable formats
+# default: 				Jan 11, 1977 00:00 format
+# with second argument: Jan  1, 1977 12:00 am
+function format_iso8601_date_and_time() {
+	local thisyear iso8601 format_12_hour_clock moddate tmon tday modtime
+	thisyear=$(date +%Y)
+	iso8601="$1"
+	[[ -n "$2" ]] && format_12_hour_clock=1
+
+	moddate=( $(echo "$iso8601" | sed 's/T.*//' | sed 's/-/ /g' | xargs -n 1) )
+	tmon=$(month_of_year ${moddate[1]})
+	tday=$(echo ${moddate[2]} | sed -e 's/^0/ /')
+	tyear=${moddate[0]}
+
+	if (( format_12_hour_clock )); then
+
+		modtime=$(format_iso8601_time "$iso8601" 1)
+		echo "${tmon} ${tday}, ${tyear}  ${modtime}"
+
+	elif [[ $thisyear = "${tyear}" ]]; then
+
+		modtime=$(format_iso8601_time "$iso8601" 1)
+		echo "${tmon} ${tday} ${modtime}"
+
+	else
+
+		echo "${tmon} ${tday} ${tyear}"
+	fi
+
+}
+
+function format_iso8601_time() {
+	local iso8601_date format_12_hour_clock iso8601_time modtime hours minutes
+	iso8601_date="$1"
+	[[ -n "$2" ]] && format_12_hour_clock=1
+
+	# strip iso8601 time out, removing everything after minute place
+	iso8601_time=$(echo "$1" | sed -e 's/.*T//' -e 's/\:..\....-..\:..//')
+	modtime=( $( echo "$iso8601_time" | sed 's/\:/ /' | xargs -n 1) )
+	hours=${modtime[0]#0}
+	minutes=${modtime[1]}
+	if (( format_12_hour_clock )); then
+
+		if [[ $hours -eq 0 ]]; then
+			meridian="am"
+			hours=12
+		elif [[ $hours -gt 12 ]]; then
+			hours=$(expr $hours - 12 )
+			meridian="pm"
+		else
+			meridian="am"
+		fi
+
+		if [[ $hours -gt 9 ]]; then
+			echo "$hours:$minutes $meridian"
+		else
+			echo " $hours:$minutes $meridian"
+		fi
+
+	else
+		echo "$iso8601_time"
+	fi
+}
+
+function month_of_year() {
+	if [[ "$1" = "01" ]]; then
+		echo 'Jan';
+	elif [[ "$1" = "02" ]]; then
+		echo 'Feb';
+	elif [[ "$1" = "03" ]]; then
+		echo 'Mar';
+	elif [[ "$1" = "04" ]]; then
+		echo 'Apr';
+	elif [[ "$1" = "05" ]]; then
+		echo 'May';
+	elif [[ "$1" = "06" ]]; then
+		echo 'Jun';
+	elif [[ "$1" = "07" ]]; then
+		echo 'Jul';
+	elif [[ "$1" = "08" ]]; then
+		echo 'Aug';
+	elif [[ "$1" = "09" ]]; then
+		echo 'Sep';
+	elif [[ "$1" = "10" ]]; then
+		echo 'Oct';
+	elif [[ "$1" = "11" ]]; then
+		echo 'Nov';
+	elif [[ "$1" = "12" ]]; then
+		echo 'Dec';
+	else
+		echo ''
+	fi
 }

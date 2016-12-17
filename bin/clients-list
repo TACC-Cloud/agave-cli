@@ -40,6 +40,7 @@ List all API clients registered to the authenticated user.
   -V, --veryverbose    Very verbose output
   -h, --help           Display this help and exit
       --version        Output version information and exit
+      --rich           Provide rich response
 "
 }
 
@@ -85,6 +86,9 @@ format_api_json() {
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
+	elif [[ $rich -eq 1 ]]; then
+		result=$(richify "$1")
+		columnize "${result}"
 	elif [ -n "$args" ]; then
 		result=$(jsonquery "$1" "result.name")
 		echo "${result}"
@@ -128,6 +132,7 @@ while [[ $1 = -?* ]]; do
     -q|--quiet) quiet=1 ;;
     -i|--interactive) interactive=1 ;;
     -f|--force) force=1 ;;
+    --rich) rich=1 ;;
     --endopts) shift; break ;;
     *) die "invalid option: $1" ;;
   esac

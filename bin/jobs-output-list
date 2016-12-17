@@ -43,6 +43,7 @@ be on the work folder if it still exists.
   -V, --veryverbose     Very verbose output
   -h, --help            Display this help and exit
       --version         Output version information and exit
+      --rich            Provide rich response
 "
 }
 
@@ -92,6 +93,9 @@ format_api_json() {
     elif [[ $long -eq 1 ]]; then
         lstng=$(lsify "$1" | awk '{ printf("%-10s %+12s %+18s %+32s %s\n", $1, $2, $3, $4, $5); }')
         echo "$lstng"
+	elif [[ $rich -eq 1 ]]; then
+        result=$(richify "$1")
+        columnize "${result}"
     else
         result=$(jsonquery "$1" "result.[].name")
         echo "${result}"
@@ -176,6 +180,7 @@ while [[ $1 = -?* ]]; do
     -q|--quiet) quiet=1 ;;
     -i|--interactive) interactive=1 ;;
     -f|--force) force=1 ;;
+    --rich) rich=1 ;;
     --endopts) shift; break ;;
     *) die "invalid option: $1" ;;
   esac
