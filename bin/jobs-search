@@ -36,29 +36,39 @@ search terms should be provided as a URL query string. For example,
   archivesystem        The id of the system where the job output was
                        archived if the archive flag was true.
   batchqueue           The system queue in which the job ran.
+  created              The date the job request was made. You may specify
+  					   using structured or free form timeframes such as
+  					   'yesterday' or '-3 hours'.
+  endtime              The date the job finished running. You may specify
+  					   using structured or free form timeframes such as
+  					   'yesterday' or '-3 hours'.
   executionsystem      The execution system where the job ran.
   id                   The id of the job.
   inputs               The job inputs. Note, this is currently a
                        full text match.
+  lastupdated          The date the job was last updated with a status change.
+                       Times may be specified in structured or free form
+                       timeframes such as 'yesterday' or '-3 days'.
   localid              The local job id of the job on the execution system.
   maxruntime           The maximum run time of the job in HH:mm:ss format.
   memorypernode        The memory requested by the job specified in GB.
   name                 The name of the job.
   nodecount            The number of nodes requested for the job.
+  owner            	   The user who submitted the job
   outputpath           The remote work directory path of the job.
   parameters           The job parameters. Note, this is currently a
                        full text match.
   processorspernode    The number of processors per node requested
                        by the job.
   retries              The number of retry attempts made on this job.
+  runtime			   The duration of the job in seconds.
   starttime            The date the job began running. Results are rounded by
                        day. You may specify using YYYY-MM-DD format or free
                        form timeframes such as 'yesterday' or '3 days ago'.
   status               The job status.
   submittime           The date the job was submitted to the remote execution
-                       system to run. Results are rounded by day. You may
-                       specify using YYYY-MM-DD format or free form timeframes
-                       such as 'yesterday' or '3 days ago'.
+                       system to run. You may specify using structured or free
+                       form timeframes such as 'yesterday' or '-3 days'.
   visible              Boolean flag indicating whether or not to show deleted
                        jobs. Defaults to false.
 
