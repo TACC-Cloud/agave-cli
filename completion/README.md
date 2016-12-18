@@ -3,7 +3,7 @@
 This script provides completion of:
  - commands and their options
  - filepaths
- - search terms
+ - search terms & operators
 
 ## Installation 
 
@@ -20,12 +20,9 @@ or
 For several commands, the amount of completions can be configured by setting environment variables. This is generally helpful when calls to fetch remote directory listings slow down the responsiveness of the CLI. 
 
 ```
-AGAVE_CLI_COMPLETION_SHOW_DIRECTORY_LISTINGS  
+AGAVE_CLI_COMPLETION_SHOW_FILE_PATHS
 AGAVE_CLI_COMPLETION_SHOW_FILE_IMPORTS  
-AGAVE_CLI_COMPLETION_SHOW_JOB_INPUT_PATHS  
 AGAVE_CLI_COMPLETION_SHOW_JOB_OUTPUTS_PATHS  
-AGAVE_CLI_COMPLETION_SHOW_APP_DEPLOYMENT_PATHS  
-AGAVE_CLI_COMPLETION_SHOW_APP_DEPLOYMENT_PATHS  
   "no"  - Disable autocomplete (default)
   "yes" - Autocomplete file and folder names
 ```

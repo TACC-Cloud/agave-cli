@@ -1,33 +1,14 @@
 ## What is the Agave Platform?
 
-The Agave Platform ([http://agaveapi.co](http://agaveapi.co)) is an open source, science-as-a-service API platform for powering your digital lab. Agave allows you to bring together your public, private, and shared high performance computing (HPC), high throughput computing (HTC), Cloud, and Big Data resources under a single, web-friendly REST API.
 
-* Run scientific codes
-
-	*your own or community provided codes*
-
-* ...on HPC, HTC, or cloud resources
-
-	*your own, shared, or commercial systems*
-
-* ...and manage your data
-
-	*reliable, multi-protocol, async data movement*
-
-* ...from the web
-
-	*webhooks, rest, json, cors, OAuth2*
-
-* ...and remember how you did it
-
-	*deep provenance, history, and reproducibility built in*
+The [Agave Platform](https://agaveapi.co) is an open Science-as-a-Service platform that empowers users to run code, manage data, collaborate meaningfully, and integrate easily with the world around them. 
 
 For more information, visit the [Agave Developer’s Portal](http://developer.agaveapi.co).
 
 
 ## What is the Agave CLI
 
-The Agave CLI is a collection of Bash shell scripts allowing you to interact with the Agave Platform. The CLI allows you to streamline common interactions with the API and automating repetitive and/or background tasks.
+The Agave command line interface (CLI) is a collection of Bash shell scripts allowing you to interact with the Agave Platform. The CLI allows you to streamline common interactions with the API and automating repetitive and/or background tasks.
 
 
 ## Installation from source
@@ -36,11 +17,11 @@ The following dependencies are required to use the Agave API cli tools.
 
 	* bash 4.2.50+
 	* curl 7.19.7+
-	* python 2.7.9+
 
 Optional dependencies
 
 	* jq 1.4+ (for faster JSON parsing)
+	* python 2.7.9+
 
 Clone the repository from Bitbucket and add the bin directory to your PATH and you're ready to go.
 
@@ -86,7 +67,7 @@ auth-tokens-create -u "$AGAVE_USERNAME" -p "$AGAVE_PASSWORD"
 
 Accept the default values, which will hold the API keys you created in the last step. Once this returns, you will be authenticated and ready to use the Agave CLI.
 
-If your auth token expires, you can refresh it rather than pulling a new one.
+If your auth token expires, the CLI will auto-refresh your credential for you. You can disable this behavior by setting the following environment variable `AGAVE_DISABLE_AUTO_REFRESH=1`. You will then need to refresh your credential manually by calling
 
 ```
 auth-tokens-refresh
@@ -137,14 +118,16 @@ The CLI comes bundled with two different JSON parsers. Additionally, three other
 
 ### Bash completion (beta)
 
-To enable bash completion on all CLI commands, source the included `bin/agavecli-completion.bash` script from your shell init script.
+The CLI come with optional bash completion support. When enabled it will complete resource ids, search fields, search operators, usernames, etc across the CLI. To enable bash completion on all CLI commands, source the included `completion/agave-cli` script from your shell init script.  
 
 ```
-echo "source \"\$(which agavecli-completion.bash)\"" >> .bashrc
+echo "source \"\$(dirname \$(dirname \$(which tenants-init)))/completion/agave-cli\"" >> .bashrc
 ``` 
 
 You may also enabled it as needed by sourcing the file directly.
 
 ```  
-source "$(which agavecli-completion.bash)"  
+source "$(dirname $(dirname $(which tenants-init)))/completion/agave-cli"  
 ```  
+
+More information on configuring bash completion behavior is provided in the `completion/README.md` file.

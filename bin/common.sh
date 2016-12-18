@@ -691,37 +691,44 @@ function json_prettyify {
 
 function auto_auth_refresh {
 
-	# If this function is entered, it assumes the user already stores keys in ~/.agave/current,
-	# and that the bearer and refresh tokens have previously been created, and that the bearer token
-	# is expired
+	if [[ -n "$AGAVE_DISABLE_AUTO_REFRESH" ]]; then
 
-	__hosturl="$baseurl"
-	__hosturl=${__hosturl}/token
-	__post_options="grant_type=refresh_token&refresh_token=${refresh_token}&scope=PRODUCTION"
+		# If this function is entered, it assumes the user already stores keys in ~/.agave/current,
+		# and that the bearer and refresh tokens have previously been created, and that the bearer token
+		# is expired
 
-	response=`curl -sku "$apikey:$apisecret" -X POST -d "${__post_options}" -H "Content-Type:application/x-www-form-urlencoded" "$__hosturl"`
+		__hosturl="$baseurl"
+		__hosturl=${__hosturl}/token
+		__post_options="grant_type=refresh_token&refresh_token=${refresh_token}&scope=PRODUCTION"
 
-	jsonval access_token "$response" "access_token"
-	jsonval refresh_token "$response" "refresh_token"
-	jsonval expires_in "$response" "expires_in"
-	created_at=$(date +%s)
-	if date --version >/dev/null 2>&1 ; then
-		expires_at=`date -d @$(expr $created_at + $expires_in)`
-	else
-		expires_at=`date -r $(expr $created_at + $expires_in)`
+		response=`curl -sku "$apikey:$apisecret" -X POST -d "${__post_options}" -H "Content-Type:application/x-www-form-urlencoded" "$__hosturl"`
+
+		jsonval access_token "$response" "access_token"
+		jsonval refresh_token "$response" "refresh_token"
+		jsonval expires_in "$response" "expires_in"
+		created_at=$(date +%s)
+		if is_gnu ; then
+			expires_at=`date -d @$(expr $created_at + $expires_in)`
+		else
+			expires_at=`date -r $(expr $created_at + $expires_in)`
+		fi
+
+		kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
+
+		if [[ $verbose -ne 1 ]]; then
+			echo "Token for ${tenantid}:${username} successfully refreshed and cached for ${expires_in} seconds"
+		fi
+
+		jsonval result "$response" "access_token"
+		echo "${result}"
+
+		# The command call below here also works, if un-commented. But perhaps the above is preferable?
+		#( /bin/bash $DIR/auth-tokens-refresh )
 	fi
+}
 
-	kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
-
-	if [[ $verbose -ne 1 ]]; then
-		echo "Token for ${tenantid}:${username} successfully refreshed and cached for ${expires_in} seconds"
-	fi
-
-	jsonval result "$response" "access_token"
-	echo "${result}"
-
-	# The command call below here also works, if un-commented. But perhaps the above is preferable?
-	#( /bin/bash $DIR/auth-tokens-refresh )
+function is_gnu {
+	date --version >/dev/null 2>&1 && exit 0 && exit 1
 }
 
 function richify {

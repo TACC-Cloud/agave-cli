@@ -146,13 +146,17 @@ format_api_json() {
 		n=0
 		for i in $(jsonquery "$1" "result.[].status")
 		do
-			jobids[$n]="${jobids[$n]} $i"
+			status="$i"
+			if [[ -z "$status" || "$status" == null ]]; then
+				status=''
+			fi
+			echo "${jobids[$n]}${status}"
 			n=$[n+1]
 		done
 
-		for i in "${jobids[@]}"; do
-			echo "$i"
-		done
+#		for i in "${jobids[@]}"; do
+#			echo "$i"
+#		done
 	fi
 }
 

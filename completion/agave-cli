@@ -209,7 +209,7 @@ _jobs-search() {
 
     case "$prev" in
         -z|-s|-l|-o|-H|-h|-N|-R|-u) COMPREPLY=($(compgen -f $cur)) ;;
-        *) COMPREPLY=($(compgen -W "$(jobs-search --filter=id id.like=${cur}* | awk '{print $1}')" -- $cur)) ;;
+        *) COMPREPLY=($(compgen -W "$(jobs-search --filter=id id.like=${cur}*)" -- $cur)) ;;
     esac
 }
 
@@ -223,7 +223,7 @@ _jobs-pems-update() {
         -u) COMPREPLY=($(compgen -W "$(profiles-list -v --filter=username -U ${cur} | grep "\"username\"" | sed 's/"//g' | sed 's/username\://g' | sed 's/ //g')" -- $cur)) ;;
         -p) COMPREPLY=($(compgen -W "READ WRITE READ_WRITE ALL NONE" -- $cur)) ;;
         -z|-u|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
-        *) COMPREPLY=($(compgen -W "$(jobs-search --filter=id id.like=${cur}* | awk '{print $1}')" -- $cur)) ;;
+        *) COMPREPLY=($(compgen -W "$(jobs-search --filter=id id.like=${cur}*)" -- $cur)) ;;
     esac
 }
 
@@ -239,7 +239,58 @@ _jobs-run-this() {
     esac
 }
 
-complete -F _jobs-search jobs-search jobs-delete jobs-history jobs-kick jobs-output-get jobs-output-list jobs-pems-list jobs-resubmit jobs-status jobs-stop
+_jobs-output() {
+    COMPREPLY=()
+    local prev cur
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD-1]}
+
+    case "$prev" in
+        -z|-s|-l|-o|-H|-h|-N|-R|-u) COMPREPLY=($(compgen -f $cur)) ;;
+        *) COMPREPLY=( $(_jobs-complete-uuid-our-output-path $cur $prev )) ;;
+    esac
+
+}
+
+_jobs-complete-uuid-our-output-path() {
+    source $(which common.sh)
+
+    # if the job id has already been provided
+    if [[ "$1" =~ -007$ ]]; then
+
+        if [[ "${AGAVE_CLI_COMPLETION_SHOW_JOB_OUTPUTS_PATHS}" = yes ]]; then
+
+            job_id=$1
+            shift;
+            cur="${1}"
+
+            # get debug option in case we're running against the non-default instance
+            _cmd_debug=$(__agave_flag_exists "-d|--debug")
+            (( _cmd_debug )) && _debug_flag="-d "
+
+            searchdir=$(echo "${cur}" | sed 's#/$#/.#' | xargs dirname)
+
+            _cmd="$(which jobs-output-list) $_debug_flag -v --filter=name,path,type,_links.self $job_id ${searchdir}"
+
+            file_filter=''
+            if [[ "$searchdir" != "$cur" ]]; then
+                file_filter=$(basename $cur)
+            fi
+
+            # force the variable value here so the directory listing is parsed
+            AGAVE_CLI_COMPLETION_SHOW_FILE_PATHS=yes && __dir_list  "${_cmd}" | grep "$cur"
+        fi
+
+    # otherwise no job id found yet, complete the job id
+    else
+        compgen -W "$(jobs-search --filter=id id.like=${cur}*)" -- $cur
+    fi
+
+}
+
+
+complete -F _jobs-output jobs-output-get jobs-output-list
+complete -F _jobs-search jobs-search jobs-delete jobs-history jobs-kick jobs-pems-list jobs-resubmit jobs-status jobs-stop
 complete -F _jobs-pems-update jobs-pems-update
 complete -F _jobs-run-this jobs-run-this
 
@@ -541,7 +592,7 @@ complete -F _profiles-list profiles-list profiles-delete profiles-addpdate
 # _files-list handles completion on file path.
 # Due to potential performance issues, this is disabled by default.
 # You may enable file completion by setting
-# AGAVE_CLI_COMPLETION_SHOW_FILES
+# AGAVE_CLI_COMPLETION_SHOW_FILE_PATHS
 #   "no"  - Disable autocomplete (default)
 #   "yes" - Autocomplete file and folder names
 _files-list () {
@@ -669,7 +720,7 @@ _files-import() {
 #
 __dir_list() {
 
-    if [ "${AGAVE_CLI_COMPLETION_SHOW_FILES}" = yes ];
+    if [ "${AGAVE_CLI_COMPLETION_SHOW_FILE_PATHS}" = yes ];
     then
         # make the actual call
         local ac_response="$(${1})"
@@ -685,7 +736,11 @@ __dir_list() {
         for p in "${file_paths[@]}"; do
             ac_index=$[ac_index+1]
             # pull the path out of the canonical url
-            canonical_path=$(echo "$p"| sed 's#'.*/system/[^/]*/##g)
+            if is_gnu; then
+                canonical_path=$(echo "$p"| sed 's#.*/\(system\|media\)/[^/]*/##' | sed 's#\(^/*\)##')
+            else
+                canonical_path=$(echo "$p"| sed -E 's#.*/(system|media)/##' | sed -E 's#(^/*)##')
+            fi
             # append trailing slashes to all the directories so we don't
             # get into a closed loop only querying the parent directory
             if [[ "${file_types[$ac_index]}" = "dir" ]]; then
