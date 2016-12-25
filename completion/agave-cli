@@ -274,7 +274,7 @@ _jobs-complete-uuid-our-output-path() {
 
             file_filter=''
             if [[ "$searchdir" != "$cur" ]]; then
-                file_filter=$(basename $cur)
+                file_filter=$(basename "$cur")
             fi
 
             # force the variable value here so the directory listing is parsed
