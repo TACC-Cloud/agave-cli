@@ -95,9 +95,11 @@ main() {
 format_api_json() {
 
   if ((watch)); then
-    clear
-    echo "Watching job $args"
-    date
+    if [ "$piped" -eq 0 ]; then
+        clear
+        echo "Watching job $args"
+        date
+    fi
   fi
 
 	if ((veryverbose)); then

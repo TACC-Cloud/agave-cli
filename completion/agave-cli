@@ -138,7 +138,7 @@ __agave_to_extglob() {
     echo "@($extglob)"
 }
 
-_apps-list () {
+_apps_list() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -153,7 +153,7 @@ _apps-list () {
 
 }
 
-_apps-clone () {
+_apps_clone() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -168,7 +168,7 @@ _apps-clone () {
     esac
 }
 
-_apps-pems-update () {
+_apps_pems_update() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -182,7 +182,7 @@ _apps-pems-update () {
     esac
 }
 
-_apps-publish () {
+_apps_publish() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -195,13 +195,13 @@ _apps-publish () {
     esac
 }
 
-complete -F _apps-list apps-list apps-addupdate apps-delete apps-disable apps-enable apps-erase apps-history apps-pems-delete apps-pems-list jobs-template
-complete -F _apps-clone apps-clone
-complete -F _apps-pems-update apps-pems-update
+complete -F _apps_list apps-list apps-addupdate apps-delete apps-disable apps-enable apps-erase apps-history apps-pems-delete apps-pems-list jobs-template
+complete -F _apps_clone apps-clone
+complete -F _apps_pems_update apps-pems-update
 
 # jobs
 
-_jobs-search() {
+_jobs_search() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -213,7 +213,7 @@ _jobs-search() {
     esac
 }
 
-_jobs-pems-update() {
+_jobs_pems_update() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -227,7 +227,7 @@ _jobs-pems-update() {
     esac
 }
 
-_jobs-run-this() {
+_jobs_run_this() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -239,7 +239,7 @@ _jobs-run-this() {
     esac
 }
 
-_jobs-output() {
+_jobs_output() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -247,12 +247,12 @@ _jobs-output() {
 
     case "$prev" in
         -z|-s|-l|-o|-H|-h|-N|-R|-u) COMPREPLY=($(compgen -f $cur)) ;;
-        *) COMPREPLY=( $(_jobs-complete-uuid-our-output-path $cur $prev )) ;;
+        *) COMPREPLY=( $(_jobs_complete_uuid_our_output_path $cur $prev )) ;;
     esac
 
 }
 
-_jobs-complete-uuid-our-output-path() {
+_jobs_complete_uuid_our_output_path() {
     source $(which common.sh)
 
     # if the job id has already been provided
@@ -289,14 +289,14 @@ _jobs-complete-uuid-our-output-path() {
 }
 
 
-complete -F _jobs-output jobs-output-get jobs-output-list
-complete -F _jobs-search jobs-search jobs-delete jobs-history jobs-kick jobs-pems-list jobs-resubmit jobs-status jobs-stop
-complete -F _jobs-pems-update jobs-pems-update
-complete -F _jobs-run-this jobs-run-this
+complete -F _jobs_output jobs-output-get jobs-output-list
+complete -F _jobs_search jobs-search jobs-delete jobs-history jobs-kick jobs-pems-list jobs-resubmit jobs-status jobs-stop
+complete -F _jobs_pems_update jobs-pems-update
+complete -F _jobs_run_this jobs-run-this
 
 # metadata
 
-_metadata-list() {
+_metadata_list() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -308,7 +308,7 @@ _metadata-list() {
     esac
 }
 
-_metadata-pems-addupdate() {
+_metadata_pems_addupdate() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -322,7 +322,7 @@ _metadata-pems-addupdate() {
     esac
 }
 
-_metadata-schema-list() {
+_metadata_schema_list() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -334,7 +334,7 @@ _metadata-schema-list() {
     esac
 }
 
-_metadata-schema-pems-addupdate() {
+_metadata_schema_pems_addupdate() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -348,14 +348,14 @@ _metadata-schema-pems-addupdate() {
     esac
 }
 
-complete -F _metadata-list metadata-list metadata-addupdate metadata-delete metadata-pems-list
-complete -F _metadata-pems-addupdate metadata-pems-addupdate
-complete -F _metadata-schema-list metadata-schema-list metadata-schema-addupdate metadata-schema-delete metadata-schema-pems-list
-complete -F _metadata-schema-pems-addupdate metadata-schema-pems-addupdate
+complete -F _metadata_list metadata-list metadata-addupdate metadata-delete metadata-pems-list
+complete -F _metadata_pems_addupdate metadata-pems-addupdate
+complete -F _metadata_schema_list metadata-schema-list metadata-schema-addupdate metadata-schema-delete metadata-schema-pems-list
+complete -F _metadata_schema_pems_addupdate metadata-schema-pems-addupdate
 
 # monitors
 
-_monitors-list() {
+_monitors_list() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -368,7 +368,7 @@ _monitors-list() {
     esac
 }
 
-_monitors-checks-list() {
+_monitors_checks_list() {
     COMPREPLY=()
     local prev cur _monitor_id
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -388,7 +388,7 @@ _monitors-checks-list() {
 #    set +x
 }
 
-_monitors-addupdate() {
+_monitors_addupdate() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -401,13 +401,13 @@ _monitors-addupdate() {
     esac
 }
 
-complete -F _monitors-list monitors-list monitors-delete monitors-fire monitors-history
-complete -F _monitors-checks-list monitors-checks-list
-complete -F _monitors-addupdate monitors-addupdate
+complete -F _monitors_list monitors-list monitors-delete monitors-fire monitors-history
+complete -F _monitors_checks_list monitors-checks-list
+complete -F _monitors_addupdate monitors-addupdate
 
 # notifications
 
-_notifications-list () {
+_notifications_list() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -419,7 +419,7 @@ _notifications-list () {
     esac
 }
 
-_notifications-list-failures () {
+_notifications_list_failures() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -435,7 +435,7 @@ _notifications-list-failures () {
     esac
 }
 
-_notifications-addupdate() {
+_notifications_addupdate() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -448,11 +448,11 @@ _notifications-addupdate() {
     esac
 }
 
-complete -F _notifications-list notifications-list notifications-delete notifications-fire notifications-list-failures
-complete -F _notifications-addupdate notifications-addupdate
+complete -F _notifications_list notifications-list notifications-delete notifications-fire notifications-list-failures
+complete -F _notifications_addupdate notifications-addupdate
 
-# _postits-list completes the postit nonce on active postits for the user.
-_postits-list () {
+# _postits_list completes the postit nonce on active postits for the user.
+_postits_list() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -464,8 +464,8 @@ _postits-list () {
     esac
 }
 
-# _postits-create completes the postit method on new postits for the user.
-_postits-create () {
+# _postits_create completes the postit method on new postits for the user.
+_postits_create() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -478,11 +478,11 @@ _postits-create () {
     esac
 }
 
-complete -F _postits-list postits-list postits-delete
-complete -F _postits-create postits-create
+complete -F _postits_list postits-list postits-delete
+complete -F _postits_create postits-create
 
-# _postits-list completes the postit nonce on active postits for the user.
-_postits-list () {
+# _postits_list completes the postit nonce on active postits for the user.
+_postits_list() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -494,8 +494,8 @@ _postits-list () {
     esac
 }
 
-# _postits-create completes the postit method on new postits for the user.
-_postits-create () {
+# _postits_create completes the postit method on new postits for the user.
+_postits_create() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -511,8 +511,8 @@ _postits-create () {
 complete -F _tags-list tags-list tags-delete
 complete -F _tags-create tags-create
 
-# _tenants-list
-_tenants-list () {
+# _tenants_list
+_tenants_list() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -524,7 +524,7 @@ _tenants-list () {
     esac
 }
 
-_tenants-init () {
+_tenants_init() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -537,11 +537,11 @@ _tenants-init () {
     esac
 }
 
-complete -F _tenants-list tenants-list
-complete -F _tenants-init tenants-init
+complete -F _tenants_list tenants-list
+complete -F _tenants_init tenants-init
 
 # systems
-_systems-list () {
+_systems_list() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -554,7 +554,7 @@ _systems-list () {
 #set +x
 }
 
-_systems-roles-update () {
+_systems_roles_update() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -568,11 +568,11 @@ _systems-roles-update () {
     esac
 }
 
-complete -F _systems-list systems-list systems-addupdate systems-clone systems-delete systems-erase systems-history systems-disable systems-setdefault systems-unpublish systems-unsetdefault
-complete -F _systems-roles-update systems-roles-update systems-roles-delete systems-roles-list systems-credentials-addupdate systems-credentials-list systems-credentials-delete
+complete -F _systems_list systems-list systems-addupdate systems-clone systems-delete systems-erase systems-history systems-disable systems-setdefault systems-unpublish systems-unsetdefault
+complete -F _systems_roles_update systems-roles-update systems-roles-delete systems-roles-list systems-credentials-addupdate systems-credentials-list systems-credentials-delete
 
 # profiles commands
-_profiles-list () {
+_profiles_list() {
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -587,15 +587,15 @@ _profiles-list () {
     esac
 }
 
-complete -F _profiles-list profiles-list profiles-delete profiles-addpdate
+complete -F _profiles_list profiles-list profiles-delete profiles-addpdate
 
-# _files-list handles completion on file path.
+# _files_list handles completion on file path.
 # Due to potential performance issues, this is disabled by default.
 # You may enable file completion by setting
 # AGAVE_CLI_COMPLETION_SHOW_FILE_PATHS
 #   "no"  - Disable autocomplete (default)
 #   "yes" - Autocomplete file and folder names
-_files-list () {
+_files_list() {
     source $(which common.sh)
 
     COMPREPLY=()
@@ -630,13 +630,13 @@ _files-list () {
 
 }
 
-# _files-pems handles completion on file path, username, and role.
+# _files_pems handles completion on file path, username, and role.
 # Due to potential performance issues, this is disabled by default.
 # You may enable file completion by setting
 # AGAVE_CLI_COMPLETION_SHOW_FILES
 #   "no"  - Disable autocomplete (default)
 #   "yes" - Autocomplete file and folder names
-_files-pems() {
+_files_pems() {
     source $(which common.sh)
 
     COMPREPLY=()
@@ -671,13 +671,13 @@ _files-pems() {
     esac
 }
 
-# _files-pems handles completion on file path, username, and role.
+# _files_pems handles completion on file path, username, and role.
 # Due to potential performance issues, this is disabled by default.
 # You may enable file completion by setting
 # AGAVE_CLI_COMPLETION_SHOW_FILES
 #   "no"  - Disable autocomplete (default)
 #   "yes" - Autocomplete file and folder names
-_files-import() {
+_files_import() {
     source $(which common.sh)
 
     COMPREPLY=()
@@ -870,9 +870,9 @@ __url_list() {
     fi
 }
 
-complete -o nospace -F _files-list files-copy files-delete files-get files-history files-import files-index files-list files-mkdir files-move files-publish files-rename files-upload
-complete -o nospace -F _files-pems files-pems-list files-pems-update files-pems-delete
-#complete -o nospace -F _files-import files-import
+complete -o nospace -F _files_list files-copy files-delete files-get files-history files-import files-index files-list files-mkdir files-move files-publish files-rename files-upload
+complete -o nospace -F _files_pems files-pems-list files-pems-update files-pems-delete
+#complete -o nospace -F _files_import files-import
 
 # __agave_search provides completion on all `*-search` commands supporting
 # the agave search syntax. Search fields are first completed. Upon a match
