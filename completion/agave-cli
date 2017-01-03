@@ -240,6 +240,7 @@ _jobs_run_this() {
 }
 
 _jobs_output() {
+
     COMPREPLY=()
     local prev cur
     cur=${COMP_WORDS[COMP_CWORD]}
@@ -273,8 +274,8 @@ _jobs_complete_uuid_our_output_path() {
             _cmd="$(which jobs-output-list) $_debug_flag -v --filter=name,path,type,_links.self $job_id ${searchdir}"
 
             file_filter=''
-            if [[ "$searchdir" != "$cur" ]]; then
-                file_filter=$(basename "$cur")
+            if [ -n "$cur" ] && [ "$searchdir" != "$cur" ]; then
+                file_filter=$(basename "$cur" 2>/dev/null)
             fi
 
             # force the variable value here so the directory listing is parsed
@@ -617,8 +618,8 @@ _files_list() {
     _cmd="$(which files-list) $_debug_flag $_system_arg -v --filter=name,path,type,_links.self ${searchdir}"
 
     file_filter=''
-    if [[ "$searchdir" != "$cur" ]]; then
-        file_filter=$(basename $cur)
+    if [ -n "$cur" ] && [ "$searchdir" != "$cur" ]; then
+        file_filter=$(basename $cur 2>/dev/null)
     fi
 
 #    set -x
@@ -657,8 +658,8 @@ _files_pems() {
     _cmd="$(which files-list) $_debug_flag $_system_arg -v --filter=name,path,type,_links.self ${searchdir}"
 
     file_filter=''
-    if [[ "$searchdir" != "$cur" ]]; then
-        file_filter=$(basename $cur)
+    if [ -n "$cur" ] && [ "$searchdir" != "$cur" ]; then
+        file_filter=$(basename $cur 2>/dev/null)
     fi
 
     #    set -x
@@ -698,8 +699,8 @@ _files_import() {
     _cmd="$(which files-list) $_debug_flag $_system_arg -v --filter=name,path,type,_links.self ${searchdir}"
 
     file_filter=''
-    if [[ "$searchdir" != "$cur" ]]; then
-        file_filter=$(basename $cur)
+    if [ -n "$cur" ] &&  [ "$searchdir" != "$cur" ]; then
+        file_filter=$(basename $cur 2>/dev/null)
     fi
 
     #    set -x

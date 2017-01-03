@@ -624,7 +624,7 @@ function is_valid_url() {
 }
 
 # load tenant-specific settings
-calling_cli_command=$(basename $0)
+calling_cli_command=`caller |  awk '{print $2}' | xargs -n 1 sh -c 'basename $0'`
 currentconfig=$(kvget current)
 
 if [[ "auth-switch" != "$calling_cli_command" ]] && [[ "tenants-init" != "$calling_cli_command" ]] && [[ "tenants-list" != "$calling_cli_command" ]]; then
@@ -752,7 +752,7 @@ function richify {
 	# us localize the field name lookup.
 	# Here we exec rather than subshell so we keep the reference
 	# to the caller of this script
-	cli_command=`caller |  awk '{print $2}' | basename $0`
+	cli_command=`caller |  awk '{print $2}' | xargs -n 1 sh -c 'basename $0'`
 
 	# If the user is filtering the response, then we need to override the
 	# default fields for the given response. Because we introspect the calling
