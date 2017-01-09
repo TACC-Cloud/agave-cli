@@ -56,7 +56,7 @@ _check_cache() {
             #echo ${_resource}-CACHE-${_partial}
             kvset "${_resource}-CACHE-${_partial}" "${response}"
         fi
-    set +x
+    # set +x
     else
         response="$(${_cmd})"
     fi
@@ -606,11 +606,11 @@ _files_list() {
 
     # get the system id for this command
     _cmd_system_id=$(__agave_value_of_option "--system|-S")
-    (( _cmd_system_id )) && _system_arg="-S $_cmd_system_id"
+    [[ -n "$_cmd_system_id" ]] && _system_arg="-S $_cmd_system_id "
 
     # get debug option in case we're running against the non-default instance
     _cmd_debug=$(__agave_flag_exists "-d|--debug")
-    (( _cmd_debug )) && _debug_flag="-d "
+    [[ -n "$_cmd_debug" ]] && _debug_flag="-d "
 
     searchdir=$(echo "${cur}" | sed 's#/$#/.#' | xargs dirname)
 #    cmd=$(echo ${COMP_LINE} | sed 's#--filter=[^ ]* ##g' | sed 's#-V ##g' | sed 's#-v ##g' | sed 's#-L ##g' |sed 's#-l [0-9]*##g' | sed 's#--limit [0-9]*##g' | sed 's#-o [0-9]*##g' | sed 's#-offset [0-9]*##g' | sed 's#--veryverbose ##g' | sed 's#'$cur'#-v --filter=name,path,type,_links.self '${searchdir}'#g')
@@ -647,11 +647,11 @@ _files_pems() {
 
     # get the system id for this command
     _cmd_system_id=$(__agave_value_of_option "--system|-S")
-    (( _cmd_system_id )) && _system_arg="-S $_cmd_system_id"
+    [[ -n "$_cmd_system_id" ]] && _system_arg="-S $_cmd_system_id "
 
     # get debug option in case we're running against the non-default instance
     _cmd_debug=$(__agave_flag_exists "-d|--debug")
-    (( _cmd_debug )) && _debug_flag="-d "
+    [[ -n "$_cmd_debug" ]] && _debug_flag="-d "
 
     searchdir=$(echo "${cur}" | sed 's#/$#/.#' | xargs dirname)
 
@@ -688,11 +688,11 @@ _files_import() {
 
     # get the system id for this command
     _cmd_system_id=$(__agave_value_of_option "--system|-S")
-    (( _cmd_system_id )) && _system_arg="-S $_cmd_system_id"
+    [[ -n "$_cmd_system_id" ]] && _system_arg="-S $_cmd_system_id "
 
     # get debug option in case we're running against the non-default instance
     _cmd_debug=$(__agave_flag_exists "-d|--debug")
-    (( _cmd_debug )) && _debug_flag="-d "
+    [[ -n "$_cmd_debug" ]] && _debug_flag="-d "
 
     searchdir=$(echo "${cur}" | sed 's#/$#/.#' | xargs dirname)
 
@@ -729,7 +729,7 @@ __dir_list() {
         # pull out the values into an array we can randomly access.
         local file_types=($(jsonquery "$ac_response" ".[].type"))
         #local file_names=($(jsonquery "$ac_response" ".[].name"))
-        local file_paths=($(jsonquery "$ac_response" ".[]._links.self.href"))
+        local file_paths=($(jsonquery "$ac_response" ".[].path"))
 
         # keep an incrementer for referencing name and type fields in
         # the same json response object
@@ -737,11 +737,12 @@ __dir_list() {
         for p in "${file_paths[@]}"; do
             ac_index=$[ac_index+1]
             # pull the path out of the canonical url
-            if is_gnu; then
-                canonical_path=$(echo "$p"| sed 's#.*/\(system\|media\)/[^/]*/##' | sed 's#\(^/*\)##')
-            else
-                canonical_path=$(echo "$p"| sed -E 's#.*/(system|media)/##' | sed -E 's#(^/*)##')
-            fi
+#            if is_gnu; then
+#                canonical_path=$(echo "$p"| sed 's#.*/\(system\|media\)/[^/]*/##' | sed 's#\(^/*\)##')
+#            else
+#                canonical_path=$(echo "$p"| sed -E 's#.*/(system|media)/##' | sed -E 's#(^/*)##')
+#            fi
+            canonical_path="${p}"
             # append trailing slashes to all the directories so we don't
             # get into a closed loop only querying the parent directory
             if [[ "${file_types[$ac_index]}" = "dir" ]]; then
@@ -764,10 +765,9 @@ __url_list() {
     _url="$2"
     _cmd="${3}"
 
-
+    # set -x
     if [ "${AGAVE_CLI_COMPLETION_SHOW_FILES}" = yes ];
     then
-        set -x
 
         # if they gave an empty path, return the systems available
         if [[ -z "${_url}" ]] || [[ "${_url}" = "agave://" ]]; then
@@ -840,13 +840,13 @@ __url_list() {
 
             echo ""
         fi
-
+        # set -x
         if [[ -n "${_ac_response}" ]]; then
 
             # pull out the values into an array we can randomly access.
             local file_types=($(jsonquery "$_ac_response" ".[].type"))
             #local file_names=($(jsonquery "$ac_response" ".[].name"))
-            local file_paths=($(jsonquery "$_ac_response" ".[]._links.self.href"))
+            local file_paths=($(jsonquery "$_ac_response" ".[].path"))
 
             # keep an incrementer for referencing name and type fields in
             # the same json response object
@@ -854,7 +854,9 @@ __url_list() {
             for p in "${file_paths[@]}"; do
                 ac_index=$[ac_index+1]
                 # pull the path out of the canonical url
-                canonical_path=$(echo "$p"| sed 's#'.*/system/[^/]*/##g)
+                #canonical_path=$(echo "$p"| sed 's#.*/system/[^/]+/##g')
+                canonical_path="${p}"
+
                 # append trailing slashes to all the directories so we don't
                 # get into a closed loop only querying the parent directory
                 if [[ "${file_types[$ac_index]}" = "dir" ]]; then
@@ -867,7 +869,7 @@ __url_list() {
 
             done
         fi
-        set +x
+        # set +x
     fi
 }
 

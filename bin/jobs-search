@@ -76,6 +76,11 @@ search terms should be provided as a URL query string. For example,
   -z, --access_token    Access token
   -l, --limit           Maximum number of results to return
   -o, --offset          Number of results to skip from the start
+      --order           The sort order of the response. Either ASC or DESC
+      --orderBy         The field by which the results should be ordered. Valid
+                        orderBy values are any search term for this resource.
+                        The orderBy field field is independent of the filter
+                        values.
       --filter          Comma separated list of fields to return in the response
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
@@ -184,6 +189,8 @@ while [[ $1 = -?* ]]; do
     -z|--access_token) shift; access_token=$1 ;;
     -l|--limit) shift; limit=$1;;
     -o|--offset) shift; offset=$1;;
+    --order) shift; sortOrder=$1;;
+    --orderBy) shift; sortBy=$1;;
     --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;

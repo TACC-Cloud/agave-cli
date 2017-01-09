@@ -298,6 +298,14 @@ function pagination {
 		pagination="${pagination}&filter=$responsefilter"
 	fi
 
+	if [[ -n "$sortOrder" ]]; then
+		pagination="${pagination}&order=$sortOrder"
+	fi
+
+	if [[ -n "$sortBy" ]]; then
+		pagination="${pagination}&orderBy=$sortBy"
+	fi
+
 	echo $pagination
 }
 
