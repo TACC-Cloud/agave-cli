@@ -103,7 +103,7 @@ main() {
 	response=`curl -sk -H "${authheader}" "$hosturl?${querystring}"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-		result=$(format_api_json "$response")
+		result=$(format_api_json "${response}")
 		success "$result"
 	else
 		errorresponse=$(jsonquery "$response" "message")
@@ -116,20 +116,20 @@ main() {
 format_api_json() {
 
 	if ((veryverbose)); then
-		echo "$1"
+		echo "$@"
 	elif [[ $verbose -eq 1 ]]; then
-		result=$(jsonquery "$1" "result" 1)
-		json_prettyify "${result}"
+		#result=$(jsonquery "$1" "result")
+		[ "$piped" -eq 0 ] &&  json_prettyify "$(jsonquery "${@}" "result")" || jsonquery "${@}" "result"
 	elif [[ $rich -eq 1 ]]; then
 		result=$(richify "$1")
 		columnize "${result}"
 	else
 		if [ -n "$args" ]; then
-			result=$(jsonquery "$1" "result.id")
+			result=$(jsonquery "${@}" "result.id")
 		else
-			result=$(jsonquery "$1" "result.[].id")
+			result=$(jsonquery "${@}" "result.[].id")
 		fi
-		echo "${result}"
+		out "${result}"
 	fi
 }
 

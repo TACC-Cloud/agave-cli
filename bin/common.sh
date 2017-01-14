@@ -860,7 +860,6 @@ function columnize {
 	END {
 		for (j=2; j<=numcol+1; j++)
 			printf "%d%s", maxchar[j], " "
-			#printf "|%*-s", maxchar[j], $j
 	}' ) )
 
 	# Printf each column with width based on maximum length
@@ -869,9 +868,11 @@ function columnize {
 		split(len, list, " ")
 	}
 	{
-		for (i=2; i<=numcol+1; i++)
-			printf "|%*-s", list[i-1], $i
+		for (i=2; i<=numcol+1; i++) {
+			printf "|%-"list[i-1]"s", $i
+		}
 		print "|"
+
 	}'
 }
 

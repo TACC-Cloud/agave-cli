@@ -20,7 +20,7 @@ savechanges=0
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey username devurl baseurl tenantid access_token refresh_token)
+interactive_opts=()
 
 # Print usage
 usage() {
