@@ -20,57 +20,23 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTIONS]... [QUERY_TERM]...
+  echo -n "$(basename $0) [OPTIONS]... JOB_ID [QUERY_TERM]...
 
-Search for jobs based on job attribute values. Valid values should be
-specified in key pairs such as appid=foo-1.0.0 or archive=true. Multiple
-search terms should be provided as a URL query string. For example,
-'batchqueue=normal' 'system=compute.example.com' 'status=RUNNING'.
+Search for jobs history based on job attribute values. Valid values should be
+specified in key pairs such as status.in=RUNNING,QUEUED or created.before=today. Multiple
+search terms are supported. If your search value has a space in it, quote or double quote
+the search term. For example, 'description.like=*stage job inputs*'.
 
  Query parameters:
-  appid                The id of the app run by the job.
-  archive              Boolean flag stating whether the job output
-                       was archived.
-  archivepath          Path on the archive system where the job output
-                       was archived if the archive flag was true.
-  archivesystem        The id of the system where the job output was
-                       archived if the archive flag was true.
-  batchqueue           The system queue in which the job ran.
+  id                   The id of the event.
   created              The date the job request was made. You may specify
   					   using structured or free form timeframes such as
   					   'yesterday' or '-3 hours'.
-  endtime              The date the job finished running. You may specify
-  					   using structured or free form timeframes such as
-  					   'yesterday' or '-3 hours'.
-  executionsystem      The execution system where the job ran.
-  id                   The id of the job.
-  inputs               The job inputs. Note, this is currently a
-                       full text match.
-  lastupdated          The date the job was last updated with a status change.
-                       Times may be specified in structured or free form
-                       timeframes such as 'yesterday' or '-3 days'.
-  localid              The local job id of the job on the execution system.
-  maxruntime           The maximum run time of the job in HH:mm:ss format.
-  memorypernode        The memory requested by the job specified in GB.
-  name                 The name of the job.
-  nodecount            The number of nodes requested for the job.
-  owner            	   The user who submitted the job
-  outputpath           The remote work directory path of the job.
-  parameters           The job parameters. Note, this is currently a
-                       full text match.
-  processorspernode    The number of processors per node requested
-                       by the job.
-  retries              The number of retry attempts made on this job.
-  runtime			   The duration of the job in seconds.
-  starttime            The date the job began running. Results are rounded by
-                       day. You may specify using YYYY-MM-DD format or free
-                       form timeframes such as 'yesterday' or '3 days ago'.
-  status               The job status.
-  submittime           The date the job was submitted to the remote execution
-                       system to run. You may specify using structured or free
-                       form timeframes such as 'yesterday' or '-3 days'.
-  visible              Boolean flag indicating whether or not to show deleted
-                       jobs. Defaults to false.
+  createdBy            The user to whom the event creation was attributed
+  description          The textual description of the event.
+  status               The event status name. ex. PERMISSION_GRANT, RUNNING, etc.
+  ipAddress            The ip address of the client who triggered the event.
+
 
  Options:
   -z, --access_token    Access token
@@ -107,31 +73,49 @@ main() {
 	#echo -n
 	#set -x
 
-	jobsurl=${hosturl%/}
+	if [ -z "$args" ]; then
 
-	querystring=""
+		err "Please specify a job for which to search the history"
 
-	if [ -n "$args" ]; then
-		for i in "${args[@]}"
-		do
-			querystring="${querystring} --data "$(urlencode "${i}" | sed 's/%3D/=/')
-		done
-	fi
+	elif ! [[ "${args[0]}" =~ -007$ ]]; then
 
-	cmd="curl -G -sk -H \"${authheader}\" '$jobsurl?pretty=true$(pagination)' ${querystring}"
+		err "Please specify a job for which to search the history"
 
-	if ((veryverbose)); then
-		[ "$piped" -eq 0 ] && log "Calling $cmd"
-	fi
-
-	response=`curl -G -sk -H "${authheader}" $jobsurl?pretty=true$(pagination) $querystring`
-
-	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-		result=$(format_api_json "$response")
-		success "$result"
 	else
-		errorresponse=$(jsonquery "$response" "message")
-		err "$errorresponse"
+
+		jobsurl=$hosturl
+
+		# grab job id as first argument
+		jobid="${args[0]}"
+
+		# pop it off the argument array
+		args=("${args[@]:1}")
+
+		# build the curl query arguments from the argument array, properly urlencoding them
+		querystring=""
+
+		if [ -n "$args" ]; then
+			for i in "${args[@]}"
+			do
+				querystring="${querystring} --data "$(urlencode "${i}" | sed 's/%3D/=/')
+			done
+		fi
+
+		cmd="curl -G -sk -H \"${authheader}\" '${hosturl}${jobid}/history?pretty=true$(pagination)' ${querystring}"
+
+		if ((veryverbose)); then
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
+		fi
+
+		response=`curl -G -sk -H "${authheader}" ${hosturl}${jobid}/history?pretty=true$(pagination) $querystring`
+
+		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+			result=$(format_api_json "$response")
+			success "$result"
+		else
+			errorresponse=$(jsonquery "$response" "message")
+			err "$errorresponse"
+		fi
 	fi
 }
 

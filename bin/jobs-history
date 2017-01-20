@@ -33,6 +33,11 @@ that occurred in the submission process.
   -l, --limit           Maximum number of results to return
   -o, --offset          Number of results to skip from the start
       --filter          Comma separated list of fields to return in the response
+      --order           The sort order of the response. Either ASC or DESC
+      --orderBy         The field by which the results should be ordered. Valid
+                        orderBy values are any search term for this resource.
+                        The orderBy field field is independent of the filter
+                        values.
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
@@ -58,37 +63,37 @@ main() {
 	#echo -n
 	#set -x
 
-	if [ -z "$args" ]; then
-		err "Please specify a job for which to fetch the history"
-	else
+    if [ -z "$args" ]; then
+        err "Please specify a job for which to fetch the history"
+    else
 
-    cmd="curl -sk -H \"${authheader}\" '$hosturl$args/history?pretty=true$(pagination)'"
+        cmd="curl -sk -H \"${authheader}\" '$hosturl$args/history?pretty=true$(pagination)'"
 
-		if ((veryverbose)); then
-			[ "$piped" -eq 0 ] && log "Calling $cmd"
-		fi
-
-		response=`curl -sk -H "${authheader}" "${hosturl}${args}/history?pretty=true$(pagination)"`
-
-		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-
-      result=$(format_api_json "$response")
-			success "$result"
-
-      if ((watch)); then
-        completed=$(jsonquery "$response" "result.[].status" | grep "FINISHED\|FAILED" | grep -v "ARCHIVING")
-        if [[ -z "$completed" ]]; then
-          sleep 5
-          main
-        else
-          echo "Terminating watch"
+        if ((veryverbose)); then
+            [ "$piped" -eq 0 ] && log "Calling $cmd"
         fi
-      fi
-		else
-			errorresponse=$(jsonquery "$response" "message")
-			err "$errorresponse"
-		fi
-	fi
+
+        response=`curl -sk -H "${authheader}" "${hosturl}${args}/history?pretty=true$(pagination)"`
+
+        if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+
+            result=$(format_api_json "$response")
+            success "$result"
+
+            if ((watch)); then
+                completed=$(jsonquery "$response" "result.[].status" | grep "FINISHED\|FAILED" | grep -v "ARCHIVING")
+                if [[ -z "$completed" ]]; then
+                    sleep 5
+                    main
+                else
+                    echo "Terminating watch"
+                fi
+            fi
+        else
+            errorresponse=$(jsonquery "$response" "message")
+            err "$errorresponse"
+        fi
+    fi
 
 }
 
@@ -141,6 +146,8 @@ while [[ $1 = -?* ]]; do
     -W| --watch) watch=1;;
     -l|--limit) shift; limit=$1;;
     -o|--offset) shift; offset=$1;;
+    --order) shift; sortOrder=$1;;
+    --orderBy) shift; sortBy=$1;;
     --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
