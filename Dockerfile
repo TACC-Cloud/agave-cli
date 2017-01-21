@@ -47,6 +47,11 @@ RUN curl -sk -o /ngrok.zip 'https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-li
     chmod -R 755 /.ngrok2 && \
     echo alias ngrok_url=\''curl -s http://localhost:4040/api/tunnels | jq -r ".tunnels[0].public_url"'\' >> /home/$CLI_USER/.bashrc
 
+# install bats test harness
+RUN git clone https://github.com/calj/bats.git && \
+    cd bats && \
+    ./install.sh /usr/local
+
 # configure environment and init default tenant
 RUN echo export PS1=\""\[\e[32;4m\]agave-cli\[\e[0m\]:\u@\h:\w$ "\" >> /home/$CLI_USER/.bashrc && \
     echo 'export PATH=$PATH:$AGAVE_CLI_HOME/bin:$AGAVE_CLI_HOME/http/bin' >> /home/$CLI_USER/.bashrc  && \
@@ -57,7 +62,6 @@ RUN echo export PS1=\""\[\e[32;4m\]agave-cli\[\e[0m\]:\u@\h:\w$ "\" >> /home/$CL
     mkdir /agave && \
     chown -R $CLI_USER:$CLI_USER /agave && \
     chown -R $CLI_USER:$CLI_USER $AGAVE_CLI_HOME
-
 
 
 # switch to cli user so we don't run as root
