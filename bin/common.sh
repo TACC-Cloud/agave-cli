@@ -36,7 +36,7 @@ fi
 
 # versioning info
 version="v2"
-release="2.1.9"
+release="2.1.10"
 revision=""
 if [ -e "$DIR/../.git" ];
 then
@@ -178,7 +178,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 function disclaimer() {
 	out "Documentation on the Agave API, client libaries, and developer tools is
-available online from the Agave Website, http://agaveapi.co. For
+available online from the Agave Website, http://developer.agaveapi.co. For
 localized help of the various CLI commands, run any command with the -h
 or --help option.
 "

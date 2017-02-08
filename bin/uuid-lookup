@@ -51,7 +51,7 @@ source "$DIR/uuid-common.sh"
 
 main() {
 	#echo -n
-	#set -x
+	set -x
 
 	baseuuidurl=${hosturl%/}
 
@@ -83,7 +83,7 @@ main() {
 	# multiple uuid were provided. return an array
 	else
 		# convert them to a comma separated list
-		uuids=$(echo "${args}" | sed -e 's/ /,/g')
+		uuids=$(echo "${args[@]}" | sed -e 's/ /,/g')
 
 		cmd="curl -sk -H \"${authheader}\" '${hosturl}?uuids=$uuids&expand=$expand&pretty=true$(pagination)'"
 
