@@ -44,7 +44,7 @@ Optional dependencies
 
 Clone the repository from Bitbucket and add the bin directory to your PATH and you're ready to go.
 
-	git clone https://bitbucket.org/taccaci/foundation-cli.git agave-cli
+	git clone git@bitbucket.org:agaveapi/cli.git agave-cli
 	export PATH=$PATH:`pwd`/agave-cli/bin
 
 ## Getting started
