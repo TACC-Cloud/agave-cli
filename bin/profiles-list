@@ -29,6 +29,8 @@ email, or username using the appropriate options.
  Options:
   -z, --access_token    Access token
   -N, --name            Search for user profiles by first and/or last name
+  -F, --firstName       Search for user profiles by first name
+  -L, --lastName        Search for user profiles by last name
   -E, --email           Search for user profiles by email address
   -U, --user            Search for user profiles by username
   -l, --limit           Maximum number of results to return
@@ -68,7 +70,11 @@ main() {
 	elif [ -n "$email" ]; then
 		hosturl="${hosturl}?email=${email}&pretty=true"
 	elif [ -n "$name" ]; then
-		hosturl="${hosturl}?name=${name}&pretty=true"
+		hosturl="${hosturl}?full_name=${name}&name=${name}&pretty=true"
+  	elif [ -n "$firstName" ]; then
+	  	hosturl="${hosturl}?first_name=${firstName}&firstName=${firstName}&pretty=true"
+  	elif [ -n "$lastName" ]; then
+	  	hosturl="${hosturl}?last_name=${lastName}&lastName=${lastName}&pretty=true"
 	else
 		hosturl="$hosturl?pretty=true"
 	fi
@@ -134,6 +140,8 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
     -N|--name) shift; name=$1 ;;
+  	-F|--firstName) shift; firstName=$1 ;;
+  	-L|--lastName) shift; lastName=$1 ;;
     -E|--email) shift; email=$1 ;;
     -U|--user) shift; user=$1 ;;
     -l|--limit) shift; limit=$1;;

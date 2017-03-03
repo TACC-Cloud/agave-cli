@@ -23,8 +23,7 @@ usage() {
   echo -n "$(basename $0) [OPTION]...
 $(basename $0) [OPTION]... [TAG_ID]
 
-List all tags available to the authenticated user. URL querying by type,
-default designation, and scope is supported.
+List all tags available to the authenticated user.
 
  Options:
   -z, --access_token     Access token

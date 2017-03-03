@@ -5,7 +5,8 @@
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It adds and updates resource tags.
+# Applies a tag to an existing resource. Resource id or uuid can be
+# provided.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -21,15 +22,13 @@ interactive_opts=(apisecret apikey filetoupload)
 # Print usage
 usage() {
   echo -n "$(basename $0) [OPTION]...
-$(basename $0) [OPTION]... [TAG_NAME|TAG_UUID]
+$(basename $0) [OPTION]... [UUID] [TAG_NAME|TAG_UUID]...
 
 Create or update a tag on a resource.
 
  Options:
   -z, --access_token      Access token
   -F, --filetoupload      The file containing the JSON notification description to submit
-  -N, --name              Name of the tag
-  -U, --uuids             Comma separated list of uuid to which the tag applies
   -H, --hosturl           URL of the service
   -d, --development       Run in dev mode using default dev server
   -f, --force             Skip all user interaction
@@ -61,48 +60,50 @@ main() {
 
   elif [[ -z "$filetoupload" ]]; then
 
-    if [[ -z "${name}" ]]; then
-        name="${args}"
-    fi
+    # tag id is first positional argument
+    tag_id="${args[0]}"
 
-#    shift;
-#    args="${args[@]:1}"
-#
-#    uuids=$(echo "${args}" | sed -e 's/ /","/g')
+    # remaining argumens are the uuid to be tagged
+    args="${args[@]:1}"
 
-    #uuids=$(echo "${uuids}" | sed -e 's/ /","/g')
+    uuids=$(echo "${args}" | sed -e 's/ /","/g')
 
-    cmd="curl -sk -H \"${authheader}\" -X POST -H 'Content-Type: application/json' --data-binary  '{\"name\":\"${name}\",\"associationIds\": [\"${uuids}\"]}' '${hosturl}$args?pretty=true'"
+    cmd="curl -sk -H \"${authheader}\" -X POST -H 'Content-Type: application/json' --data-binary  '[\"${uuids}\"]' '${hosturl}$tag_id/associations?pretty=true'"
 
     if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"
     fi
 
-    response=`curl -sk -H "${authheader}" -X POST -H 'Content-Type: application/json' --data-binary "{\"name\":\"${name}\", \"associationIds\":[\"${uuids}\"]}" "${hosturl}$args?pretty=true"`
+    response=`curl -sk -H "${authheader}" -X POST -H 'Content-Type: application/json' --data-binary "[\"${uuids}\"]" "${hosturl}$tag_id/associations?pretty=true"`
 
   # reading from stdin
   elif [[ "$filetoupload" == "-"  ]]; then
 
-    cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- '${hosturl}$args?pretty=true'"
+      # tag id is first positional argument
+      tag_id="${args[0]}"
+
+      cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- '${hosturl}$tag_id/associations?pretty=true'"
 
     if ((veryverbose)); then
       [ "$piped" -eq 0 ] && log "Calling $cmd"
     fi
 
     # make sure we specify content type as application/json
-    response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary @- "${hosturl}$args?pretty=true"`
+    response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary @- "${hosturl}$tag_id/associations?pretty=true"`
 
   # standard file upload
   elif [[ -f "$filetoupload" ]]; then
 
+      # tag id is first positional argument
+      tag_id="${args[0]}"
 
-    cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" '${hosturl}$args?pretty=true'"
+      cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" '${hosturl}$tag_id/associations?pretty=true'"
 
     if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"
     fi
 
-    response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}$args?pretty=true"`
+    response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}$tag_id/associations?pretty=true"`
 
   fi
 
