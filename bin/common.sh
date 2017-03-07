@@ -969,3 +969,38 @@ function month_of_year() {
 		echo ''
 	fi
 }
+
+function progress() {
+	[[ -z "$1" ]] && err "The job is not currently moving data"
+
+	local _bytesTotal _bytesMoved _rate
+
+	_bytesTotal=$( humanizeBytes $(jsonquery "$1" "totalBytes") )
+	_bytesMoved=$( humanizeBytes $(jsonquery "$1" "totalBytesTransferred") )
+	_rate=$( humanizeTransferRate $(jsonquery "$1" "averageRate") )
+
+	echo "{\"averageRate\":\"${_rate}\",\"totalBytesTransferred\":\"${_bytesMoved}\",\"totalBytes\":\"${_bytesTotal}\"}"
+}
+
+function humanizeTransferRate() {
+	echo "$(humanizeBytes $1 )/s"
+}
+
+function humanizeBytes() {
+	echo $1 | awk '
+		function readable( input,     v,s )
+		  {
+			split( "KB MB GB TB" , v )
+			# confirms that the input is a number
+			if( input + 0.0 == input )
+			   {
+				while( input > 1024 ) { input /= 1024 ; s++ }
+				return sprintf( "%0.3f%s" , input , v[s] )
+			   }
+			else
+			   {
+				return input
+			   }
+		  }
+		{sub(/^[0-9]+/, readable($1)); print}'
+}

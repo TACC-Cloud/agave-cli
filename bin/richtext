@@ -24,6 +24,7 @@ jobs-list:		name created startTime endTime status
 jobs-output-list:	name length permission type lastModified
 jobs-search:		id name owner executionSystem appId status
 #jobs-search:		name created startTime endTime
+jobs-tail:		id averageRate totalBytes totalBytesTransferred
 
 ### metadata commands ###
 metadata-list:		uuid owner name created lastUpdated
