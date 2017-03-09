@@ -699,7 +699,7 @@ function json_prettyify {
 
 function auto_auth_refresh {
 
-	if [[ -n "$AGAVE_DISABLE_AUTO_REFRESH" ]]; then
+	if [[ -z "$AGAVE_DISABLE_AUTO_REFRESH" ]]; then
 
 		# If this function is entered, it assumes the user already stores keys in ~/.agave/current,
 		# and that the bearer and refresh tokens have previously been created, and that the bearer token
