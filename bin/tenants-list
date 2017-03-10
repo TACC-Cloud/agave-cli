@@ -108,7 +108,8 @@ while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
-    -l|--limit) shift; limit=$1;;
+	-z|--access_token) shift; access_token=$1 ;;
+	-l|--limit) shift; limit=$1;;
     -o|--offset) shift; offset=$1;;
     --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
