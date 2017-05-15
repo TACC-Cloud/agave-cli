@@ -784,17 +784,16 @@ function richify {
 	oldIFS="$IFS"
 	IFS=$'\n'
 
-
+	# Cut down very long responses so they fit in a table
+	max_length="45"
 
 	# the rest of the parameters in $@ are fields to parse
 	for params in "${richargs[@]}"; do
 
 		# save parameter names for table header
-		#return_string="$return_string $params\t| "
 		return_string="$return_string $params | "
 
 		# dynamically create table divider
-		#return_string_divider="$return_string_divider ${params//[A-Za-z0-9\[\]\.]/-}\t| "
 		return_string_divider="$return_string_divider ${params//[A-Za-z0-9\[\]\.]/-} | "
 
 		# grab array of values from json response
@@ -812,12 +811,17 @@ function richify {
 
 			# Parse times into something friendly
 			if [[ "$results" != "null" ]]; then
-				if [[ "$params" == "lastModified" || "$params" == "lastUpdated" || "$params" == "created" || "$params" =~ /.*Time$/ || "$params" =~ /.*At$/ || "$params" =~ /.*Date$/ ]]; then
+				if [[ "$params" == "lastModified" || "$params" == "lastUpdated" || "$params" == "lastSuccess" || "$params" == "created" || "$params" == "expires" || "$params" =~ /.*Time$/ || "$params" =~ /.*At$/ || "$params" =~ /.*Date$/ ]]; then
 					# break date formatting out to its own function so we can
 					# consistently reuse it across the cli
 					results[$i]=$(format_iso8601_date_and_time "${results[$i]}" 1)
 
 				fi
+			fi
+
+			if [[ "${#results[$i]}" -gt "$max_length" ]]; then
+				results[$i]=${results[$i]:0:${max_length}}
+				results[$i]="${results[$i]}..."
 			fi
 
 			array_of_values[$n]="${results[$i]}"
@@ -868,6 +872,7 @@ function columnize {
 	END {
 		for (j=2; j<=numcol+1; j++)
 			printf "%d%s", maxchar[j], " "
+			#printf "|%*-s", maxchar[j], $j
 	}' ) )
 
 	# Printf each column with width based on maximum length
