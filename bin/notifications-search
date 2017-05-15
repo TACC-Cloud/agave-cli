@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# notifications-list
+# notifications-search
 #
 # author: dooley@tacc.utexas.edu
 #
@@ -66,6 +66,7 @@ Multiple search terms may be provided as consecutive arguments. For example,
   -V, --veryverbose     Very verbose output
   -h, --help            Display this help and exit
       --version         Output version information and exit
+      --rich            Provide rich response
 "
 }
 
@@ -116,6 +117,9 @@ format_api_json() {
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
+	elif [[ $rich -eq 1 ]]; then
+		result=$(richify "$1")
+		columnize "${result}"
 	else
         if [[ -z "$args" ]]; then
             results=$(jsonquery "$1" "result.[].id")
@@ -161,6 +165,7 @@ while [[ $1 = -?* ]]; do
     -q|--quiet) quiet=1 ;;
     -i|--interactive) interactive=1 ;;
     -f|--force) force=1 ;;
+    --rich) rich=1 ;;
     --endopts) shift; break ;;
     *) die "invalid option: $1" ;;
   esac
