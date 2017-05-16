@@ -22,6 +22,7 @@ files-pems-list:	username permission.read permission.write permission.execute re
 
 ### jobs commands ###
 jobs-history:		status created description
+jobs-history-search:	status created createdBy description
 jobs-list:		name created startTime endTime status
 jobs-list:		id name owner executionSystem appId status
 jobs-pems-list:		username permission.read permission.write
@@ -39,6 +40,7 @@ metadata-schema-pems-list:	username permission.read permission.write
 monitors-checks-list:	id type result message created
 monitors-history:	createdBy created status description
 monitors-list:		id target active frequency lastSuccess
+monitors-search:	id target active frequency lastSuccess
 
 ### notifications commands ###
 notifications-list:		id owner status created lastUpdated
@@ -50,7 +52,11 @@ postits-list:		creator postit remainingUses method created expires
 
 ### profiles commands ###
 profiles-list:		firstName lastName username email institution
+profiles-search:	firstName lastName username email institution
 profiles-users-list:	firstName lastName username email institution
+
+### requestbin commands ###
+requestbin-requests-list:	method time path remote_addr
 
 ### systems commands ###
 systems-credentials-list:	parentType internalUsername type created

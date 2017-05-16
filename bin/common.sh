@@ -697,7 +697,7 @@ function json_prettyify {
 	fi
 }
 
-function auto_auth_refresh
+function auto_auth_refresh 
 
 {
 
