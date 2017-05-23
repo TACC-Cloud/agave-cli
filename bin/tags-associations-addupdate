@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# tags-addupdate
+# tags-associations-addupdate
 #
 # author: dooley@tacc.utexas.edu
 #
@@ -22,7 +22,7 @@ interactive_opts=(apisecret apikey filetoupload)
 # Print usage
 usage() {
   echo -n "$(basename $0) [OPTION]...
-$(basename $0) [OPTION]... [UUID] [TAG_NAME|TAG_UUID]...
+$(basename $0) [OPTION]... [TAG_NAME|TAG_UUID] [UUID]...
 
 Create or update a tag on a resource.
 
@@ -156,8 +156,6 @@ while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
-    -N|--name) shift; name=$1 ;;
-    -U|--uuids) shift; uuids=$1 ;;
     -z|--access_token) shift; access_token=$1 ;;
     -F|--filetoupload) shift; filetoupload=$1 ;;
     --filter) shift; responsefilter=$1 ;;

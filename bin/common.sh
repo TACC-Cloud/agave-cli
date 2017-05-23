@@ -669,6 +669,10 @@ function join {
   local IFS="$1"; shift; echo "$*";
 }
 
+#
+# Pretty print JSON responses from the services and the cli. The formatter
+# can be overridden using the $AGAVE_JSON_PARSER environment variable.
+#
 function json_prettyify {
 
 	# Look for custom json parsers
@@ -697,48 +701,53 @@ function json_prettyify {
 	fi
 }
 
+#
+# Refresh the current user token cached in $AGAVE_CACHE_DIR/current. This function can be
+# disabled at any time by setting the $AGAVE_DISABLE_AUTO_REFRESH environment variable.
+# Refresh will be skipped silently if the client key, secret, or refresh token are missing.
+#
 function auto_auth_refresh
-
 {
+	if [[ -z "$AGAVE_DISABLE_AUTO_REFRESH" ]];
+	then
+		# ignore the refresh if the api keys or refresh token are not present in the cache.
+		if [[ -n "$baseurl" ]] && [[ -n "$apikey" ]] && [[ -n "$apisecret" ]] && [[ -n "$refresh_token" ]];
+		then
+			# build the refresh command url and form
+			__hosturl="$baseurl"
+			__hosturl=${__hosturl}/token
+			__post_options="grant_type=refresh_token&refresh_token=${refresh_token}&scope=PRODUCTION"
 
+			response=`curl -sku "$apikey:$apisecret" -X POST -d "${__post_options}" -H "Content-Type:application/x-www-form-urlencoded" "$__hosturl"`
 
+			# check response code. if curl exited with a non 200 code, the operation failed
+			if [[ ! $? ]] && (($verbose)); then
+				err "Unable to refresh token. If you do not update your token manually using the auth-tokens-refresh command, token refresh will be attempted again prior to your next request."
 
-if [[ -z "$AGAVE_DISABLE_AUTO_REFRESH" ]]; then
-
-		# If this function is entered, it assumes the user already stores keys in ~/.agave/current,
-		# and that the bearer and refresh tokens have previously been created, and that the bearer token
-		# is expired
-
-		__hosturl="$baseurl"
-		__hosturl=${__hosturl}/token
-		__post_options="grant_type=refresh_token&refresh_token=${refresh_token}&scope=PRODUCTION"
-
-		response=`curl -sku "$apikey:$apisecret" -X POST -d "${__post_options}" -H "Content-Type:application/x-www-form-urlencoded" "$__hosturl"`
-
-		if [[ ! $? ]] && (($verbose)); then
-			err "Unable to refresh token. If you do not update your token manually using the auth-tokens-refresh command, token refresh will be attempted again prior to your next request."
-		else
-			jsonval access_token "$response" "access_token"
-			jsonval refresh_token "$response" "refresh_token"
-			jsonval expires_in "$response" "expires_in"
-			created_at=$(date +%s)
-			if is_gnu ; then
-				expires_at=`date -d @$(expr $created_at + $expires_in)`
+			# otherwise, update the local cache with the new token and expiration time
 			else
-				expires_at=`date -r $(expr $created_at + $expires_in)`
+				jsonval access_token "$response" "access_token"
+				jsonval refresh_token "$response" "refresh_token"
+				jsonval expires_in "$response" "expires_in"
+				created_at=$(date +%s)
+				if is_gnu ; then
+					expires_at=`date -d @$(expr $created_at + $expires_in)`
+				else
+					expires_at=`date -r $(expr $created_at + $expires_in)`
+				fi
+
+				kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
+
+				if [[ $verbose -ne 1 ]]; then
+					echo "Token for ${tenantid}:${username} successfully refreshed and cached for ${expires_in} seconds"
+				fi
+
+				jsonval result "$response" "access_token"
+				echo "${result}"
+
+				# The command call below here also works, if un-commented. But perhaps the above is preferable?
+				#( /bin/bash $DIR/auth-tokens-refresh )
 			fi
-
-			kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
-
-			if [[ $verbose -ne 1 ]]; then
-				echo "Token for ${tenantid}:${username} successfully refreshed and cached for ${expires_in} seconds"
-			fi
-
-			jsonval result "$response" "access_token"
-			echo "${result}"
-
-			# The command call below here also works, if un-commented. But perhaps the above is preferable?
-			#( /bin/bash $DIR/auth-tokens-refresh )
 		fi
 	fi
 }
@@ -747,11 +756,11 @@ function is_gnu {
 	date --version >/dev/null 2>&1 && exit 0 && exit 1
 }
 
+#
+# Generate rich plaintext response by formatting the output into a column formatted ascii table with
+# aligned headers, dynamic columns (one per field response), and friendly date formatting.
+#
 function richify {
-
-	#
-	# Generate rich plaintext response
-	#
 
 	# the first parameter passed here is the json response
 	json_response=$1

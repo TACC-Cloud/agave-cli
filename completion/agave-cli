@@ -145,7 +145,7 @@ _apps_list() {
     prev=${COMP_WORDS[COMP_CWORD-1]}
 
     case "$prev" in
-        -z|-t|-O|-l|-o|-H|-u|-N|-h|-F) COMPREPLY=($(compgen -f $cur)) ;;
+        -z|-t|-O|-l|-o|-H|-u|-N|-h|-F|-d|-v|-V|--rich) COMPREPLY=($(compgen -f $cur)) ;;
         -n ) COMPREPLY=($(compgen -W "$(apps-search --filter=name -v name.like=${cur}* | grep "\"name\"" | sed 's/"//g' | sed 's/name\://g' | sed 's/ //g')" -- $cur)) ;;
         -S ) COMPREPLY=($(compgen -W "$(systems-search --filter=id name.like=${cur}*)" -- $cur)) ;;
         *) COMPREPLY=($(compgen -W "$(_check_cache 'APPS' "LISTINGS" \"apps-list --filter=id\")" -- $cur)) ;;
@@ -163,7 +163,7 @@ _apps_clone() {
         -e) COMPREPLY=($(compgen -W "$(_check_cache 'SYSTEMS' 'execution' \"systems-search --filter=id type=EXECUTION\")" -- $cur)) ;;
         -s) COMPREPLY=($(compgen -W "$(_check_cache 'SYSTEMS' 'storage' \"systems-search --filter=id type=STORAGE id.like=${cur}*\")" -- $cur)) ;;
     # -p
-        -z|-n|-x|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
+        -z|-n|-x|-H|-h|-d|-v|-V|--rich) COMPREPLY=($(compgen -f $cur)) ;;
         *) COMPREPLY=($(compgen -W "$(_check_cache 'APPS' 'LISTINGS' 'apps-list --filter=id')" -- $cur)) ;;
     esac
 }
@@ -177,7 +177,7 @@ _apps_pems_update() {
     case "$prev" in
         -u) COMPREPLY=($(compgen -W "$(profiles-list -v --filter=username -U ${cur} | grep "\"username\"" | sed 's/"//g' | sed 's/username\://g' | sed 's/ //g')" -- $cur)) ;;
         -p) COMPREPLY=($(compgen -W "READ WRITE EXECUTE READ_WRITE READ_EXECUTE WRITE_EXECUTE ALL NONE" -- $cur)) ;;
-        -z|-u|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
+        -z|-u|-H|-h|-d|-v|-V|--rich) COMPREPLY=($(compgen -f $cur)) ;;
         *) COMPREPLY=($(compgen -W "$(_check_cache 'APPS' 'LISTINGS' 'apps-list --filter=id')" -- $cur)) ;;
     esac
 }
@@ -190,7 +190,7 @@ _apps_publish() {
 
     case "$prev" in
         -e) COMPREPLY=($(compgen -W "$(_check_cache 'SYSTEMS' 'execution' 'systems-search --filter=id type=EXECUTION')" -- $cur)) ;;
-        -z|-n|-x|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
+        -z|-n|-x|-H|-h|-d|-v|-V|--rich) COMPREPLY=($(compgen -f $cur)) ;;
         *) COMPREPLY=($(compgen -W "$(_check_cache 'APPS' 'LISTINGS' 'apps-list --filter=id')" -- $cur)) ;;
     esac
 }
@@ -208,7 +208,7 @@ _jobs_search() {
     prev=${COMP_WORDS[COMP_CWORD-1]}
 
     case "$prev" in
-        -z|-s|-l|-o|-H|-h|-N|-R|-u) COMPREPLY=($(compgen -f $cur)) ;;
+        -z|-s|-l|-o|-H|-h|-N|-R|-u|-d|-v|-V|--rich) COMPREPLY=($(compgen -f $cur)) ;;
         *) COMPREPLY=($(compgen -W "$(jobs-search --filter=id id.like=${cur}*)" -- $cur)) ;;
     esac
 }
@@ -247,7 +247,7 @@ _jobs_output() {
     prev=${COMP_WORDS[COMP_CWORD-1]}
 
     case "$prev" in
-        -z|-s|-l|-o|-H|-h|-N|-R|-u) COMPREPLY=($(compgen -f $cur)) ;;
+        -z|-s|-l|-o|-H|-h|-N|-R|-u|-d|-v|-V|--rich) COMPREPLY=($(compgen -f $cur)) ;;
         *) COMPREPLY=( $(_jobs_complete_uuid_our_output_path $cur $prev )) ;;
     esac
 
@@ -625,7 +625,7 @@ _files_list() {
 #    set -x
     case "$prev" in
         -S) COMPREPLY=($(compgen -W "$(_check_cache 'SYSTEMS' 'LISTING' 'systems-search --filter=id')" -- $cur)) ;;
-        -z|-l|-L|-o|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
+        -z|-l|-L|-o|-H|-h|-N|-d|-v|-V|--rich) COMPREPLY=($(compgen -f $cur)) ;;
         *) COMPREPLY=( $( __dir_list  "${_cmd}" | grep "$cur") ) ;;
     esac
 
@@ -667,7 +667,7 @@ _files_pems() {
         -U,-u) COMPREPLY=($(compgen -W "$(profiles-list -v --filter=username -U ${cur} | grep "\"username\"" | sed 's/"//g' | sed 's/username\://g' | sed 's/ //g')" -- $cur)) ;;
         -P,-p) COMPREPLY=($(compgen -W "READ WRITE READ_WRITE ALL NONE" -- $cur)) ;;
         -S) COMPREPLY=($(compgen -W "$(_check_cache 'SYSTEMS' 'LISTING' 'systems-search --filter=id')" -- $cur)) ;;
-        -z|-l|-L|-o|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
+        -z|-l|-L|-o|-H|-h|-N|-d|-v|-V|--rich) COMPREPLY=($(compgen -f $cur)) ;;
         *) COMPREPLY=( $( __dir_list  "${_cmd}" | grep "$cur") ) ;;
     esac
 }
@@ -708,7 +708,7 @@ _files_import() {
         -U) COMPREPLY=( $( __url_list "$_debug_flag" "${cur}" "${_cmd}" | grep "$cur" ) ) ;;
         -P,-p) COMPREPLY=($(compgen -W "READ WRITE READ_WRITE ALL NONE" -- $cur)) ;;
         -S) COMPREPLY=($(compgen -W "$(_check_cache 'SYSTEMS' 'LISTING' 'systems-search --filter=id')" -- $cur)) ;;
-        -z|-l|-L|-o|-H|-h) COMPREPLY=($(compgen -f $cur)) ;;
+        -z|-l|-L|-o|-H|-h|-N|-d|-v|-V|--rich) COMPREPLY=($(compgen -f $cur)) ;;
         *) COMPREPLY=( $( __dir_list  "${_cmd}" | grep "$cur") ) ;;
     esac
 }
