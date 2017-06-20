@@ -851,6 +851,11 @@ function richify {
 
 function columnize {
 
+	python $DIR/python2/richtext.py $@
+
+}
+
+function columnize_old {
 	#
 	# Use awk to put rich text with pipe '|' separators into column format
 	# (This replaces the bash 'column' command because 'column' is not 
