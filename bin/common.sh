@@ -420,6 +420,8 @@ function jsonquery {
 
 			elif [[ 'python' == "$AGAVE_JSON_PARSER" ]]; then
 
+				echo "common/jsonquery/python"
+
 				[[ -z "$3" ]] && stripquotes='-s'
 
 				echo "${1}" | python $DIR/python2/pydotjson.py -q ${2} $stripquotes
@@ -675,6 +677,7 @@ function json_prettyify {
 	if [[ 'python' == "$AGAVE_JSON_PARSER" ]]; then
 
 		echo "$@" | python $DIR/python2/pydotjson.py
+		#echo -n "$@" | python -mjson.tool
 
 	elif [[ 'jq' == "$AGAVE_JSON_PARSER" ]]; then
 
