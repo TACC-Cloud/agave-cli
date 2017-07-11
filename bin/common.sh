@@ -708,6 +708,7 @@ function json_prettyify {
 #
 function auto_auth_refresh
 {
+	AGAVE_DISABLE_AUTO_REFRESH=1
 	if [[ -z "$AGAVE_DISABLE_AUTO_REFRESH" ]];
 	then
 		# ignore the refresh if the api keys or refresh token are not present in the cache.
