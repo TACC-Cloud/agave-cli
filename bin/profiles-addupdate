@@ -22,7 +22,7 @@ interactive_opts=(apisecret apikey filetoupload)
 # Print usage
 usage() {
   echo -n "$(basename $0) [OPTION]...
-$(basename $0) [OPTION]... [INTERNAL_USERNAME]
+$(basename $0) [OPTION]... [USERNAME]
 
 Create or update a user account. Use of this service requires the
 user-account-manager role.
@@ -31,7 +31,17 @@ Note: new user registering requires email verification before the account goes l
 
  Options:
   -z, --access_token    Access token
+  -F, --filetoupload      The file containing the JSON notification description to submit
       --filter          Comma separated list of fields to return in the response
+      --username        The user's username. (Only requried as an option on account creation.)
+      --password        The user's password. (Only required upon account creation and password reset.)
+      --phone           The user's preferred contact number
+      --mobile_phone    The user's mobile phone number
+      --full_name       The user's full or display name
+      --first_name      The user's first name
+      --last_name       The user's last name
+      --email           The user's email address
+      --status          The account status: active/inactive
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
@@ -52,71 +62,115 @@ Note: new user registering requires email verification before the account goes l
 
 source "$DIR/profiles-common.sh"
 
-main() {
-	#echo -n
+main()
+
+{
+
+#echo -n
 	#set -x
-	if [[ -z "$email" ]]; then
-		# email only required on profile creation
-		if [[ -z "${args}" ]]; then
-			err "Please specify an email address for the account"
-		fi
+
+	if [[ -z "${args}" ]]; then
+		http_method=POST
 	else
-		query="email=$email"
+		http_method=PUT
 	fi
 
-	if [[ -z "$username" ]]; then
-		# username only required on profile creation.
-		# otherwise pull it from the username provided as
-		# the command argument.
-		if [[ -z "${args}" ]]; then
-			err "Please specify a username for the account"
+	if [[ -d "$filetoupload" ]]; then
+
+		response="Directory input is not supported"
+		err "$response"
+
+	elif [[ -z "$filetoupload" ]]; then
+
+		if [[ -z "$account_email" ]]; then
+			# email only required on profile creation
+			if [[ -z "${args}" ]]; then
+				err "Please specify an email address for the account"
+			fi
 		else
-			username="${args}"
+			query="email=$account_email"
 		fi
-	else
-		query="${query}&username=$username"
-	fi
 
-	if [[ -z "$password" ]]; then
-		# password only required on profile creation
-		if [[ -z "${args}" ]]; then
-			err "Please specify a password for the user"
+		if [[ -z "$account_username" ]]; then
+			# username only required on profile creation.
+			# otherwise pull it from the username provided as
+			# the command argument.
+			if [[ -z "${args}" ]]; then
+				err "Please specify a username for the account"
+			else
+				account_username="${args}"
+			fi
+		else
+			query="username=$account_username&${query}"
 		fi
-	else
-		query="${query}&password=$password"
+
+		if [[ -z "$account_password" ]]; then
+			# password only required on profile creation
+			if [[ -z "${args}" ]]; then
+				err "Please specify a password for the user"
+			fi
+		else
+			query="password=$account_password&${query}"
+		fi
+
+		if [[ -n "$account_first_name" ]]; then
+			query="first_name=$account_first_name&${query}"
+		fi
+
+		if [[ -n "$account_last_name" ]]; then
+			query="last_name=$account_last_name&${query}"
+		fi
+
+		if [[ -n "$account_phone" ]]; then
+			query="phone=$account_phone&${query}"
+		fi
+
+		if [[ -n "$account_mobile_phone" ]]; then
+			query="mobile_phone=$account_mobile_phone&${query}"
+		fi
+
+		if [[ -n "$account_full_name" ]]; then
+			query="full_name=$account_full_name&${query}"
+		fi
+
+		if [[ -n "$account_status" ]]; then
+			query="status=$account_status&${query}"
+		fi
+
+		query=${query%&}
+
+		cmd="curl -sk -H \"${authheader}\" -X ${http_method} -d \"${query}\" '${hosturl}$args?pretty=true'"
+
+		if ((veryverbose)); then
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
+		fi
+
+		response=`curl -sk -H "${authheader}" -X ${http_method} -d "${query}" "${hosturl}$args?pretty=true"`
+
+	# reading from stdin
+	elif [[ "$filetoupload" == "-"  ]]; then
+
+		cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X ${http_method} --data-binary @- '${hosturl}${args}?pretty=true'"
+
+		if ((veryverbose)); then
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
+		fi
+
+		# make sure we specify content type as application/json
+		response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X ${http_method} --data-binary @- "${hosturl}${args}?pretty=true"`
+
+	# standard file upload
+	elif [[ -f "$filetoupload" ]]; then
+
+		cmd="curl -sk -H \"${authheader}\" -X ${http_method} -F \"fileToUpload=@$filetoupload\" '${hosturl}$args?pretty=true'"
+
+		if ((veryverbose)); then
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
+		fi
+
+		response=`curl -sk -H "${authheader}" -X ${http_method} -F "fileToUpload=@$filetoupload" "${hosturl}$args?pretty=true"`
+
 	fi
-
-	if [[ -n "$first_name" ]]; then
-		query="${query}&first_name=$first_name"
-	fi
-
-	if [[ -n "$last_name" ]]; then
-		query="${query}&last_name=$last_name"
-	fi
-
-	if [[ -n "$phone" ]]; then
-		query="${query}&phone=$phone"
-	fi
-
-	if [[ -n "$mobile_phone" ]]; then
-		query="${query}&mobile_phone=$mobile_phone"
-	fi
-
-	if [[ -n "$full_name" ]]; then
-		query="${query}&full_name=$full_name"
-	fi
-
-	if [[ -n "$status" ]]; then
-		query="${query}&status=$status"
-	fi
-
-	cmd="curl -sk -H \"${authheader}\" -X POST -d \"${query}\" '${hosturl}$args?pretty=true'"
-
-	if ((veryverbose)); then
-		[ "$piped" -eq 0 ] && log "Calling $cmd"
-	fi
-
-	response=`curl -sk -H "${authheader}" -X POST -d "${query}" "${hosturl}$args?pretty=true"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
@@ -139,7 +193,7 @@ format_api_json() {
 			internal_username=$(jsonquery "$1" "result.username")
 			echo "Successfully added user $username."
 		else
-			echo "Successfully updated user $args"
+			echo "Successfully updated user $account_username"
 		fi
 	fi
 }
@@ -167,6 +221,16 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
+	-F|--filetoupload) shift; filetoupload=$1 ;;
+	--password) shift; account_password=$1;;
+    --username) shift; account_username=$1;;
+	--phone) shift; account_phone=$1;;
+  	--mobile_phone) shift; account_mobile_phone=$1;;
+	--full_name) shift; account_full_name=$1;;
+  	--first_name) shift; account_first_name=$1;;
+	--last_name) shift; account_last_name=$1;;
+  	--email) shift; account_email=$1;;
+	--status) shift; account_status=$1;;
     --filter) shift; responsefilter=$1;;
     -H|--hosturl) shift; hosturl=$1 ;;
   	-d|--development) development=1 ;;
