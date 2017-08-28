@@ -3,7 +3,7 @@
 # Agave CLI Image
 # Tag: agave-cli
 #
-# https://bitbucket.org/agaveapi/cli
+# https://github.com/agaveplatform/agave-cli
 #
 # This is the official image for the Agave CLI and can be used for
 # parallel environment testing.

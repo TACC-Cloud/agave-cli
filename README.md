@@ -23,10 +23,10 @@ Optional dependencies
 	* jq 1.4+ (for faster JSON parsing)
 	* python 2.7.9+
 
-Clone the repository from Bitbucket and add the bin directory to your PATH and you're ready to go.
+Clone the repository from Github and add the bin directory to your PATH and you're ready to go.
 
 ```  
-git clone https://bitbucket.org/agaveapi/cli.git agave-cli  
+git clone https://github.com/agaveplatform/agave-cli.git agave-cli  
 export PATH=$PATH:`pwd`/agave-cli/bin  
 ```  
 

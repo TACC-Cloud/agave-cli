@@ -3,7 +3,7 @@
 # Agave CLI Image
 # Tag: agave-cli
 #
-# https://bitbucket.org/agaveapi/cli
+# https://github.com/agaveplatform/agave-cli
 #
 # This container the Agave CLI and can be used for
 # parallel environment testing.
@@ -24,7 +24,7 @@ RUN apt-get update && \
 
 
     # install the cli from git
-    git clone https://bitbucket.org/taccaci/foundation-cli /usr/local/agave-cli && \
+    git clone https://github.com/agaveplatform/agave-cli /usr/local/agave-cli && \
     chmod +x /usr/local/agave-cli/bin/*
 
     # set user's default env. This won't get sourced, but is helpful
