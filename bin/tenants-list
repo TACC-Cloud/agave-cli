@@ -20,7 +20,7 @@ interactive_opts=()
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [PATH]
+  echo -n "$(basename $0) [OPTION]... [TENANT_CODE]
 
 Retrieves the list of available tenants from the Agave central database.
 
@@ -36,6 +36,7 @@ Retrieves the list of available tenants from the Agave central database.
   -V, --veryverbose    Very verbose output
   -h, --help           Display this help and exit
       --version        Output version information and exit
+      --rich           Provide rich response
 "
 }
 
@@ -51,13 +52,13 @@ main() {
 	#echo -n
 	#set -x
 
-	cmd="curl -sk ${hosturl%/}/?pretty=true$(pagination)"
+	cmd="curl -sk ${hosturl%/}/${args}?pretty=true$(pagination)"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 
-	response=`curl -sk "${hosturl%/}/?pretty=true$(pagination)"`
+	response=`curl -sk "${hosturl%/}/${args}?pretty=true$(pagination)"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")
@@ -77,6 +78,9 @@ format_api_json() {
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
+	elif [[ $rich -eq 1 ]]; then
+		result=$(richify "$1")
+		columnize "${result}"
 	else
 		result=$(jsonquery "$1" "result.[].code")
 		echo "${result}"
@@ -104,7 +108,8 @@ while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
-    -l|--limit) shift; limit=$1;;
+	-z|--access_token) shift; access_token=$1 ;;
+	-l|--limit) shift; limit=$1;;
     -o|--offset) shift; offset=$1;;
     --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
@@ -114,6 +119,7 @@ while [[ $1 = -?* ]]; do
     -q|--quiet) quiet=1 ;;
     -i|--interactive) interactive=1 ;;
     -f|--force) force=1 ;;
+    --rich) rich=1 ;;
     --endopts) shift; break ;;
     *) die "invalid option: $1" ;;
   esac

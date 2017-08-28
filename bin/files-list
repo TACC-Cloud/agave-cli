@@ -43,6 +43,7 @@ on that remote system. Note that the system id, not hostname must be given.
   -V, --veryverbose     Very verbose output
   -h, --help            Display this help and exit
       --version         Output version information and exit
+      --rich            Provide rich response
 "
 }
 
@@ -94,6 +95,9 @@ format_api_json() {
 	elif [[ $long -eq 1 ]]; then
         #lstng=$(lsify "$1" | awk '{ printf("%-10s %+12s %+18s %+32s %s\n", $1, $2, $3, $4, $5); }')
         lsify "$1" | column -t -s$'\t'
+	elif [[ $rich -eq 1 ]]; then
+        result=$(richify "$1")
+        columnize "${result}"
     else
         result=$(jsonquery "$1" "result.[].name")
         echo "${result}"
@@ -140,51 +144,25 @@ lsify () {
         else
             up="-${up}"
         fi
-        moddate=($(echo ${modifieds[$n]} | sed -e 's/T.*//' -e 's/-/ /g'))
-        tmon=$(month_of_year ${moddate[1]})
-        tday=$(echo ${moddate[1]} | sed 's/^0*//')
 
-        if [[ $thisyear = ${moddate[0]} ]]; then
-            modtime=$(echo ${modifieds[$n]} | sed -e 's/.*T//' -e 's/\:..\....-..\:..//')
-            echo -e "${up}\t${username}\t${lengths[$n]}\t${tmon}\t${tday}\t${modtime}\t$i"
-        else
-            echo -e "${up}\t${username}\t${lengths[$n]}\t${tmon}\t${tday}\t${moddate[0]}\t$i"
-        fi
+        formatteddate=$(format_iso8601_time "${modifieds[$n]}")
+        echo -e "${up}\t${username}\t${lengths[$n]}\t${formatteddate}\t$i"
+
+#        moddate=($(echo ${modifieds[$n]} | sed -e 's/T.*//' -e 's/-/ /g'))
+#        tmon=$(month_of_year ${moddate[1]})
+#        tday=$(echo ${moddate[1]} | sed 's/^0*//')
+
+#        if [[ $thisyear = ${moddate[0]} ]]; then
+#            modtime=$(echo ${modifieds[$n]} | sed -e 's/.*T//' -e 's/\:..\....-..\:..//')
+#            echo -e "${up}\t${username}\t${lengths[$n]}\t${modtime}\t$i"
+#        else
+#            echo -e "${up}\t${username}\t${lengths[$n]}\t${tmon}\t${tday}\t${moddate[0]}\t$i"
+#        fi
 #        tmod=`date -d "$(echo ${modifieds[$n]} | sed -e 's/T//' -e 's/.000-05\:00\:00//' | sed -e )"`
 #        echo -e "${up}\t${username}\t${lengths[$n]}\t${tmod}\t$i"
         n=$[n+1]
     done
 
-}
-
-function month_of_year() {
-    if [[ "$1" = "01" ]]; then
-        echo 'Jan';
-    elif [[ "$1" = "02" ]]; then
-        echo 'Feb';
-    elif [[ "$1" = "03" ]]; then
-        echo 'Mar';
-    elif [[ "$1" = "04" ]]; then
-        echo 'Apr';
-    elif [[ "$1" = "05" ]]; then
-        echo 'May';
-    elif [[ "$1" = "06" ]]; then
-        echo 'Jun';
-    elif [[ "$1" = "07" ]]; then
-        echo 'Jul';
-    elif [[ "$1" = "08" ]]; then
-        echo 'Aug';
-    elif [[ "$1" = "09" ]]; then
-        echo 'Sep';
-    elif [[ "$1" = "10" ]]; then
-        echo 'Oct';
-    elif [[ "$1" = "11" ]]; then
-        echo 'Nov';
-    elif [[ "$1" = "12" ]]; then
-        echo 'Dec';
-    else
-        echo ''
-    fi
 }
 
 ##################################################################
@@ -221,6 +199,7 @@ while [[ $1 = -?* ]]; do
     -q|--quiet) quiet=1 ;;
     -i|--interactive) interactive=1 ;;
     -f|--force) force=1 ;;
+    --rich) rich=1 ;;
     --endopts) shift; break ;;
     *) die "invalid option: $1" ;;
   esac

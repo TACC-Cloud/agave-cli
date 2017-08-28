@@ -39,7 +39,6 @@ Note that you must use the same client key and secret that was used
 to obtain the auth token to revoke it.
 
  Options:
-  -z, --access_token   Auth token to revoke if different from default
   -s, --apisecret      Consumer secret
   -k, --apikey         Consumer Key
   -S, --storetoken     Removes the revoked credential from the local cache
@@ -68,13 +67,23 @@ main() {
 	#set -x
 	hosturl=${hosturl%/}/revoke
 
-	cmd="curl -sku \"$apikey:$apisecret\" -X POST -d 'token=$access_token' '$hosturl'"
+	# invalidate the access token given as an argument
+	# if present, otherwise use the token from the
+	# user's auth cache.
+	if [[ -z "$1" ]]; then
+		token_to_revoke="$access_token"
+	else
+		token_to_revoke="$1"
+	fi
+
+
+	cmd="curl -sku \"$apikey:$apisecret\" -X POST -d 'token=$token_to_revoke' '$hosturl'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 
-	response=`json_prettyify $(curl -sku "$apikey:$apisecret" -X POST -d "token=$access_token" "$hosturl")`
+	response=`json_prettyify $(curl -sku "$apikey:$token_to_revoke" -X POST -d "token=$access_token" "$hosturl")`
 
 	if [[ -z "$response" ]]; then
 		response="{\"status\":\"success\",\"message\":\"Token successfully revoked.\",\"result\": null}"
@@ -87,7 +96,7 @@ main() {
 
 format_api_json() {
 
-	if ((storetoken)); then
+	if ((storetoken)) || [ "$token_to_revoke" == "$access_token" ]; then
 
 		kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"\",\"refresh_token\":\"\",\"created_at\":\"\",\"expires_in\":\"\",\"expires_at\":\"\"}"
 
@@ -124,7 +133,6 @@ while [[ $1 = -?* ]]; do
   case $1 in
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
-    -z|--access_token) shift; access_token=$1 ;;
     -s|--apisecret) shift; apisecret=$1 ;;
     -k|--apikey) shift; apikey=$1 ;;
     -S|--storetoken) storetoken=1 ;;

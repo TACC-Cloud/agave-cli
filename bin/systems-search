@@ -41,6 +41,7 @@ public=true. Multiple search terms may be provided as consecutive arguments. For
   lastupdated                   The timestamp of the last time the system was updated. Results are
                                 rounded by day. You may specify using YYYY-MM-DD format or free
                                 form timeframes such as 'yesterday' or '3 days ago'.
+  lastmodified                  Alias for lastupdated.
   name                          The name of the system.
   owner                         The username of the principal who originally registered the system.
   public                        Whether the system is publicly available for use. Boolean, if true
@@ -107,6 +108,7 @@ public=true. Multiple search terms may be provided as consecutive arguments. For
   -V, --veryverbose     Very verbose output
   -h, --help            Display this help and exit
       --version         Output version information and exit
+      --rich            Provide rich response
 "
 }
 
@@ -128,7 +130,7 @@ main() {
     if [ -n "$args" ]; then
         for i in "${args[@]}"
         do
-            querystring="${querystring} --data-urlencode "${i}
+            querystring="${querystring} --data "$(urlencode "${i}" | sed 's/%3D/=/')
         done
     fi
 
@@ -157,6 +159,9 @@ format_api_json() {
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
+	elif [[ $rich -eq 1 ]]; then
+        result=$(richify "$1")
+        columnize "${result}"
 	else
 		systemids=$(jsonquery "$1" "result.[].id")
 
@@ -196,6 +201,7 @@ while [[ $1 = -?* ]]; do
     -q|--quiet) quiet=1 ;;
     -i|--interactive) interactive=1 ;;
     -f|--force) force=1 ;;
+    --rich) rich=1 ;;
     --endopts) shift; break ;;
     *) die "invalid option: $1" ;;
   esac

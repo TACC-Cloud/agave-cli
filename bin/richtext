@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# This is an accessory file currently used by the rich text engine. The rich flag
+# will grep out the first occurrence of the appropriate basename located in this file.
+# This makes it easy to modify which fields are shown in rich text format.
+
+### apps commands ###
+apps-history:		status createdBy created description
+apps-list:		id executionSystem revision isPublic lastModified
+apps-search:		id executionSystem revision isPublic lastModified
+#apps-search:		id name version revision isPublic lastModified
+
+### clients commands ###
+clients-list:		name consumerKey
+
+### files commands ###
+files-history:		status created description
+files-list:		name length permissions type lastModified
+
+### jobs commands ###
+jobs-history:		status created description
+jobs-list:		name created startTime endTime status
+#jobs-list:		id name owner executionSystem appId status
+jobs-output-list:	name length permission type lastModified
+jobs-search:		id name owner executionSystem appId status
+#jobs-search:		name created startTime endTime
+jobs-tail:		id averageRate totalBytes totalBytesTransferred
+
+### metadata commands ###
+metadata-list:		uuid owner name created lastUpdated
+metadata-schema-list:	uuid owner schema.title schema.type created lastUpdated
+
+### profiles commands ###
+profiles-list:		firstName lastName username email institution
+
+### systems commands ###
+systems-history:	status createdBy created description
+systems-list:		id type status public default lastUpdated
+#systems-list:		id name
+systems-queues-list:	name maxJobs maxNodes maxProcessorsPerNode maxMemoryPerNode maxRequestedTime
+#systems-queues-list:	name load.running load.pending load.queued
+systems-roles-list:	username role
+systems-search:		id type status public default lastUpdated
+#systems-search:	id name
+
+### tenants commands ###
+tenants-list:		name baseUrl contact.[].name contact.[].email

@@ -23,8 +23,7 @@ usage() {
   echo -n "$(basename $0) [OPTION]...
 $(basename $0) [OPTION]... [TAG_ID]
 
-List all tags available to the authenticated user. URL querying by type,
-default designation, and scope is supported.
+List all tags available to the authenticated user.
 
  Options:
   -z, --access_token     Access token
@@ -63,13 +62,13 @@ main() {
 		tagsurl="${hosturl}?${querystring}"
 	fi
 
-	cmd="curl -sk -H \"${authheader}\" '${systemsurl}'"
+	cmd="curl -sk -H \"${authheader}\" '${tagsurl}'"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"
 	fi
 
-	response=`curl -sk -H "${authheader}" "${systemsurl}"`
+	response=`curl -sk -H "${authheader}" "${tagsurl}"`
 
 	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 		result=$(format_api_json "$response")

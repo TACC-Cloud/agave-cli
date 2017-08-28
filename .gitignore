@@ -38,4 +38,7 @@ playground
 actors-*
 transfers-*
 
+# test data
+test/data/*
+TestReport-case.xml
 *.pyc

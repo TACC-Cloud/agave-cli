@@ -36,29 +36,39 @@ search terms should be provided as a URL query string. For example,
   archivesystem        The id of the system where the job output was
                        archived if the archive flag was true.
   batchqueue           The system queue in which the job ran.
+  created              The date the job request was made. You may specify
+  					   using structured or free form timeframes such as
+  					   'yesterday' or '-3 hours'.
+  endtime              The date the job finished running. You may specify
+  					   using structured or free form timeframes such as
+  					   'yesterday' or '-3 hours'.
   executionsystem      The execution system where the job ran.
   id                   The id of the job.
   inputs               The job inputs. Note, this is currently a
                        full text match.
+  lastupdated          The date the job was last updated with a status change.
+                       Times may be specified in structured or free form
+                       timeframes such as 'yesterday' or '-3 days'.
   localid              The local job id of the job on the execution system.
   maxruntime           The maximum run time of the job in HH:mm:ss format.
   memorypernode        The memory requested by the job specified in GB.
   name                 The name of the job.
   nodecount            The number of nodes requested for the job.
+  owner            	   The user who submitted the job
   outputpath           The remote work directory path of the job.
   parameters           The job parameters. Note, this is currently a
                        full text match.
   processorspernode    The number of processors per node requested
                        by the job.
   retries              The number of retry attempts made on this job.
+  runtime			   The duration of the job in seconds.
   starttime            The date the job began running. Results are rounded by
                        day. You may specify using YYYY-MM-DD format or free
                        form timeframes such as 'yesterday' or '3 days ago'.
   status               The job status.
   submittime           The date the job was submitted to the remote execution
-                       system to run. Results are rounded by day. You may
-                       specify using YYYY-MM-DD format or free form timeframes
-                       such as 'yesterday' or '3 days ago'.
+                       system to run. You may specify using structured or free
+                       form timeframes such as 'yesterday' or '-3 days'.
   visible              Boolean flag indicating whether or not to show deleted
                        jobs. Defaults to false.
 
@@ -66,6 +76,11 @@ search terms should be provided as a URL query string. For example,
   -z, --access_token    Access token
   -l, --limit           Maximum number of results to return
   -o, --offset          Number of results to skip from the start
+      --order           The sort order of the response. Either ASC or DESC
+      --orderBy         The field by which the results should be ordered. Valid
+                        orderBy values are any search term for this resource.
+                        The orderBy field field is independent of the filter
+                        values.
       --filter          Comma separated list of fields to return in the response
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
@@ -76,6 +91,7 @@ search terms should be provided as a URL query string. For example,
   -V, --veryverbose     Very verbose output
   -h, --help            Display this help and exit
       --version         Output version information and exit
+      --rich            Provide rich response
 "
 }
 
@@ -93,16 +109,16 @@ main() {
 
 	jobsurl=${hosturl%/}
 
-  querystring=""
+	querystring=""
 
-  if [ -n "$args" ]; then
-      for i in "${args[@]}"
-      do
-          querystring="${querystring} --data-urlencode "${i}
-      done
-  fi
+	if [ -n "$args" ]; then
+		for i in "${args[@]}"
+		do
+			querystring="${querystring} --data "$(urlencode "${i}" | sed 's/%3D/=/')
+		done
+	fi
 
-  cmd="curl -G -sk -H \"${authheader}\" '$jobsurl?pretty=true$(pagination)' ${querystring}"
+	cmd="curl -G -sk -H \"${authheader}\" '$jobsurl?pretty=true$(pagination)' ${querystring}"
 
 	if ((veryverbose)); then
 		[ "$piped" -eq 0 ] && log "Calling $cmd"
@@ -126,19 +142,26 @@ format_api_json() {
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
+	elif [[ $rich -eq 1 ]]; then
+		result=$(richify "$1")
+		columnize "${result}"
 	else
 		jobids=( $(jsonquery "$1" "result.[].id") )
 
 		n=0
 		for i in $(jsonquery "$1" "result.[].status")
 		do
-			jobids[$n]="${jobids[$n]} $i"
+			status=" $i"
+			if [[ -z "$i" || "$i" == null ]]; then
+				status=''
+			fi
+			echo "${jobids[$n]}${status}"
 			n=$[n+1]
 		done
 
-		for i in "${jobids[@]}"; do
-			echo "$i"
-		done
+#		for i in "${jobids[@]}"; do
+#			echo "$i"
+#		done
 	fi
 }
 
@@ -166,6 +189,8 @@ while [[ $1 = -?* ]]; do
     -z|--access_token) shift; access_token=$1 ;;
     -l|--limit) shift; limit=$1;;
     -o|--offset) shift; offset=$1;;
+    --order) shift; sortOrder=$1;;
+    --orderBy) shift; sortBy=$1;;
     --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
@@ -174,6 +199,7 @@ while [[ $1 = -?* ]]; do
     -q|--quiet) quiet=1 ;;
     -i|--interactive) interactive=1 ;;
     -f|--force) force=1 ;;
+    --rich) rich=1 ;;
     --endopts) shift; break ;;
     *) die "invalid option: $1" ;;
   esac

@@ -1,11 +1,12 @@
 #!/bin/bash
 #
-# tags-apply
+# tags-associations-addupdate
 #
 # author: dooley@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It adds and updates resource tags.
+# Applies a tag to an existing resource. Resource id or uuid can be
+# provided.
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -21,14 +22,12 @@ interactive_opts=(apisecret apikey filetoupload)
 # Print usage
 usage() {
   echo -n "$(basename $0) [OPTION]...
-$(basename $0) [OPTION]... [TAG_NAME|TAG_UUID]
 $(basename $0) [OPTION]... [TAG_NAME|TAG_UUID] [UUID]...
 
 Create or update a tag on a resource.
 
  Options:
   -z, --access_token      Access token
-  -N, --name              The name of the tagbx  containing the JSON notification description to submit
   -F, --filetoupload      The file containing the JSON notification description to submit
   -H, --hosturl           URL of the service
   -d, --development       Run in dev mode using default dev server
@@ -61,43 +60,50 @@ main() {
 
   elif [[ -z "$filetoupload" ]]; then
 
-    tag_name="${args[0]}"
-    shift;
+    # tag id is first positional argument
+    tag_id="${args[0]}"
+
+    # remaining argumens are the uuid to be tagged
     args="${args[@]:1}"
 
     uuids=$(echo "${args}" | sed -e 's/ /","/g')
 
-    cmd="curl -sk -H \"${authheader}\" -X POST -H 'Content-Type: application/json' --data-binary  '{\"name\":\"${tag_name}\",\"associationIds\": [\"${uuids}\"]}' '${hosturl}?pretty=true'"
+    cmd="curl -sk -H \"${authheader}\" -X POST -H 'Content-Type: application/json' --data-binary  '[\"${uuids}\"]' '${hosturl}$tag_id/associations?pretty=true'"
 
     if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"
     fi
-    set -x
 
-    response=`curl -sk -H "${authheader}" -X POST -H 'Content-Type: application/json' --data-binary "{\"name\":\"${tag_name}\", \"associationIds\":[\"${uuids}\"]}" "${hosturl}?pretty=true"`
-    set +x
+    response=`curl -sk -H "${authheader}" -X POST -H 'Content-Type: application/json' --data-binary "[\"${uuids}\"]" "${hosturl}$tag_id/associations?pretty=true"`
+
   # reading from stdin
   elif [[ "$filetoupload" == "-"  ]]; then
 
-    cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- '${hosturl}?pretty=true'"
+      # tag id is first positional argument
+      tag_id="${args[0]}"
+
+      cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- '${hosturl}$tag_id/associations?pretty=true'"
 
     if ((veryverbose)); then
       [ "$piped" -eq 0 ] && log "Calling $cmd"
     fi
 
     # make sure we specify content type as application/json
-    response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary @- "${hosturl}?pretty=true"`
+    response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary @- "${hosturl}$tag_id/associations?pretty=true"`
 
   # standard file upload
   elif [[ -f "$filetoupload" ]]; then
 
-    cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" '${hosturl}?pretty=true'"
+      # tag id is first positional argument
+      tag_id="${args[0]}"
+
+      cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" '${hosturl}$tag_id/associations?pretty=true'"
 
     if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"
     fi
 
-    response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}?pretty=true"`
+    response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}$tag_id/associations?pretty=true"`
 
   fi
 
@@ -118,14 +124,12 @@ format_api_json() {
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
 	else
-		uuid=$(jsonquery "$response" "result.id")
+		id=$(jsonquery "$response" "result.id")
         name=$(jsonquery "$response" "result.name")
-        created=$(jsonquery "$response" "result.created")
-        lastupdated=$(jsonquery "$response" "result.lastUpdated")
-		if [[ "$created" != "$lastupdated" ]]; then
-            success "Successfully updated tag $name - $uuid"
+        if [[ "$created" != "$lastupdated" ]]; then
+            success "Successfully updated tag $name - $id"
         else
-            success "Successfully created tag $name - $uuid"
+            success "Successfully created tag $name - $id"
         fi
 	fi
 }
@@ -154,15 +158,6 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
     -F|--filetoupload) shift; filetoupload=$1 ;;
-    -U|--url) shift; url=$1 ;;
-    -E|--event) shift; event=$1 ;;
-    -P|--persistent) persistent="true" ;;
-    -A|--associatedUuid) shift; associatedUuid=$1 ;;
-    -R|--retrystrategy) shift; retrystrategy=$1 ;;
-    -D|--retrydelay) shift; retrydelay=$1 ;;
-    -L|--retrylimit) shift; retrylimit=$1 ;;
-    -I|--retryrate) shift; retryrate=$1 ;;
-    -S|--saveonfailure) saveonfailure="true" ;;
     --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1 ;;
   	-d|--development) development=1 ;;

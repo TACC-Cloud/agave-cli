@@ -83,9 +83,6 @@ format_api_json() {
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
-	elif [ -n "$args" ]; then
-		result=$(jsonquery "$1" "result.apiName")
-		echo "${result}"
 	else
 		result=$(jsonquery "$1" "result.[].apiName")
 		echo "${result}"
@@ -115,7 +112,7 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -u|--apiusername) shift; apiusername=$1 ;;
-    -p|--apipassword) shift; apipassword=$1;;
+    -p|--apipassword) shift; apipassword=$1 ;;
     -l|--limit) shift; limit=$1;;
     -o|--offset) shift; offset=$1;;
     --filter) shift; responsefilter=$1 ;;
