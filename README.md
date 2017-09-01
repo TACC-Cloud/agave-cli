@@ -23,7 +23,7 @@ Optional dependencies
 
 	* jq 1.4+ (for faster JSON parsing)
 
-Clone the repository from Bitbucket and add the bin directory to your PATH and you're ready to go.
+Clone the repository from Github and add the bin directory to your PATH and you're ready to go.
 
 ```
 	git clone git@bitbucket.org:tacc-cic/cli.git agave-cli
