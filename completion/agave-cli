@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# bash completion file for core docker commands
+# bash completion file for core agave cli commands
 #
 # This script provides completion of:
 #  - commands and their options
@@ -11,9 +11,9 @@
 # To enable the completions either:
 #  - place this file in /etc/bash_completion.d
 #  or
-#  - copy this file to e.g. ~/.docker-completion.sh and add the line
+#  - copy this file to e.g. ~/.agave-completion.sh and add the line
 #    below to your .bashrc after bash completion features are loaded
-#    . ~/.docker-completion.sh
+#    . ~/.agave-completion.sh
 #
 # Configuration:
 #
