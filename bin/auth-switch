@@ -2,12 +2,12 @@
 #
 # auth-switch
 #
-# author: dooley@tacc.utexas.edu
+# author: dooley@tacc.utexas.edu, vaughn@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
-# It changes the current auth parameters cached to disk. Saves time
-# between manually updating the dev url and username
-#
+# It non-destructively swaps among tenants/usernames configurations
+# to support users who need to change contexts often
+
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -24,24 +24,18 @@ interactive_opts=()
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]...
+  echo -n "$(basename $0) [OPTIONS]...
 
-Updated the cached auth credentials with the given values. For ease of use,
-the -S option can be specified to store the updated cache object for reuse
-in subsequent calls to the API.
+Switch between API clients with the given values. For ease of use,
+one can try to automatically refresh or create new tokens with the newly
+activated API by passing the appropriate flag. If no options are passed
+auth-switch will display a list of known configurations. 
 
  Options:
-  -u, --username        Agave tenant username
-  -d, --devurl          URL to the development server
-  -b, --baseurl         URL to the production API server
-  -t, --tenantid        Current tenant id. ex. iplantc.org
-  -s, --apisecret       Consumer secret
-  -k, --apikey          Consumer Key
-  -z, --access_token    Current auth token
-  -r, --refresh_token   Current refresh token
-  -S, --savechanges     Save the updated value
-  -f, --force           Skip all user interaction
-  -i, --interactive     Prompt for values
+  -u, --username        Tenant-specific username to switch to
+  -t, --tenantid        Tenant to switch to (e.g. iplantc.org)
+  -r, --refresh         Attempt to refresh access token after switching
+  -c, --create          Attempt to create a new token after switching
   -q, --quiet           Quiet (no output)
   -v, --verbose         Verbose output
   -V, --veryverbose     Very verbose output
@@ -58,66 +52,61 @@ in subsequent calls to the API.
 
 source "$DIR/auth-common.sh"
 
+list_kv_stores(){
+
+  stores=$(cd $AGAVE_CACHE_DIR && find * -type f -name "*current${delim}*" | uniq | sort -k1)
+  rec="| tenant | username | | ------ | -------- | "
+
+  for S in $stores
+  do
+    tenant=$(awk -F ${delim} '{print $2}' <<< $S)
+    username=$(awk -F ${delim} '{print $3}' <<< $S)
+    rec="${rec}| $tenant | $username | "
+  done
+  columnize "${rec}"
+  exit 0
+
+}
+
+switch_kv_current(){
+
+  local switch_user=$1
+  local switch_tenant=$2
+
+  local current_cache=$(kvget current)
+  local current_user=$(jsonquery "$current_cache" "username")
+  local current_tenantid=$(jsonquery "$current_cache" "tenantid")
+
+  local kv_store_cachename="${current_tenantid}${delim}${current_user}"
+  local kv_store_switchname="${switch_tenantid}${delim}${switch_user}"
+
+  cp -f "$AGAVE_CACHE_DIR/current" "$AGAVE_CACHE_DIR/current${delim}${kv_store_cachename}"
+  if [ -f "$AGAVE_CACHE_DIR/current${delim}${kv_store_switchname}" ]
+  then
+    cp -f "$AGAVE_CACHE_DIR/current${delim}${kv_store_switchname}" "$AGAVE_CACHE_DIR/.agave/current"
+  else
+    echo "Unable to find stored configuration for ${switch_tenantid}:${switch_user} in $AGAVE_CACHE_DIR"
+    exit 1
+  fi
+
+  # TODO - pass -q, -V, -v flags
+  if ((refresh)); then
+    $DIR/auth-tokens-refresh -S
+  elif ((create)); then
+    $DIR/auth-tokens-create -S
+  fi
+
+}
+
 main() {
-	#echo -n
-	#set -x
-	local post_options="grant_type=password&username=${username}&password=${password}&scope=PRODUCTION"
+	
+  delim='#'
+  if ((dolist)); then
+    list_kv_stores
+  fi
 
-    current_cache=$(kvget current )
+  switch_kv_current $user, $tenant
 
-    if [ -e "$DIR/auth-switch-filter.sh" ]; then
-        source $DIR/auth-switch-filter.sh
-    elif [ "$dev" = "local" ]; then
-        dev="http://localhost:8080"
-    elif [ "$dev" = "docker" ]; then
-        dev="https://docker.example.com"
-    else
-        dev=$(jsonquery "$current_cache" "devurl")
-    fi
-
-    if [ -z "$user" ]; then
-        user=$(jsonquery "$current_cache" "username")
-    fi
-
-    if [ -z "$tenant" ]; then
-        tenant=$(jsonquery "$current_cache" "tenantid")
-    fi
-
-    if [ -z "$baseurl" ]; then
-        baseurl=$(jsonquery "$current_cache" "baseurl")
-    fi
-
-    if [ -z "$apisecret" ]; then
-        apisecret=$(jsonquery "$current_cache" "apisecret")
-    fi
-
-    if [ -z "$apikey" ]; then
-        apikey=$(jsonquery "$current_cache" "apikey")
-    fi
-
-    if [ -z "$access_token" ]; then
-        access_token=$(jsonquery "$current_cache" "access_token")
-    fi
-
-    if [ -z "$refresh_token" ]; then
-        refresh_token=$(jsonquery "$current_cache" "refresh_token")
-    fi
-
-    if [ -z "$refresh_token" ]; then
-        refresh_token=$(jsonquery "$current_cache" "refresh_token")
-    fi
-
-    expires_in=$(jsonquery "$current_cache" "expires_in")
-
-    expires_at=$(jsonquery "$current_cache" "expires_at")
-
-    created_at=$(jsonquery "$current_cache" "created_at")
-
-    response="{\"tenantid\":\"$tenant\",\"baseurl\":\"${baseurl}\",\"devurl\":\"${dev}\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$user\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
-
-    result=$(format_api_json "$response")
-
-    success "$result"
 }
 
 format_api_json() {
@@ -147,7 +136,7 @@ source "$DIR/options.sh"
 # Main loop {{{
 
 # Print help if no arguments were passed.
-[[ $# -eq 0 ]] && set -- "-i"
+[[ $# -eq 0 ]] && set -- "-l"
 
 # Read the options and set stuff
 while [[ $1 = -?* ]]; do
@@ -155,19 +144,13 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -u|--user) shift; user=$1 ;;
-  	-d|--dev) shift; dev=$1 ;;
-    -b|--baseurl) shift; baseurl=$1 ;;
     -t|--tenant) shift; tenant=$1 ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
-    -z|--access_token) shift; access_token=$1 ;;
-    -r|--refresh_token) shift; refresh_token=$1 ;;
-    -S|--savechanges) savechanges=1 ;;
+    -r|--refresh) shift; refresh=1 ;;
+    -c|--create) shift; create=1 ;;
     -v|--verbose) verbose=1 ;;
     -V|--veryverbose) veryverbose=1; verbose=1 ;;
     -q|--quiet) quiet=1 ;;
-    -i|--interactive) interactive=1 ;;
-    -f|--force) force=1 ;;
+    -l|--list) dolist=1 ;;
     --endopts) shift; break ;;
     *) die "invalid option: $1" ;;
   esac
