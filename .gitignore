@@ -42,3 +42,5 @@ transfers-*
 test/data/*
 TestReport-case.xml
 *.pyc
+
+.TODO

@@ -2,7 +2,7 @@
 #
 # auth-switch
 #
-# author: dooley@tacc.utexas.edu, vaughn@tacc.utexas.edu
+# author: vaughn@tacc.utexas.edu
 #
 # This script is part of the Agave API command line interface (CLI).
 # It non-destructively swaps among tenants/usernames configurations
@@ -10,11 +10,8 @@
 
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
+THIS=$(basename $0)
 source "$DIR/common.sh"
-
-# set to 1 to prevent using cache. token creation requires a valid key
-savechanges=0
 
 # Script logic -- TOUCH THIS {{{
 
@@ -24,18 +21,19 @@ interactive_opts=()
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTIONS]...
+  echo -n "${THIS} [OPTIONS]...
 
-Switch between API clients with the given values. For ease of use,
-one can try to automatically refresh or create new tokens with the newly
-activated API by passing the appropriate flag. If no options are passed
-auth-switch will display a list of known configurations. 
+Switch between preconfigured API clients by username/tenant. For ease of 
+use, one can try to automatically refresh or create new tokens with the 
+newly activated client by passing the appropriate flags. Running $THIS 
+without options will display a table of known client configurations.
 
  Options:
   -u, --username        Tenant-specific username to switch to
   -t, --tenantid        Tenant to switch to (e.g. iplantc.org)
   -r, --refresh         Attempt to refresh access token after switching
   -c, --create          Attempt to create a new token after switching
+  -p, --password        Specify password for creating a new token
   -q, --quiet           Quiet (no output)
   -v, --verbose         Verbose output
   -V, --veryverbose     Very verbose output
@@ -54,46 +52,83 @@ source "$DIR/auth-common.sh"
 
 list_kv_stores(){
 
+  local current_cache=$(kvget current)
+  local current_user=$(jsonquery "$current_cache" "username")
+  local current_tenantid=$(jsonquery "$current_cache" "tenantid")
+
   stores=$(cd $AGAVE_CACHE_DIR && find * -type f -name "*current${delim}*" | uniq | sort -k1)
-  rec="| tenant | username | | ------ | -------- | "
+  rec="| tenant | username | active | | ------ | -------- | ------ | "
 
   for S in $stores
   do
+    local active=
     tenant=$(awk -F ${delim} '{print $2}' <<< $S)
     username=$(awk -F ${delim} '{print $3}' <<< $S)
-    rec="${rec}| $tenant | $username | "
+    if [ "$username" == "$current_user" ] && [ "$tenant" == "$current_tenantid" ]
+    then
+      active="true"
+    else
+      active="false"
+    fi
+    rec="${rec}| $tenant | $username | $active | "
   done
   columnize "${rec}"
-  exit 0
+  safe_exit
 
 }
 
 switch_kv_current(){
 
   local switch_user=$1
-  local switch_tenant=$2
+  local switch_tenantid=$2
 
   local current_cache=$(kvget current)
   local current_user=$(jsonquery "$current_cache" "username")
   local current_tenantid=$(jsonquery "$current_cache" "tenantid")
-
   local kv_store_cachename="${current_tenantid}${delim}${current_user}"
   local kv_store_switchname="${switch_tenantid}${delim}${switch_user}"
 
-  cp -f "$AGAVE_CACHE_DIR/current" "$AGAVE_CACHE_DIR/current${delim}${kv_store_cachename}"
-  if [ -f "$AGAVE_CACHE_DIR/current${delim}${kv_store_switchname}" ]
+  # Only try to switch if username or tenant is different from current
+  # - Mitigates risk of borking the existing 'current' credentials
+  if [ "${current_tenantid}#${current_user}" != "${switch_tenantid}#${switch_user}" ]
   then
-    cp -f "$AGAVE_CACHE_DIR/current${delim}${kv_store_switchname}" "$AGAVE_CACHE_DIR/.agave/current"
+    cp -f "$AGAVE_CACHE_DIR/current" "$AGAVE_CACHE_DIR/current${delim}${kv_store_cachename}"
+
+    if [ -f "$AGAVE_CACHE_DIR/current${delim}${kv_store_switchname}" ]
+    then
+      cp -f "$AGAVE_CACHE_DIR/current${delim}${kv_store_switchname}" "$AGAVE_CACHE_DIR/current"
+      out "Active client config is now ${switch_tenantid}/${switch_user}"
+    else
+      err "No client configuration found for ${switch_tenantid}/${switch_user}"
+      exit 1
+    fi
   else
-    echo "Unable to find stored configuration for ${switch_tenantid}:${switch_user} in $AGAVE_CACHE_DIR"
-    exit 1
+    out "Active client config is still ${switch_tenantid}/${switch_user}"
   fi
 
-  # TODO - pass -q, -V, -v flags
+  # Pass -q, -V, -v, -p flags transparently in
+  # Assume user knows what she's doing
+  PASSOPTS=
+  if ((verbose)); then
+    PASSOPTS="$PASSOPTS -v"
+  fi
+  if ((veryverbose)); then
+    PASSOPTS="$PASSOPTS -V"
+  fi
+  if ((quiet)); then
+    PASSOPTS="$PASSOPTS -q"
+  fi
+  if [ ! -z "${password}" ]
+  then
+    PASSOPTS="$PASSOPTS -p ${password}"
+  fi
+
+  # No need to reinvent the wheel
+  # Just call our own tooling to kick off refresh/create
   if ((refresh)); then
-    $DIR/auth-tokens-refresh -S
+    $DIR/auth-tokens-refresh -S ${PASSOPTS}
   elif ((create)); then
-    $DIR/auth-tokens-create -S
+    $DIR/auth-tokens-create -S ${PASSOPTS}
   fi
 
 }
@@ -105,7 +140,21 @@ main() {
     list_kv_stores
   fi
 
-  switch_kv_current $user, $tenant
+  local current_cache=$(kvget current)
+  local current_user=$(jsonquery "$current_cache" "username")
+  local current_tenantid=$(jsonquery "$current_cache" "tenantid")
+
+  if [ -z "$user" ]
+  then
+    user=$current_user
+  fi
+
+  if [ -z "$tenant" ]
+  then
+    tenant=$current_tenantid
+  fi
+
+  switch_kv_current $user $tenant
 
 }
 
@@ -145,8 +194,9 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -u|--user) shift; user=$1 ;;
     -t|--tenant) shift; tenant=$1 ;;
-    -r|--refresh) shift; refresh=1 ;;
-    -c|--create) shift; create=1 ;;
+    -r|--refresh) refresh=1 ;;
+    -c|--create) create=1 ;;
+    -p|--password) shift; password=$1 ;;
     -v|--verbose) verbose=1 ;;
     -V|--veryverbose) veryverbose=1; verbose=1 ;;
     -q|--quiet) quiet=1 ;;
