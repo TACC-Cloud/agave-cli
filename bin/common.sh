@@ -420,8 +420,6 @@ function jsonquery {
 
 			elif [[ 'python' == "$AGAVE_JSON_PARSER" ]]; then
 
-				echo "common/jsonquery/python"
-
 				[[ -z "$3" ]] && stripquotes='-s'
 
 				echo "${1}" | python $DIR/python2/pydotjson.py -q ${2} $stripquotes
@@ -616,11 +614,10 @@ function get_token_remaining_time() {
   else
     created_at=${created_at%.*}
 	expires_in=${expires_in%.*}
-	expiration_time=`expr $created_at + $expires_in`
-  	current_time=`date +%s`
+	expiration_time=$(expr $created_at + $expires_in)
+  	current_time=$(date +%s)
 
-  	time_left=`expr $expiration_time - $current_time`
-
+  	time_left=$(expr $expiration_time - $current_time)
   	echo $time_left
   fi
 }
@@ -681,7 +678,6 @@ function json_prettyify {
 	if [[ 'python' == "$AGAVE_JSON_PARSER" ]]; then
 
 		echo "$@" | python $DIR/python2/pydotjson.py
-		#echo -n "$@" | python -mjson.tool
 
 	elif [[ 'jq' == "$AGAVE_JSON_PARSER" ]]; then
 
@@ -704,9 +700,14 @@ function json_prettyify {
 	fi
 }
 
-function auto_auth_refresh {
-    
-	AGAVE_DISABLE_AUTO_REFRESH=1
+#
+# Refresh the current user token cached in $AGAVE_CACHE_DIR/current. This function can be
+# disabled at any time by setting the $AGAVE_DISABLE_AUTO_REFRESH environment variable.
+# Refresh will be skipped silently if the client key, secret, or refresh token are missing.
+#
+function auto_auth_refresh
+{
+	# AGAVE_DISABLE_AUTO_REFRESH=1
 	if [[ -z "$AGAVE_DISABLE_AUTO_REFRESH" ]];
 	then
 		# ignore the refresh if the api keys or refresh token are not present in the cache.
@@ -792,8 +793,7 @@ function richify {
 	oldIFS="$IFS"
 	IFS=$'\n'
 
-	# Cut down very long responses so they fit in a table
-	max_length="45"
+
 
 	# the rest of the parameters in $@ are fields to parse
 	for params in "${richargs[@]}"; do
@@ -819,17 +819,12 @@ function richify {
 
 			# Parse times into something friendly
 			if [[ "$results" != "null" ]]; then
-				if [[ "$params" == "lastModified" || "$params" == "lastUpdated" || "$params" == "lastSuccess" || "$params" == "created" || "$params" == "expires" || "$params" =~ /.*Time$/ || "$params" =~ /.*At$/ || "$params" =~ /.*Date$/ ]]; then
+				if [[ "$params" == "lastModified" || "$params" == "lastUpdated" || "$params" == "created" || "$params" =~ /.*Time$/ || "$params" =~ /.*At$/ || "$params" =~ /.*Date$/ ]]; then
 					# break date formatting out to its own function so we can
 					# consistently reuse it across the cli
 					results[$i]=$(format_iso8601_date_and_time "${results[$i]}" 1)
 
 				fi
-			fi
-
-			if [[ "${#results[$i]}" -gt "$max_length" ]]; then
-				results[$i]=${results[$i]:0:${max_length}}
-				results[$i]="${results[$i]}..."
 			fi
 
 			array_of_values[$n]="${results[$i]}"
@@ -885,7 +880,6 @@ function columnize_old {
 	END {
 		for (j=2; j<=numcol+1; j++)
 			printf "%d%s", maxchar[j], " "
-			#printf "|%*-s", maxchar[j], $j
 	}' ) )
 
 	# Printf each column with width based on maximum length
