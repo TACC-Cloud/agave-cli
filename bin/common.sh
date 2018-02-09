@@ -609,7 +609,7 @@ function get_token_remaining_time() {
 	jsonval expires_in "$auth_cache" "expires_in"
 	jsonval created_at "$auth_cache" "created_at"
 
-  if [[ -z "$expires_in" ]] || [[ -z "$created_at" ]]; then
+  if [ "${expires_in}" == "null" ] || [[ -z "$expires_in" ]] || [[ -z "$created_at" ]]; then
     echo 0
   else
     created_at=${created_at%.*}
