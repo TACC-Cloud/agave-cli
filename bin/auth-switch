@@ -34,6 +34,7 @@ without options will display a table of known client configurations.
   -r, --refresh         Attempt to refresh access token after switching
   -c, --create          Attempt to create a new token after switching
   -p, --password        Specify password for creating a new token
+  -i, --init            Set up a new, empty credential store
   -q, --quiet           Quiet (no output)
   -v, --verbose         Verbose output
   -V, --veryverbose     Very verbose output
@@ -50,11 +51,59 @@ without options will display a table of known client configurations.
 
 source "$DIR/auth-common.sh"
 
+pyjsonquery(){
+  # Python: Get a subfield value from a credential store
+  local cred_store=$1
+  local key=$2
+  value=
+
+  if [ -z "${cred_store}" ]
+  then
+    cred_store="current"
+  fi
+  
+  cred_store_file="${AGAVE_CACHE_DIR}/$(basename $cred_store)"
+  if [ -f ${cred_store_file} ]
+  then
+    value=$(python $DIR/python2/pydotjson.py -s -q ${key} ${cred_store_file})
+    echo $value
+  else
+    die "Unable to read ${cred_store_file}"
+  fi
+
+}
+
+pyjsonsetfield() {
+  # Python: Set a subfield in Agave credential store to a value
+  local cred_store=$1
+  local key=$2
+  local value=$3
+
+
+}
+
+get_tenantid(){
+
+  local cred_store=$1
+  if [ -z "${cred_store}" ]
+  then
+    cred_store="current"
+  fi
+  local current_tenantid=$(pyjsonquery "$cred_store" "tenantid")
+  if [ -z "${current_tenantid}" ] || [ "${current_tenantid}" == "null" ]
+  then
+    current_tenantid=$(AGAVE_CACHE_DIR=${AGAVE_CACHE_DIR} ; python $DIR/python2/gettenantid.py ${cred_store})
+    echo ${current_tenantid}
+  else
+    echo ${current_tenantid}
+  fi
+
+}
+
 list_kv_stores(){
 
-  local current_cache=$(kvget current)
-  local current_user=$(jsonquery "$current_cache" "username")
-  local current_tenantid=$(jsonquery "$current_cache" "tenantid")
+  local current_user=$(pyjsonquery "$current_cache" "username")
+  local current_tenantid=$(get_tenantid current)
 
   stores=$(cd $AGAVE_CACHE_DIR && find * -type f -name "*current${delim}*" | uniq | sort -k1)
   rec="| tenant | username | active | | ------ | -------- | ------ | "
@@ -62,7 +111,7 @@ list_kv_stores(){
   for S in $stores
   do
     local active=
-    tenant=$(awk -F ${delim} '{print $2}' <<< $S)
+    tenant=$(get_tenantid $S)
     username=$(awk -F ${delim} '{print $3}' <<< $S)
     if [ "$username" == "$current_user" ] && [ "$tenant" == "$current_tenantid" ]
     then
@@ -82,9 +131,9 @@ switch_kv_current(){
   local switch_user=$1
   local switch_tenantid=$2
 
-  local current_cache=$(kvget current)
-  local current_user=$(jsonquery "$current_cache" "username")
-  local current_tenantid=$(jsonquery "$current_cache" "tenantid")
+  local current_user=$(pyjsonquery "$current_cache" "username")
+  local current_tenantid=$(get_tenantid current)
+
   local kv_store_cachename="${current_tenantid}${delim}${current_user}"
   local kv_store_switchname="${switch_tenantid}${delim}${switch_user}"
 
@@ -97,13 +146,13 @@ switch_kv_current(){
     if [ -f "$AGAVE_CACHE_DIR/current${delim}${kv_store_switchname}" ]
     then
       cp -f "$AGAVE_CACHE_DIR/current${delim}${kv_store_switchname}" "$AGAVE_CACHE_DIR/current"
-      out "Active client config is now ${switch_tenantid}/${switch_user}"
+      out "Active config now ${switch_tenantid}/${switch_user}"
     else
-      err "No client configuration found for ${switch_tenantid}/${switch_user}"
+      err "No config found for ${switch_tenantid}/${switch_user}"
       exit 1
     fi
   else
-    out "Active client config is still ${switch_tenantid}/${switch_user}"
+    out "Client config remains ${switch_tenantid}/${switch_user}"
   fi
 
   # Pass -q, -V, -v, -p flags transparently in
@@ -133,6 +182,23 @@ switch_kv_current(){
 
 }
 
+init_new_kv_current(){
+
+  local user=$1
+  local tenantid=$2
+  local kv_store_cachename="${tenantid}${delim}${user}"
+
+  mv -f "$AGAVE_CACHE_DIR/current" "$AGAVE_CACHE_DIR/current${delim}${kv_store_cachename}"
+
+cat << EOF > $AGAVE_CACHE_DIR/current
+{"tenantid":"","baseurl":"","devurl":"","apisecret":"","apikey":"","username":"","access_token":"","refresh_token":"","created_at":"","expires_in":""}
+EOF
+  
+  out "New credential store created. Configure via tenants-init then client and/or token commands."
+  safe_exit
+
+}
+
 main() {
 	
   delim='#'
@@ -140,9 +206,12 @@ main() {
     list_kv_stores
   fi
 
-  local current_cache=$(kvget current)
-  local current_user=$(jsonquery "$current_cache" "username")
-  local current_tenantid=$(jsonquery "$current_cache" "tenantid")
+  local current_user=$(pyjsonquery "current" "username")
+  local current_tenantid=$(get_tenantid "current")
+
+  if ((init)); then
+    init_new_kv_current $current_user $current_tenantid
+  fi
 
   if [ -z "$user" ]
   then
@@ -164,7 +233,7 @@ format_api_json() {
 
 		kvset current "$1"
 
-		echo "Cache successfully updated and saved to    $AGAVE_CACHE_DIR/current";
+		echo "Cache successfully updated and saved to $AGAVE_CACHE_DIR/current";
 	fi
 
   json_prettyify "${1}"
@@ -197,6 +266,7 @@ while [[ $1 = -?* ]]; do
     -r|--refresh) refresh=1 ;;
     -c|--create) create=1 ;;
     -p|--password) shift; password=$1 ;;
+    -i|--init) shift; init=1 ;;
     -v|--verbose) verbose=1 ;;
     -V|--veryverbose) veryverbose=1; verbose=1 ;;
     -q|--quiet) quiet=1 ;;
