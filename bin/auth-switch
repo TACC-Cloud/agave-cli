@@ -93,7 +93,12 @@ get_tenantid(){
   if [ -z "${current_tenantid}" ] || [ "${current_tenantid}" == "null" ]
   then
     current_tenantid=$(AGAVE_CACHE_DIR=${AGAVE_CACHE_DIR} ; python $DIR/python2/gettenantid.py ${cred_store})
-    echo ${current_tenantid}
+    if [ "$?" == 0 ];
+    then
+      echo ${current_tenantid}
+    else
+      echo "unknown"
+    fi
   else
     echo ${current_tenantid}
   fi
@@ -102,12 +107,13 @@ get_tenantid(){
 
 list_kv_stores(){
 
-  local current_user=$(pyjsonquery "$current_cache" "username")
+  local current_user=$(pyjsonquery current "username")
   local current_tenantid=$(get_tenantid current)
 
   stores=$(cd $AGAVE_CACHE_DIR && find * -type f -name "*current${delim}*" | uniq | sort -k1)
   rec="| tenant | username | active | | ------ | -------- | ------ | "
 
+  clients=0
   for S in $stores
   do
     local active=
@@ -120,7 +126,14 @@ list_kv_stores(){
       active="false"
     fi
     rec="${rec}| $tenant | $username | $active | "
+    let clients=$clients+1
   done
+  # initialize current into if there were not multiple identities cached
+  if (($clients == 0))
+  then
+    rec="${rec}| $current_tenantid | $current_user | true | "
+    cp -f "$AGAVE_CACHE_DIR/current" "$AGAVE_CACHE_DIR/current#${current_tenantid}#${current_user}"
+  fi
   columnize "${rec}"
   safe_exit
 
@@ -131,7 +144,7 @@ switch_kv_current(){
   local switch_user=$1
   local switch_tenantid=$2
 
-  local current_user=$(pyjsonquery "$current_cache" "username")
+  local current_user=$(pyjsonquery current "username")
   local current_tenantid=$(get_tenantid current)
 
   local kv_store_cachename="${current_tenantid}${delim}${current_user}"
@@ -141,7 +154,11 @@ switch_kv_current(){
   # - Mitigates risk of borking the existing 'current' credentials
   if [ "${current_tenantid}#${current_user}" != "${switch_tenantid}#${switch_user}" ]
   then
-    cp -f "$AGAVE_CACHE_DIR/current" "$AGAVE_CACHE_DIR/current${delim}${kv_store_cachename}"
+    
+    if [ "$current_tenantid" != "unknown" ]
+    then
+      cp -f "$AGAVE_CACHE_DIR/current" "$AGAVE_CACHE_DIR/current${delim}${kv_store_cachename}"
+    fi
 
     if [ -f "$AGAVE_CACHE_DIR/current${delim}${kv_store_switchname}" ]
     then
