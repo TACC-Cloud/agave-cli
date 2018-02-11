@@ -1,0 +1,17 @@
+
+ACCEPTABLE USE
+
+All usage of TACC Cloud APIs is subject to TACC's Acceptable Usage Policy:
+
+* https://portal.tacc.utexas.edu/tacc-usage-policy
+
+If you are not using the TACCc.cloud tenant, additional tenant-specific 
+policies may apply to you. Please contact the named administrator for your 
+tenant (available via 'tenants-list -v') for details. 
+
+DOCUMENTATION
+
+Documentation on the TACC Cloud APIs, its client libaries, and developer 
+tooling is available online at http://developer.tacc.cloud. For
+localized help of the various CLI commands, run any command with the -h
+or --help option.
