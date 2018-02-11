@@ -167,7 +167,10 @@ main() {
   # save the tenant config. backing up the previous one
   kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$developmenturl\",\"apisecret\":\"$client_secret\",\"apikey\":\"$client_key\",\"username\":\"$apiusername\",\"access_token\":\"\",\"refresh_token\":\"\",\"created_at\":\"\",\"expires_in\":\"\"}"
 
-  success "You are now configured to interact with the APIs at $baseurl"
+  out ""
+  out "Your CLI is now configured to interact with APIs owned by '$tenantid'."
+  out "Use 'clients-create' to set up a new API client or 'auth-tokens-create' to re-use an existing API key and secret."
+  success
 }
 
 format_api_json() {
