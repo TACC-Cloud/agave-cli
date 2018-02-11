@@ -2,7 +2,7 @@
 #
 # clients-common.sh
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # URL filter for client registration services
 #

@@ -2,7 +2,7 @@
 #
 # clients-create
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # It creates a new client application and generates a set of API keys for the user.

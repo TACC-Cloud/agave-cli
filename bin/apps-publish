@@ -2,7 +2,7 @@
 #
 # apps-publish
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # It publishes an app for public use. The new app id will be identical

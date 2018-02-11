@@ -2,7 +2,7 @@
 #
 # auth-headers-inspect
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # Prints the JWT that would be passed to a protected API by the Agave

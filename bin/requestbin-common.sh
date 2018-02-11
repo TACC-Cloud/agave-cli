@@ -2,7 +2,7 @@
 # 
 # requestbin-common.sh
 # 
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # URL filter for requestbin services
 #

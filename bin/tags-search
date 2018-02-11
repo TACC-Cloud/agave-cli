@@ -2,7 +2,7 @@
 #
 # tags-search
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # It retrieves a list of tags based on search criteria.

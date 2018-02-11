@@ -2,7 +2,7 @@
 #
 # tags-associations-delete
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # Removes a tag from an existing resource. Resource id or uuid can be

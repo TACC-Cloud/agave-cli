@@ -2,7 +2,7 @@
 #
 # systems-roles-delete
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # It provides a mechanism for removing user roles on a system.

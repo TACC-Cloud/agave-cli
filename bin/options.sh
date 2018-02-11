@@ -2,7 +2,7 @@
 # 
 # options.sh
 # 
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # Parses the command line options
 

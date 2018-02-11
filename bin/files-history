@@ -2,7 +2,7 @@
 #
 # files-history
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # Shows the history of actions on a given file or folder.

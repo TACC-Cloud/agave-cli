@@ -2,7 +2,7 @@
 #
 # files-publish
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # Upload a file or folder and generate a postit. The postit url is returned.

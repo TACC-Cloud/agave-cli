@@ -2,7 +2,7 @@
 #
 # files-get
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # Deletes a file or folder from a remote system.

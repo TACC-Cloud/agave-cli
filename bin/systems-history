@@ -2,7 +2,7 @@
 #
 # systems-list
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # It retrieves a the history of the named system

@@ -2,7 +2,7 @@
 #
 # apps-delete
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # It deletes a registered applications. User must have admin privileges

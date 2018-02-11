@@ -2,7 +2,7 @@
 #
 # files-list
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # It retrieves a file listing on a remote system. If no  jobs. Optionally, one can search by name, tag,

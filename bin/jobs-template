@@ -2,7 +2,7 @@
 #
 # jobs-template
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # It takes an app id as an argument and generates a job submission form.

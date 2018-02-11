@@ -2,7 +2,7 @@
 #
 # json-mirror.sh
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # Bash client to the Agave json-mirror api.
 # @see https://bitbucket.org/taccaci/agave-json-mirror

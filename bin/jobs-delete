@@ -2,7 +2,7 @@
 #
 # jobs-delete
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # It deletes a job. If running the job will be stopped.

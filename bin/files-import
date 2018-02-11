@@ -2,7 +2,7 @@
 #
 # files-import
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # Import a file given by a remote url into a registered system.

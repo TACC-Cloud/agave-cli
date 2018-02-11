@@ -2,7 +2,7 @@
 #
 # files-get
 #
-# author: jfonner@tacc.utexas.edu, dooley@tacc.utexas.edu
+# author: jfonner@tacc.utexas.edu, opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # It downloads a file listing from a remote system.

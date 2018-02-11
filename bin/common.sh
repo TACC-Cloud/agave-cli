@@ -2,7 +2,7 @@
 #
 # common.sh
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # Common helper functions and global variables for all cli scripts.
 # A lot of this is based on options.bash by Daniel Mills.
@@ -601,6 +601,7 @@ function get_auth_header() {
 		fi
 	fi
 }
+
 
 function get_token_remaining_time() {
 

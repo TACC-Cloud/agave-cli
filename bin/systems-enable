@@ -2,7 +2,7 @@
 #
 # systems-enable
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # Toggles the availability of the system

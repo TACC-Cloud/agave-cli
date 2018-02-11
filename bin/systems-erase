@@ -2,7 +2,7 @@
 #
 # systems-erase
 #
-# author: dooley@tacc.utexas.edu
+# author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
 # It erases the system completely. This is an admin-only action and
