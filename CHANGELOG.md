@@ -1,6 +1,19 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2.2.1 - 2018-02-11
+### ADDED
+- Implemented an Authors list
+
+### FIXED
+- Improvements to auth-switch
+- Updated license and disclaimer text and display
+- Point to TACC domain tenants server
+- Made most Python dependencies safe for Python3.3+
+
+### REMOVED
+- No changes.
+
 ## 2.2.0 - 2017-11-03
 ### ADDED
 - No changes.

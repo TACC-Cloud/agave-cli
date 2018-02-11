@@ -14,7 +14,7 @@
 
 FROM ubuntu:trusty
 
-MAINTAINER Rion Dooley <dooley@tacc.utexas.edu>
+MAINTAINER Rion Dooley <opensource@tacc.cloud>
 
 # base environment and user
 ENV CLI_USER agave
