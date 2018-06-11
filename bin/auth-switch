@@ -23,9 +23,9 @@ interactive_opts=()
 usage() {
   echo -n "${THIS} [OPTIONS]...
 
-Switch between preconfigured API clients by username/tenant. For ease of 
-use, one can try to automatically refresh or create new tokens with the 
-newly activated client by passing the appropriate flags. Running $THIS 
+Switch between preconfigured API clients by username/tenant. For ease of
+use, one can try to automatically refresh or create new tokens with the
+newly activated client by passing the appropriate flags. Running $THIS
 without options will display a table of known client configurations.
 
  Options:
@@ -61,11 +61,11 @@ pyjsonquery(){
   then
     cred_store="current"
   fi
-  
+
   cred_store_file="${AGAVE_CACHE_DIR}/$(basename $cred_store)"
   if [ -f ${cred_store_file} ]
   then
-    value=$(python $DIR/python2/pydotjson.py -s -q ${key} ${cred_store_file})
+    value=$(python $DIR/libs/python/pydotjson.py -s -q ${key} ${cred_store_file})
     echo $value
   else
     die "Unable to read ${cred_store_file}"
@@ -78,8 +78,6 @@ pyjsonsetfield() {
   local cred_store=$1
   local key=$2
   local value=$3
-
-
 }
 
 get_tenantid(){
@@ -92,7 +90,7 @@ get_tenantid(){
   local current_tenantid=$(pyjsonquery "$cred_store" "tenantid")
   if [ -z "${current_tenantid}" ] || [ "${current_tenantid}" == "null" ]
   then
-    current_tenantid=$(AGAVE_CACHE_DIR=${AGAVE_CACHE_DIR} ; python $DIR/python2/gettenantid.py ${cred_store})
+    current_tenantid=$(AGAVE_CACHE_DIR=${AGAVE_CACHE_DIR} ; python $DIR/libs/python/gettenantid.py ${cred_store})
     if [ "$?" == 0 ];
     then
       echo ${current_tenantid}
@@ -102,7 +100,6 @@ get_tenantid(){
   else
     echo ${current_tenantid}
   fi
-
 }
 
 list_kv_stores(){
@@ -154,7 +151,7 @@ switch_kv_current(){
   # - Mitigates risk of borking the existing 'current' credentials
   if [ "${current_tenantid}#${current_user}" != "${switch_tenantid}#${switch_user}" ]
   then
-    
+
     if [ "$current_tenantid" != "unknown" ]
     then
       cp -f "$AGAVE_CACHE_DIR/current" "$AGAVE_CACHE_DIR/current${delim}${kv_store_cachename}"
@@ -217,7 +214,7 @@ EOF
 }
 
 main() {
-	
+
   delim='#'
   if ((dolist)); then
     list_kv_stores

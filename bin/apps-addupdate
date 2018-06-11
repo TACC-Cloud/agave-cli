@@ -13,12 +13,14 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
+source "$DIR/apps-common.sh"
+source "$DIR/template-common.sh"
 
 # Script logic -- TOUCH THIS {{{
 
 # A list of all variables to prompt in interactive mode. These variables HAVE
 # to be named exactly as the longname option definition in usage().
-interactive_opts=(access_token filetoupload)
+interactive_opts=(access_token filetoupload variables)
 
 # Print usage
 usage() {
@@ -31,8 +33,10 @@ existing application, an application id must be provided.
 
  Options:
   -z, --access_token    Access token
-  -F, --filetoupload    The file containing the JSON app description to submit
+  -F, --filetoupload    File containing the JSON app description to submit
                         Use - to read from STDIN and when piping
+  -E, --variables       Variables file for populating template variables (app.ini)
+      --notemplate      Do not attempt to render upload file as a template
       --filter          Comma separated list of fields to return in the response
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
@@ -52,7 +56,9 @@ existing application, an application id must be provided.
 ##################################################################
 ##################################################################
 
-source "$DIR/apps-common.sh"
+variablesfile=app.ini
+template=1
+declare -a envs
 
 main() {
 	#echo -n
@@ -78,6 +84,12 @@ main() {
     # reading from stdin
     if [[ "$filetoupload" == "-"  ]]; then
 
+      # instead of render_template, which we can't guarantee is safe on stdin,
+      # just check user intent by looking for "variables" and warn
+      if [ -z "$variablesfile" ] || ((notemplate)) ; then
+        warning "Template rendering is not supported when reading from STDIN"
+      fi
+
       cmd="curl --globoff -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- '${hosturl}${args}?pretty=true'"
 
       if ((veryverbose)); then
@@ -90,11 +102,22 @@ main() {
     # standard file upload
     else
 
+      if ((template)); then
+        _sourcefile=${filetoupload}
+        _destfile=$(mktemp)
+        if [ -f ${variablesfile} ]; then
+          rvarsfile="-E ${variablesfile}"
+        fi
+        python "${DIR}/libs/python/rendertemplate.py" ${envs[@]} ${rvarsfile} ${_sourcefile} ${_destfile}
+        filetoupload=${_destfile}
+      fi
+
+
       cmd="curl -sk -H \"${authheader}\" -X POST -F \"fileToUpload=@$filetoupload\" '${hosturl}${args}?pretty=true'"
 
       if ((veryverbose)); then
-          [ "$piped" -eq 0 ] && log "Calling $cmd"
-        fi
+        [ "$piped" -eq 0 ] && log "Calling $cmd"
+      fi
 
       response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "${hosturl}${args}?pretty=true"`
 
@@ -130,6 +153,12 @@ format_api_json() {
 	fi
 }
 
+function exportenv() {
+  inenv="${1}"
+  escenv=${inenv// /+}
+  envs=("${envs[@]}" "-e ${escenv}")
+}
+
 ##################################################################
 ##################################################################
 #						End Script Logic						 #
@@ -154,6 +183,9 @@ while [[ $1 = -?* ]]; do
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
     -F|--filetoupload) shift; filetoupload=$1 ;;
+    -E|--variables) shift; variablesfile=$1 ;;
+    -e|--env) shift; exportenv "${1}" ;;
+    --notemplate) template=0 ;;
     --filter) shift; responsefilter=$1;;
     -H|--hosturl) shift; hosturl=$1 ;;
   	-d|--development) development=1 ;;

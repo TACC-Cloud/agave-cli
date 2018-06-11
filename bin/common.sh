@@ -392,7 +392,7 @@ function jsonquery {
 
 				[[ -z "$3" ]] && stripquotes='-s'
 
-				echo "${1}" | python $DIR/python2/pydotjson.py -q ${2} $stripquotes
+				echo "${1}" | python $DIR/libs/python/pydotjson.py -q ${2} $stripquotes
 
 			elif [[ 'native' == "$AGAVE_JSON_PARSER" ]]; then
 
@@ -648,7 +648,7 @@ function json_prettyify {
 	# Look for custom json parsers
 	if [[ 'python' == "$AGAVE_JSON_PARSER" ]]; then
 
-		echo "$@" | python $DIR/python2/pydotjson.py
+		echo "$@" | python $DIR/libs/python/pydotjson.py
 
 	elif [[ 'jq' == "$AGAVE_JSON_PARSER" ]]; then
 
@@ -825,7 +825,7 @@ function richify {
 
 function columnize {
 
-	python $DIR/python2/richtext.py $@
+	python $DIR/libs/python/richtext.py $@
 
 }
 
