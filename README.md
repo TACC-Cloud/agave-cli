@@ -1,80 +1,102 @@
-## What is the Agave Platform?
+## What is Agave?
 
+[Agave] is an open Science-as-a-Service platform built by TACC and a thriving user community that empowers users to run code reproducibly, manage data efficiently, collaborate meaningfully, and integrate easily with third-party applications. TACC operates a professionally managed and supported instance of Agave as part of its TACC.cloud Platform.
 
-The [Agave Platform](https://agaveapi.co) is an open Science-as-a-Service platform that empowers users to run code, manage data, collaborate meaningfully, and integrate easily with the world around them. 
+## What is the Agave CLI?
 
-For more information, visit the [Agave Developer’s Portal](http://developer.agaveapi.co).
-
-
-## What is the Agave CLI
-
-The Agave command line interface (CLI) is a collection of Bash shell scripts allowing you to interact with the Agave Platform. The CLI allows you to streamline common interactions with the API and automating repetitive and/or background tasks.
+The Agave command line interface (CLI) is a rich, expressive Bash client for interacting with the Agave platform. The CLI empowers you to streamline common interactions with the API and automating repetitive and/or background tasks. Many developers and analysts use it as their primary interface to TACC and other computing environments. By default, this distribution of the CLI is configured to work with TACC-hosted instances of Agave, but it can easily be adapted to support on-premises or other hosted Agave installations. collection of Bash shell scripts allowing you to interact with the Agave Platform. The CLI allows you to streamline common interactions with the API and automating repetitive and/or background tasks.
 
 
 ## Installation from source
 
-The following dependencies are required to use the Agave API cli tools.
+The Agave CLI has the following dependencies. All must be in your `$PATH`:
 
-	* bash 3.2.50+
-	* curl 7.19.7+
-	* python 2.7.9+
+	* Bash 3.2.50+
+	* Python 2.7.10+
+	* curl 7.2+ with TLS support
+	* jq 1.5+
 
-Optional dependencies
+To install from source, clone the repository and add its `bin` directory to your `$PATH`.
 
-	* jq 1.4+ (for faster JSON parsing)
-
-Clone the repository from Github and add the bin directory to your PATH and you're ready to go.
-
+```shell
+$ git clone git@bitbucket.org:tacc-cic/cli.git agave-cli
+$ export PATH=$PATH:`pwd`/tacc-cli/bin
 ```
-	git clone git@bitbucket.org:tacc-cic/cli.git agave-cli
-	export PATH=$PATH:`pwd`/agave-cli/bin
-```
+
+To persist the new `$PATH` betweeon logins, add `export PATH=$PATH:`pwd`/tacc-cli/bin` to `~/.bashrc` or `~/.bash_profile`.
+
 
 ## Getting started
 
-From here on, we assume you have the CLI installed and your environment confired properly. We also assume you either set or will replace the following environment variables:
+The first time you use the CLI, you will need to initialize it. This will create a credentials store inside `~/.agave/` and set your API server to point at a specific _tenant_. Tenant, in this case, refers to an organization that has its own logically-isolated slice of the hosted Agave API platform.
 
-* `AGAVE_USERNAME`: The username you use to login to Agave for your organization.
-* `AGAVE_PASSWORD`: The password you use to login to Agave for your organization.
+Initialize the CLI as follows, selecting the appropriate tenant. If you don't know which to select, choose the default. Your Agave username and password will be the same as your TACC credentials.
 
+```shell
+$ tenants-init
+Please select a tenant from the following list:
+[0] 3dem
+[1] agave.prod
+[2] araport.org
+[3] designsafe
+[4] iplantc.org
+[5] irec
+[6] sd2e
+[7] sgci
+[8] tacc.cloud
+[9] vdjserver.org
+Your choice [8]:
 
-### Configuring your enviornment
-
-Prior to using the CLI, you will need to initialize your environment using the `tenants-init` command and selecting your organization from the list. This is a one-time process that sets the proper URL base path for your tenant and stores it in a cache file on your system. You can configure the location of the authentication cache by setting the `AGAVE_CACHE_DIR` environment variable. The default location is `$HOME/.agave`.
-
-```  
-tenants-init --tenant agave.prod  
+Your CLI is now configured to interact with APIs owned by 'tacc.cloud'.
+Use 'clients-create' to set up a new API client or 'auth-tokens-create' to
+re-use an existing API key and secret.
 ```
 
-### Getting your API keys
+### Get an API Client
 
-In order to communicate with Agave, you will need a set of API keys. You can use the `clients-create` command to create a set.
+TACC.cloud APIs, including Agave, use an authentication called Oauth2. The basic idea is that instead of always sending your very precious password over the wire when you interact with the APIs, you send secure, but expirable strings of text in place of your password. To do this, you need to have an API client, which is a unique combination of API key and secret, and you need at least one access token.
 
-```  
-clients-create -N "$AGAVE_USERNAME_cli_client" -D "My personal Agave cli client" -u "$AGAVE_USERNAME" -p "$AGAVE_PASSWORD" -S  
-```  
+You can have as many clients as you want, and each can have exactly one active token. Technically, clients can have different levels of access to TACC.cloud resources, but that is not currently exposed. Some users like to think of clients as "sub-accounts" of their main Agave account.
 
-The `-S` option will save your api keys in your session cache directory, `AGAVE_CACHE_DIR`.
+Create a client as follows. Take note of the key and secret returned, as you can use them elsewhere.
 
+```shell
+$ clients-create -S
+The name of the client application : cli_docs
+API username : taco
+API password: *********
 
-### Authentication
-
-Authentication with the API is done via OAuth2. The CLI will handle the authentication flow for you. Simply run the `auth-tokens-create` command and supply your client key, secret, and username & password and a bearer token will be retrieved from the auth service and cached locally for future use. Alternatively, you can specify a bearer token at the command line by providing the `-z` or `--access_token` option. 
-
-``` 
-auth-tokens-create -u "$AGAVE_USERNAME" -p "$AGAVE_PASSWORD"  
-```  
-
-Accept the default values, which will hold the API keys you created in the last step. Once this returns, you will be authenticated and ready to use the Agave CLI.
-
-If your auth token expires, the CLI will auto-refresh your credential for you. You can disable this behavior by setting the following environment variable `AGAVE_DISABLE_AUTO_REFRESH=1`. You will then need to refresh your credential manually by calling
-
+Successfully created client cli_docs
+key: XgzF0kXZK4cRfiyslXtCfqUEgPAa
+secret: tgn1Oi_8XO7JEZVDhQWtsgcLNiUa
 ```
-auth-tokens-refresh
-```  
 
-Again, accept the default values, which will hold the API keys you created in the last section and the refresh token you received when you first authenticated.
+These values are used behind the scenes to generate, and then refresh, your access token, which is a little string that your CLI and other clients send to the Agave authentication servers.
 
+### Authenticate for the first time
+
+Use your newly created client to generate a pair of tokens. One token is an *access token* which is sent over the wire in place of your password. The other is a *refresh token* which can can, in combination with the client secret and key, be used to get a new access token when the current one expires. Depending on your tenant's policy, access tokens have a lifespan of 1-4 hours.
+
+```shell
+$ auth-tokens-create -S
+API password: *******
+Token for tacc.cloud:taco successfully refreshed and cached for 14400 seconds
+f1c972d9d4cb34faec981edbadc938d0
+```
+
+### Reauthenticating at a later date
+
+After a while, the access token expires. This is an important security feature, since that token is being sent all over the place and might get intercepted by annoying people and used to access your resources without your permission. Getting a new one is easy. If you're using the Agave CLI or the AgavePy Python library, a good faith attempt will be made to refresh your token automatically.
+
+If you need to manually refresh your token, do the following:
+
+```shell
+$ auth-tokens-refresh -S
+Token for tacc.cloud:taco successfully refreshed and cached for 14400 seconds
+cc378eac99cb171687eb6e55a85c1756
+```
+
+If this fails, run `auth-tokens-create -S` as above
 
 ### Using the CLI
 
@@ -86,14 +108,11 @@ The Agave CLI is broken down into the following groups of scripts
 	- files*          manage remote files and folders, upload, download, and transfer data
 	- jobs*           submit and manage jobs
 	- metadata*	      create and manage metadata and metadata schemas
-	- monitors*		  create and manage system monitors
 	- notifications*  subscribe to and manage event notifications from the platform
 	- postits*        create pre-authenticated, disposable urls
 	- profiles*       query and register users
 	- systems*        query, monitor, and manage systems
-	- tags*           create and manage resource tags
 	- tenants*        query and initialize the CLI for your tenant
-	- transforms*     convert data to/from known data formats
 	- uuid*           lookup and expand one or more Agave UUID
 
 All commands follow a common syntax and share many of the same flags `-h` for help, `-d` for debug mode, `-v` for verbose output, `-V` for very verbose (prints curl command and full service response), and `-i` for interactive mode. Additionaly, individual commands will have their own options specific to their functionality. The general syntax all commands follow is:
@@ -103,31 +122,3 @@ All commands follow a common syntax and share many of the same flags `-h` for he
 	<command> [-hdv] [options] [target]
 
 Each command has built in help documentation that will be displayed when the `-h` flag is specified. The help documentation will list the actions, options, and targets available for that command.
-
-### Configuring custom JSON parsers
-
-The CLI comes bundled with two different JSON parsers. Additionally, three other parsers are supported. To specify your preferred parser, set the `AGAVE_JSON_PARSER` environment variable to one of values in the following list. If no value is selected, the python parser will be used if python is available, otherwise the json-mirror API will be used.
-
-* `python`: The Python parser is a lightweight script written for Python 2.6+. It requires the `json` module be installed (which should come standard in 2.7+). Nothing needs to be done to use this module, but you do need to have Python installed. Window users may want to consider using the `json-mirror` option instead.
-* `jq`: [jq](https://stedolan.github.io/jq/) is a command line utility written in C. It is fast, powerful, and has an extremely small memory footprint. jq has binary installers for every majory platform as well as mostly portable build. It must be installed separately.
-* `json`: The [JSON Tool](http://trentm.com/json/) is a command line utility written in NodeJS. It is fast, friendly, and works out of the box. It must be installed separately and requires a Node runtime be present on the system.
-* `native`: This is the native Bash implementation from the [json.sh](https://github.com/dominictarr/JSON.sh) project. It is quite a bit slower than the Python implementation and does have trouble with newline characters from time to time. That being said, it's pretty awesome for a pure Bash JSON parser.
-* `json-mirror`: The [Agave JSON Mirror API](https://bitbucket.org/taccaci/agave-json-mirror) is a publicly available, free API which provides JSON pretty printing and JavaScript style dot notation querying of. It is a suitable replacement for basic java manipulation and formatting.
-
->  For a 100% bash CLI with no dependencies, use the `json-mirror` parser. That will force the CLI to call out to the [Agave JSON Mirror API](https://bitbucket.org/taccaci/agave-json-mirror) at http://agaveapi.co/json-mirror and avoid any python dependencies.
-
-### Bash completion (beta)
-
-The CLI come with optional bash completion support. When enabled it will complete resource ids, search fields, search operators, usernames, etc across the CLI. To enable bash completion on all CLI commands, source the included `completion/agave-cli` script from your shell init script.  
-
-```
-echo "source \"\$(dirname \$(dirname \$(which tenants-init)))/completion/agave-cli\"" >> .bashrc
-``` 
-
-You may also enabled it as needed by sourcing the file directly.
-
-```  
-source "$(dirname $(dirname $(which tenants-init)))/completion/agave-cli"  
-```  
-
-More information on configuring bash completion behavior is provided in the `completion/README.md` file.

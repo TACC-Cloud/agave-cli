@@ -71,19 +71,7 @@ development=$( (("$AGAVE_DEVEL_MODE")) && echo "1" || echo "0" )
 disable_cache=0 # set to 1 to prevent using auth cache.
 args=()
 
-# Configure which json parser to use
-if [[ -z "$AGAVE_JSON_PARSER" ]]; then
-	# If no parser is specified, look for python in the local path
-	# and fall back on the native json.sh implementation.
-#	if hash python 2>/dev/null; then
-#		AGAVE_JSON_PARSER='python'
-#	else
-		AGAVE_JSON_PARSER='native'
-#	fi
-fi
-
-# }}}
-# Helpers {{{
+export AGAVE_JSON_PARSER=jq
 
 function out() {
   ((quiet)) && return
@@ -832,7 +820,7 @@ function columnize {
 function columnize_old {
 	#
 	# Use awk to put rich text with pipe '|' separators into column format
-	# (This replaces the bash 'column' command because 'column' is not 
+	# (This replaces the bash 'column' command because 'column' is not
 	# pervasive across all systems)
 	#
 
