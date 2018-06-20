@@ -25,7 +25,6 @@ $ export PATH=$PATH:`pwd`/tacc-cli/bin
 
 To persist the new `$PATH` betweeon logins, add `export PATH=$PATH:`pwd`/tacc-cli/bin` to `~/.bashrc` or `~/.bash_profile`.
 
-
 ## Getting started
 
 The first time you use the CLI, you will need to initialize it. This will create a credentials store inside `~/.agave/` and set your API server to point at a specific _tenant_. Tenant, in this case, refers to an organization that has its own logically-isolated slice of the hosted Agave API platform.
