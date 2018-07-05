@@ -20,7 +20,7 @@ To install from source, clone the repository and add its `bin` directory to your
 
 ```shell
 $ git https://github.com/TACC-Cloud/agave-cli
-$ export PATH=`pwd`/agave-cli/bin:$PATH
+$ export PATH=$PWD/agave-cli/bin:$PATH
 ```
 
 To persist the new `$PATH` between logins, run
