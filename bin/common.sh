@@ -712,7 +712,7 @@ function auto_auth_refresh
 }
 
 function is_gnu {
-	date --version >/dev/null 2>&1 && exit 0 && exit 1
+	date --version >/dev/null 2>&1
 }
 
 #

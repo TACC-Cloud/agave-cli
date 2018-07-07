@@ -19,11 +19,17 @@ The Agave CLI has the following dependencies. All must be in your `$PATH`:
 To install from source, clone the repository and add its `bin` directory to your `$PATH`.
 
 ```shell
-$ git clone git@bitbucket.org:tacc-cic/cli.git agave-cli
-$ export PATH=$PATH:`pwd`/tacc-cli/bin
+$ git https://github.com/TACC-Cloud/agave-cli
+$ export PATH=$PWD/agave-cli/bin:$PATH
 ```
 
-To persist the new `$PATH` betweeon logins, add `export PATH=$PATH:`pwd`/tacc-cli/bin` to `~/.bashrc` or `~/.bash_profile`.
+To persist the new `$PATH` between logins, run
+```shell
+echo "export PATH=$PWD/agave-cli/bin:$PATH" >> ~/.bashrc
+
+# or
+echo "export PATH=$PWD/agave-cli/bin:$PATH" >> ~/.bash_profile
+```
 
 ## Getting started
 
@@ -31,7 +37,7 @@ The first time you use the CLI, you will need to initialize it. This will create
 
 Initialize the CLI as follows, selecting the appropriate tenant. If you don't know which to select, choose the default. Your Agave username and password will be the same as your TACC credentials.
 
-```shell
+```
 $ tenants-init
 Please select a tenant from the following list:
 [0] 3dem
@@ -106,7 +112,7 @@ The Agave CLI is broken down into the following groups of scripts
 	- clients*        create and manage your API keys
 	- files*          manage remote files and folders, upload, download, and transfer data
 	- jobs*           submit and manage jobs
-	- metadata*	      create and manage metadata and metadata schemas
+	- metadata*       create and manage metadata and metadata schemas
 	- notifications*  subscribe to and manage event notifications from the platform
 	- postits*        create pre-authenticated, disposable urls
 	- profiles*       query and register users
