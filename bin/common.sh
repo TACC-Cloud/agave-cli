@@ -15,6 +15,8 @@ if [[ -z "$DIR" ]]; then
 	DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 fi
 
+# Global pointer to Python dependencies
+PYDIR="${DIR}/libs/python"
 # add keyvalue support
 source $DIR/kv-bash
 
@@ -33,6 +35,10 @@ fi
 
 # Detect whether output is piped or not.
 [[ -t 1 ]] && piped=0 || piped=1
+
+# replacement for function is_gnu
+# callers need to replace is_gnu with ((is_gnu))
+command date --version >/dev/null 2>&1 && is_gnu=1 || true
 
 # versioning info
 version="v2"
@@ -71,7 +77,14 @@ development=$( (("$AGAVE_DEVEL_MODE")) && echo "1" || echo "0" )
 disable_cache=0 # set to 1 to prevent using auth cache.
 args=()
 
-export AGAVE_JSON_PARSER=jq
+# Configure which json parser to use
+if [[ -z "$AGAVE_JSON_PARSER" ]]; then
+    export AGAVE_JSON_PARSER='jq'
+fi
+
+function stderr(){
+    (>&2 echo "[NOTE] $@")
+}
 
 function out() {
   ((quiet)) && return
@@ -135,12 +148,15 @@ TACC Cloud CLI (revision ${revision})
 
 function copyright() {
     out "LICENSE\n"
-	cat $DIR/docs/LICENSE
+	cat $DIR/../docs/LICENSE
 }
 
 function disclaimer() {
-	cat $DIR/docs/DISCLAIMER
+	cat $DIR/../docs/DISCLAIMER
 }
+
+# Warning
+function warning() { out "$@"; }
 
 # Verbose logging
 function log() { (($verbose)) && out "$@"; }
@@ -227,8 +243,6 @@ function to_json_error_message() {
 	#printf '{"status":"error","message":"%s","result":null}' "$1"
 #	echo "{\"status\":\"error\",\"message\":\"${1}\",\"result\":null}"
 #	response=`echo "$jsonresponsemessage" | python -mjson.tool`
-
-
 }
 
 function trim() {
@@ -589,6 +603,12 @@ function is_valid_url() {
 	fi
 }
 
+function to_number() {
+
+    echo "$1" | awk '{ print $1+0; exit }'
+
+}
+
 # load tenant-specific settings
 calling_cli_command=`caller |  awk '{print $2}' | xargs -n 1 sh -c 'basename $0'`
 currentconfig=$(kvget current)
@@ -688,11 +708,13 @@ function auto_auth_refresh
 				jsonval access_token "$response" "access_token"
 				jsonval refresh_token "$response" "refresh_token"
 				jsonval expires_in "$response" "expires_in"
-				created_at=$(date +%s)
-				if is_gnu ; then
-					expires_at=`date -d @$(expr $created_at + $expires_in)`
+                expires_in=$(to_number $expires_in)
+                created_at=$(to_number $(date +%s))
+                expires_at_sec=$(( $created_at + $expires_in ))
+				if ((is_gnu)) ; then
+					expires_at=`date -d @${expires_at_sec}`
 				else
-					expires_at=`date -r $(expr $created_at + $expires_in)`
+					expires_at=`date -r ${expires_at_sec}`
 				fi
 
 				kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
@@ -711,9 +733,9 @@ function auto_auth_refresh
 	fi
 }
 
-function is_gnu {
-	date --version >/dev/null 2>&1
-}
+# function is_gnu {
+#	date --version >/dev/null 2>&1
+# }
 
 #
 # Generate rich plaintext response by formatting the output into a column formatted ascii table with
