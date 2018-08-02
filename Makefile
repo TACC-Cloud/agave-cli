@@ -1,3 +1,4 @@
+.PHONY: authors cli run-tests
 
 authors:
 	git log --format='%aN <%aE>' | sort -u --ignore-case | grep -v 'users.noreply.github.com' > AUTHORS.txt && \
@@ -7,3 +8,6 @@ authors:
 cli:
 	cp LICENSE bin/docs/LICENSE && \
 	cp DISCLAIMER bin/docs/DISCLAIMER
+
+run-tests:
+	make -C tests/ run-tests
