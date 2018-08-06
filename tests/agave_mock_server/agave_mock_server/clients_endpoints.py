@@ -90,6 +90,11 @@ class AgaveClients(Resource):
         auth         = request.authorization
         url_root     = request.url_root
     
+        if auth == None or auth.username == "" or auth.password == "":
+            resp = jsonify({"error": "User authentication error", "status_code": 400})
+            resp.status_code = 400
+            return resp
+
         response = json.dumps(clients_list_response)
         response = response.replace("{USER}", auth.username)
         response = response.replace("{URL_ROOT}", url_root)
