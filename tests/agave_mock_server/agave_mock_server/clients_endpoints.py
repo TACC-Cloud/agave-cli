@@ -7,37 +7,44 @@ import json
 from flask import jsonify, request
 from flask_restful import Resource
 
-
 # Sample response for "cients-create -N rm -D 'remove this client'" cli
 # command.
 # curl -sku "user:XXXXX" -X POST -d clientName=rm -d "tier=Unlimited" \
 #        -d "description=remove this client" -d "callbackUrl=" \
 #        'https://api.tenant.org/clients/v2/?pretty=true'
 clients_create_response = {
-  "status": "success",
-  "message": "Client created successfully.",
-  "version": "2.0.0-SNAPSHOT-rc3fad",
-  "result": {
-    "description": "{DESCRIPTION}",
-    "name": "{NAME}",
-    "consumerKey": "xxxxxxxxxxxxxxxxxxxxxxxxxx",
-    "_links": {
-      "subscriber": {
-        "href": "{URL_ROOT}profiles/v2/{USER}"
-      },
-      "self": {
-        "href": "{URL_ROOT}clients/v2/{NAME}"
-      },
-      "subscriptions": {
-        "href": "{URL_ROOT}clients/v2/{NAME}/subscriptions/"
-      }
-    },
-    "tier": "{TIER}",
-    "consumerSecret": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    "callbackUrl": "{CALLBACK_URL}"
-  }
+    "status": "success",
+    "message": "Client created successfully.",
+    "version": "2.0.0-SNAPSHOT-rc3fad",
+    "result": {
+        "description": "{DESCRIPTION}",
+        "name": "{NAME}",
+        "consumerKey": "xxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "_links": {
+            "subscriber": {
+                "href": "{URL_ROOT}profiles/v2/{USER}"
+            },
+            "self": {
+                "href": "{URL_ROOT}clients/v2/{NAME}"
+            },
+            "subscriptions": {
+                "href": "{URL_ROOT}clients/v2/{NAME}/subscriptions/"
+            }
+        },
+        "tier": "{TIER}",
+        "consumerSecret": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "callbackUrl": "{CALLBACK_URL}"
+    }
 }
 
+# Sample response for "clients-delete <client>" cli command.
+# curl -sku "usr:xxxx" -X DELETE 'https://api.tenant.org/clients/v2/rm?pretty=true'
+clients_delete_response = {
+    "status": "success",
+    "message": "Client removed successfully.",
+    "version": "2.0.0-SNAPSHOT-rc3fad",
+    "result": {}
+}
 
 # Sample response for "clients-list" cli command.
 clients_list_response = {
@@ -59,8 +66,7 @@ clients_list_response = {
                 "href": "{URL_ROOT}clients/v2/agave-cli"
             },
             "subscriptions": {
-                "href":
-                "{URL_ROOT}clients/v2/agave-cli/subscriptions/"
+                "href": "{URL_ROOT}clients/v2/agave-cli/subscriptions/"
             }
         },
         "tier": "Unlimited",
@@ -77,8 +83,7 @@ clients_list_response = {
                 "href": "{URL_ROOT}clients/v2/container"
             },
             "subscriptions": {
-                "href":
-                "{URL_ROOT}clients/v2/container/subscriptions/"
+                "href": "{URL_ROOT}clients/v2/container/subscriptions/"
             }
         },
         "tier": "Unlimited",
@@ -95,8 +100,7 @@ clients_list_response = {
                 "href": "{URL_ROOT}clients/v2/testclient"
             },
             "subscriptions": {
-                "href":
-                "{URL_ROOT}clients/v2/testclient/subscriptions/"
+                "href": "{URL_ROOT}clients/v2/testclient/subscriptions/"
             }
         },
         "tier": "Unlimited",
@@ -118,11 +122,15 @@ class AgaveClients(Resource):
         curl -sku "username:xxxx" 'https://localhost:5000/clients/v2/?pretty=true'
         """
         pretty_print = request.args.get("pretty", "")
-        auth         = request.authorization
-        url_root     = request.url_root
-    
+        auth = request.authorization
+        url_root = request.url_root
+
+        # Test basic HTTP authentication.
         if auth == None or auth.username == "" or auth.password == "":
-            resp = jsonify({"error": "User authentication error", "status_code": 400})
+            resp = jsonify({
+                "error": "User authentication error",
+                "status_code": 400
+            })
             resp.status_code = 400
             return resp
 
@@ -134,14 +142,17 @@ class AgaveClients(Resource):
     def post(self):
         """ Test clients-create command
 
-        curl -sku "user:XXXXX" -X POST -d clientName=rm -d "tier=Unlimited" \
+        curl -ku "user:XXXXX" -X POST -d clientName=rm -d "tier=Unlimited" \
         -d "description=remove this client" -d "callbackUrl=" \
         'https://localhost:5000/clients/v2/?pretty=true'
         """
-        # test basic HTTP authentication.
+        # Test basic HTTP authentication.
         auth = request.authorization
         if auth == None or auth.username == "" or auth.password == "":
-            resp = jsonify({"error": "User authentication error", "status_code": 400})
+            resp = jsonify({
+                "error": "User authentication error",
+                "status_code": 400
+            })
             resp.status_code = 400
             return resp
 
@@ -150,7 +161,7 @@ class AgaveClients(Resource):
         client_description = request.form.get("description", None)
         client_tier = request.form.get("tier", None)
         client_callbackurl = request.form.get("callbackUrl", None)
-        if (client_name is None or client_description is None or 
+        if (client_name is None or client_description is None or
                 client_tier is None or client_callbackurl is None):
             resp = jsonify({"error": "Error on form data", "status_code": 400})
             resp.status_code = 400
@@ -163,4 +174,28 @@ class AgaveClients(Resource):
         response = response.replace("{DESCRIPTION}", client_description)
         response = response.replace("{TIER}", client_tier)
         response = response.replace("{CALLBACK_URL}", client_callbackurl)
+        return jsonify(json.loads(response))
+
+    def delete(self, client_name):
+        """ Test clients-delete command
+        
+        curl -ku "usr:xxxx" -X DELETE https://localhost:5000/clients/v2/rm?pretty=true
+        """
+        # Test a valid client name.
+        if client_name is None or client_name == "":
+            resp = jsonify({"error": "Invalid client name", "status_code": 400})
+            resp.status_code = 400
+            return resp
+
+        # Test basic HTTP authentication.
+        auth = request.authorization
+        if auth == None or auth.username == "" or auth.password == "":
+            resp = jsonify({
+                "error": "User authentication error",
+                "status_code": 400
+            })
+            resp.status_code = 400
+            return resp
+
+        response = json.dumps(clients_delete_response)
         return jsonify(json.loads(response))
