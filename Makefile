@@ -1,4 +1,4 @@
-.PHONY: authors cli run-tests
+.PHONY: authors cli run-tests clean
 
 authors:
 	git log --format='%aN <%aE>' | sort -u --ignore-case | grep -v 'users.noreply.github.com' > AUTHORS.txt && \
@@ -11,3 +11,6 @@ cli:
 
 run-tests:
 	make -C tests/ run-tests
+
+clean:
+	make -C tests/ clean
