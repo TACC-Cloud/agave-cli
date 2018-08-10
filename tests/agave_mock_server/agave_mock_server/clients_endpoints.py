@@ -46,6 +46,37 @@ clients_delete_response = {
     "result": {}
 }
 
+# Sample response for "cients-create -N rm -D 'remove this client'" cli
+# command.
+# curl -sku "user:XXXXX" -X POST -d clientName=rm -d "tier=Unlimited" \
+#        -d "description=remove this client" -d "callbackUrl=" \
+#        'https://api.tenant.org/clients/v2/?pretty=true'
+clients_create_response = {
+  "status": "success",
+  "message": "Client created successfully.",
+  "version": "2.0.0-SNAPSHOT-rc3fad",
+  "result": {
+    "description": "{DESCRIPTION}",
+    "name": "{NAME}",
+    "consumerKey": "xxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "_links": {
+      "subscriber": {
+        "href": "{URL_ROOT}profiles/v2/{USER}"
+      },
+      "self": {
+        "href": "{URL_ROOT}clients/v2/{NAME}"
+      },
+      "subscriptions": {
+        "href": "{URL_ROOT}clients/v2/{NAME}/subscriptions/"
+      }
+    },
+    "tier": "{TIER}",
+    "consumerSecret": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "callbackUrl": "{CALLBACK_URL}"
+  }
+}
+
+
 # Sample response for "clients-list" cli command.
 clients_list_response = {
     "status":

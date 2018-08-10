@@ -42,5 +42,7 @@ transfers-*
 test/data/*
 TestReport-case.xml
 *.pyc
+tests/*.log
+tests/agave_mock_server/*.egg-info
 
 .TODO
