@@ -25,7 +25,7 @@ class AgaveApps(Resource):
         This test emulates the Agave API endpoint "/apps/v2/" for GET
         requests. To test it:
 
-        curl -sk -H "Authorization: Bearer xxx" 'https://localhost:5000/apps/v2/?pretty=True'
+        curl -sk -H "Authorization: Bearer xxx" 'https://localhost:5000/apps/v2?pretty=True'
         """
         pretty_print = request.args.get("pretty", "")
         return jsonify(apps_list_response)
