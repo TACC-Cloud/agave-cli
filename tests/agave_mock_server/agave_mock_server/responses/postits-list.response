@@ -1,0 +1,29 @@
+{
+  "status": "success",
+  "message": "",
+  "result": [
+    {
+      "created": "2018-08-10T12:31:38-05:00",
+      "expires": "2018-08-10T13:31:38-05:00",
+      "internalUsername": "",
+      "url": "https://api.sd2e.org/files/v2/media/system/data-sd2e-community/sample/requirements.txt",
+      "method": "GET",
+      "noauth": false,
+      "remainingUses": 5,
+      "postit": "a83dc9c6ff7e6bca4173b81d7ef632f7",
+      "creator": "wallen",
+      "_links": {
+        "self": {
+          "href": "https://api.sd2e.org/postits/v2/a83dc9c6ff7e6bca4173b81d7ef632f7"
+        },
+        "profile": {
+          "href": "https://api.sd2e.org/profiles/v2/wallen"
+        },
+        "file": {
+          "href": "https://api.sd2e.org/files/v2/media/system/data-sd2e-community/sample/requirements.txt"
+        }
+      }
+    }
+  ],
+  "version": "2.2.22-r7deb380"
+}
