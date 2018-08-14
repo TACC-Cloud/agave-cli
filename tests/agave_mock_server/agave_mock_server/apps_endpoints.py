@@ -7,12 +7,11 @@ import json
 import os
 from flask import jsonify, request
 from flask_restful import Resource
+from .response_templates import response_template_to_json
 
 
 # Sample response for "apps-list" cli command.
-response = "/agave-cli/tests/agave_mock_server/agave_mock_server/responses/apps-list.response"
-with open(response, 'r') as infile:
-    apps_list_response = json.load(infile)
+apps_list_response = response_template_to_json("apps-list.json")
 
 
 class AgaveApps(Resource):
