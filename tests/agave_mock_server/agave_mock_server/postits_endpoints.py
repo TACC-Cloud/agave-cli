@@ -6,12 +6,11 @@ CLI integration tests for "postits-*" cli commands.
 import json
 from flask import jsonify, request
 from flask_restful import Resource
+from .response_templates import response_template_to_json
 
 
 # Sample response for "postits-list" cli command.
-response = "/agave-cli/tests/agave_mock_server/agave_mock_server/responses/postits-list.response"
-with open(response, 'r') as infile:
-    postits_list_response = json.load(infile)
+postits_list_response = response_template_to_json("postits-list.json")
 
 
 
