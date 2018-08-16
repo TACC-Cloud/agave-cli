@@ -37,7 +37,7 @@ tests: tests-setup
 	bats /agave-cli/tests/integration_tests
 
 tests-setup:
-	./hack/setup_agavedb.sh
+	./hack/setup_agavedb.py
 	pip install -e /agave-cli/tests/agave_mock_server
 	./hack/serve_agave_mock_server.sh
 	./hack/wait-for-it.sh localhost:5000 -- echo "Server is up"
