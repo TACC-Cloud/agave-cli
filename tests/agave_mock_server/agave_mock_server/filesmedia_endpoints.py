@@ -70,6 +70,7 @@ def basic_file_path_checks(file_path=None):
         return None
 
 
+
 class AgaveFilesMedia(Resource):
     """ Test /files/v2/media enpoints
 
@@ -79,7 +80,7 @@ class AgaveFilesMedia(Resource):
     """
     def get(self, system_id, file_path):
         """ Test files-get cli command
-        
+
         curl -k -H "Authorization: Bearer xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  \
             -O 'https://localhost:5000/files/v2/media/system/system_id/path'
         """
