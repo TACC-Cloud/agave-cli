@@ -43,6 +43,7 @@ tests-setup:
 	./hack/wait-for-it.sh localhost:5000 -- echo "Server is up" || exit 1
 
 clean:
+	rm -rf tests_results.tap
 	rm -rf agave_mock_server.log
 	rm -rf agave_mock_server/agave_mock_server.egg-info
 	rm -rf agave_mock_server/__pycache__/
