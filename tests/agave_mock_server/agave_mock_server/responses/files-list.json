@@ -1,0 +1,70 @@
+{
+  "status": "success",
+  "message": null,
+  "version": "2.2.22-r7deb380",
+  "result": [
+    {
+      "name": ".",
+      "path": "/",
+      "lastModified": "2018-07-13T15:41:17.000-05:00",
+      "length": 4096,
+      "permissions": "ALL",
+      "format": "folder",
+      "mimeType": "text/directory",
+      "type": "dir",
+      "system": "{SYSTEMID}",
+      "_links": {
+        "self": {
+          "href": "{URL_ROOT}files/v2/media/system/{SYSTEMID}/{REMOTEPATH}"
+        },
+        "system": {
+          "href": "{URL_ROOT}systems/v2/{SYSTEMID}"
+        },
+        "metadata": {
+          "href": "{URL_ROOT}meta/v2/data?q=%7B%2associationIds%2%3A%22250103029264-22ac13-001-02%2%D"
+        },
+        "history": {
+          "href": "{URL_ROOT}files/v2/history/system/{SYSTEMID}/{REMOTEPATH}"
+        }
+      }
+    },
+    {
+      "name": ".slurm",
+      "path": "/.slurm",
+      "lastModified": "2018-05-25T16:13:50.000-05:00",
+      "length": 4096,
+      "permissions": "ALL",
+      "format": "folder",
+      "system": "{SYSTEMID}",
+      "mimeType": "text/directory",
+      "type": "dir",
+      "_links": {
+        "self": {
+          "href": "{URL_ROOT}files/v2/media/system/{SYSTEMID}/{REMOTEPATH}/.slurm"
+        },
+        "system": {
+          "href": "{URL_ROOT}systems/v2/{SYSTEMID}"
+        }
+      }
+    },
+    {
+      "name": "rpmbuild",
+      "path": "/rpmbuild",
+      "lastModified": "2018-06-29T10:40:12.000-05:00",
+      "length": 4096,
+      "permissions": "ALL",
+      "format": "folder",
+      "system": "{SYSTEMID}",
+      "mimeType": "text/directory",
+      "type": "dir",
+      "_links": {
+        "self": {
+          "href": "{URL_ROOT}files/v2/media/system/{SYSTEMID}/{REMOTEPATH}/rpmbuild"
+        },
+        "system": {
+          "href": "{URL_ROOT}systems/v2/{SYSTEMID}"
+        }
+      }
+    }
+  ]
+}

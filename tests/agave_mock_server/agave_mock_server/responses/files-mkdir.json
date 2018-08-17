@@ -1,0 +1,31 @@
+{
+  "status": "success",
+  "message": null,
+  "version": "2.2.22-r7deb380",
+  "result": {
+    "name": "{DIRNAME}",
+    "uuid": "8633758373980991000-242ac113-0001-002",
+    "owner": "user",
+    "internalUsername": null,
+    "lastModified": "2018-08-17T13:58:30.686-05:00",
+    "source": null,
+    "path": "{REMOTEPATH}{DIRNAME}",
+    "status": "STAGING_COMPLETED",
+    "systemId": "{SYSTEMID}",
+    "nativeFormat": "dir",
+    "_links": {
+      "self": {
+        "href": "{URL_ROOT}files/v2/media/system/{SYSTEMID}/{REMOTEPATH}{DIRNAME}"
+      },
+      "system": {
+        "href": "{URL_ROOT}systems/v2/{SYSTEMID}"
+      },
+      "profile": {
+        "href": "{URL_ROOT}profiles/v2/user"
+      },
+      "history": {
+        "href": "{URL_ROOT}files/v2/history/system/{SYSTEMID}/{REMOTEPATH}{DIRNAME}"
+      }
+    }
+  }
+}

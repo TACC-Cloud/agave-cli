@@ -5,7 +5,7 @@ GIT_BRANCH_CLEAN := $(shell echo $(GIT_BRANCH) | sed -e "s/[^[:alnum:]]/-/g")
 DOCKER_IMAGE := agavecli-dev$(if $(GIT_BRANCH_CLEAN),:$(GIT_BRANCH_CLEAN))
 
 DOCKER_BUILD_ARGS ?= --force-rm
-DOCKERFILE ?= ../Dockerfile.tests
+DOCKERFILE ?= ../tests.Dockerfile
 
 DOCKER_MOUNT := -v "$(CURDIR)/..":/agave-cli 
 DOCKER_FLAGS := docker run --rm -it -p 5000:5000 $(DOCKER_MOUNT)
@@ -37,12 +37,13 @@ tests: tests-setup
 	bats /agave-cli/tests/integration_tests
 
 tests-setup:
-	./hack/setup_agavedb.sh
+	./hack/setup_agavedb.py
 	pip install -e /agave-cli/tests/agave_mock_server
 	./hack/serve_agave_mock_server.sh
-	./hack/wait-for-it.sh localhost:5000 -- echo "Server is up"
+	./hack/wait-for-it.sh localhost:5000 -- echo "Server is up" || exit 1
 
 clean:
+	rm -rf tests_results.tap
 	rm -rf agave_mock_server.log
 	rm -rf agave_mock_server/agave_mock_server.egg-info
 	rm -rf agave_mock_server/__pycache__/

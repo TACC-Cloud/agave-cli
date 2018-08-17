@@ -1,0 +1,486 @@
+{
+  "status" : "success",
+  "message" : null,
+  "version" : "2.2.22-r7deb380",
+  "result" : [ {
+    "id" : "protein-design-master-1.1.0u1",
+    "name" : "protein-design-master",
+    "version" : "1.1.0",
+    "revision" : 1,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "Protein Design Test Harness master@24fc04",
+    "isPublic" : true,
+    "label" : "Protein Design:master",
+    "lastModified" : "2018-07-23T16:30:17.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/protein-design-master-1.1.0u1"
+      }
+    }
+  }, {
+    "id" : "fcs-etl-0.4.0u2",
+    "name" : "fcs-etl",
+    "version" : "0.4.0",
+    "revision" : 2,
+    "executionSystem" : "hpc-tacc-jetstream",
+    "shortDescription" : "ETL process for flow cytometry files",
+    "isPublic" : true,
+    "label" : "FCS-ETL",
+    "lastModified" : "2018-07-05T16:12:05.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/fcs-etl-0.4.0u2"
+      }
+    }
+  }, {
+    "id" : "fcs-etl-0.4.0u1",
+    "name" : "fcs-etl",
+    "version" : "0.4.0",
+    "revision" : 1,
+    "executionSystem" : "hpc-tacc-jetstream",
+    "shortDescription" : "ETL process for flow cytometry files",
+    "isPublic" : true,
+    "label" : "FCS-ETL",
+    "lastModified" : "2018-07-03T11:39:02.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/fcs-etl-0.4.0u1"
+      }
+    }
+  }, {
+    "id" : "fcs-etl-0.3.6u13",
+    "name" : "fcs-etl",
+    "version" : "0.3.6",
+    "revision" : 13,
+    "executionSystem" : "hpc-tacc-jetstream",
+    "shortDescription" : "ETL process for flow cytometry files",
+    "isPublic" : true,
+    "label" : "FCS-ETL",
+    "lastModified" : "2018-06-28T15:16:42.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/fcs-etl-0.3.6u13"
+      }
+    }
+  }, {
+    "id" : "fcs-etl-0.3.6u12",
+    "name" : "fcs-etl",
+    "version" : "0.3.6",
+    "revision" : 12,
+    "executionSystem" : "hpc-tacc-jetstream",
+    "shortDescription" : "ETL process for flow cytometry files",
+    "isPublic" : true,
+    "label" : "FCS-ETL",
+    "lastModified" : "2018-06-11T12:15:13.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/fcs-etl-0.3.6u12"
+      }
+    }
+  }, {
+    "id" : "fcs-etl-0.3.6u11",
+    "name" : "fcs-etl",
+    "version" : "0.3.6",
+    "revision" : 11,
+    "executionSystem" : "hpc-tacc-jetstream",
+    "shortDescription" : "ETL process for flow cytometry files",
+    "isPublic" : true,
+    "label" : "FCS-ETL",
+    "lastModified" : "2018-05-30T17:55:14.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/fcs-etl-0.3.6u11"
+      }
+    }
+  }, {
+    "id" : "psap-0.1.0u1",
+    "name" : "psap",
+    "version" : "0.1.0",
+    "revision" : 1,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "Protein Stability Analysis Pipeline",
+    "isPublic" : true,
+    "label" : "PSAP",
+    "lastModified" : "2018-05-10T13:24:16.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/psap-0.1.0u1"
+      }
+    }
+  }, {
+    "id" : "xplan-0.1.0u1",
+    "name" : "xplan",
+    "version" : "0.1.0",
+    "revision" : 1,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "xplan",
+    "isPublic" : true,
+    "label" : "xplan",
+    "lastModified" : "2018-05-03T12:45:34.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/xplan-0.1.0u1"
+      }
+    }
+  }, {
+    "id" : "rnaseq-0.1.3u1",
+    "name" : "rnaseq",
+    "version" : "0.1.3",
+    "revision" : 1,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "RNA-Seq pipeline",
+    "isPublic" : true,
+    "label" : "RNASeq",
+    "lastModified" : "2018-04-22T18:06:18.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/rnaseq-0.1.3u1"
+      }
+    }
+  }, {
+    "id" : "rnaseq-broad-0.1.2u1",
+    "name" : "rnaseq-broad",
+    "version" : "0.1.2",
+    "revision" : 1,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "RNA-Seq Broad mapping pipeline",
+    "isPublic" : true,
+    "label" : "RNASeq-broad",
+    "lastModified" : "2018-04-22T18:05:22.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/rnaseq-broad-0.1.2u1"
+      }
+    }
+  }, {
+    "id" : "wallen-crucial-kodiak-0.1.0",
+    "name" : "wallen-crucial-kodiak",
+    "version" : "0.1.0",
+    "revision" : 1,
+    "executionSystem" : "hpc-tacc-maverick-wallen",
+    "shortDescription" : "",
+    "isPublic" : false,
+    "label" : "2018-04-04T16:03:11.327034Z",
+    "lastModified" : "2018-04-04T11:03:54.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/wallen-crucial-kodiak-0.1.0"
+      }
+    }
+  }, {
+    "id" : "wallen-fastqc-0.11.7",
+    "name" : "wallen-fastqc",
+    "version" : "0.11.7",
+    "revision" : 5,
+    "executionSystem" : "hpc-tacc-maverick-wallen",
+    "shortDescription" : "A Quality Control application for FastQ files",
+    "isPublic" : false,
+    "label" : "FastQC",
+    "lastModified" : "2018-03-12T11:52:58.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/wallen-fastqc-0.11.7"
+      }
+    }
+  }, {
+    "id" : "lcms-pyquant-0.1.1u1",
+    "name" : "lcms-pyquant",
+    "version" : "0.1.1",
+    "revision" : 1,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "Processing of mass spec files",
+    "isPublic" : true,
+    "label" : "Pyquant running!",
+    "lastModified" : "2018-02-09T10:47:21.000-06:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/lcms-pyquant-0.1.1u1"
+      }
+    }
+  }, {
+    "id" : "lcms-wrangler-0.1.0u3",
+    "name" : "lcms-wrangler",
+    "version" : "0.1.0",
+    "revision" : 3,
+    "executionSystem" : "hpc-tacc-wrangler",
+    "shortDescription" : "Summarize an LCMS data set",
+    "isPublic" : true,
+    "label" : "LCMS Parser [Wrangler]",
+    "lastModified" : "2018-01-31T08:17:30.000-06:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/lcms-wrangler-0.1.0u3"
+      }
+    }
+  }, {
+    "id" : "lcms-maverick-0.1.0u3",
+    "name" : "lcms-maverick",
+    "version" : "0.1.0",
+    "revision" : 3,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "Summarize an LCMS data set",
+    "isPublic" : true,
+    "label" : "LCMS Parser [Maverick]",
+    "lastModified" : "2018-01-31T08:17:20.000-06:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/lcms-maverick-0.1.0u3"
+      }
+    }
+  }, {
+    "id" : "msf-maverick-0.1.0u3",
+    "name" : "msf-maverick",
+    "version" : "0.1.0",
+    "revision" : 3,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "",
+    "isPublic" : true,
+    "label" : "MSF Parser [Maverick]",
+    "lastModified" : "2018-01-31T08:15:06.000-06:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/msf-maverick-0.1.0u3"
+      }
+    }
+  }, {
+    "id" : "msf-wrangler-0.1.0u3",
+    "name" : "msf-wrangler",
+    "version" : "0.1.0",
+    "revision" : 3,
+    "executionSystem" : "hpc-tacc-wrangler",
+    "shortDescription" : "",
+    "isPublic" : true,
+    "label" : "MSF Parser [Wrangler]",
+    "lastModified" : "2018-01-31T08:14:47.000-06:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/msf-wrangler-0.1.0u3"
+      }
+    }
+  }, {
+    "id" : "fastqc-0.11.5u2",
+    "name" : "fastqc",
+    "version" : "0.11.5",
+    "revision" : 2,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "A Quality Control application for FastQ files",
+    "isPublic" : true,
+    "label" : "FastQC",
+    "lastModified" : "2018-01-31T07:44:52.000-06:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/fastqc-0.11.5u2"
+      }
+    }
+  }, {
+    "id" : "wallen-fastqc-0.11.5",
+    "name" : "wallen-fastqc",
+    "version" : "0.11.5",
+    "revision" : 4,
+    "executionSystem" : "hpc-tacc-maverick-wallen",
+    "shortDescription" : "A Quality Control application for FastQ files",
+    "isPublic" : false,
+    "label" : "FastQC",
+    "lastModified" : "2018-01-31T07:43:18.000-06:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/wallen-fastqc-0.11.5"
+      }
+    }
+  }, {
+    "id" : "ta3-api-0.0.2u1",
+    "name" : "ta3-api",
+    "version" : "0.0.2",
+    "revision" : 1,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "It's so nice to have root back where it belongs",
+    "isPublic" : true,
+    "label" : "TA3-API, Container!",
+    "lastModified" : "2018-01-25T12:38:54.000-06:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/ta3-api-0.0.2u1"
+      }
+    }
+  }, {
+    "id" : "lcms-pyquant-0.1.0u1",
+    "name" : "lcms-pyquant",
+    "version" : "0.1.0",
+    "revision" : 1,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "Processing of mass spec files",
+    "isPublic" : true,
+    "label" : "Pyquant running!",
+    "lastModified" : "2018-01-24T16:40:43.000-06:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/lcms-pyquant-0.1.0u1"
+      }
+    }
+  }, {
+    "id" : "jupyter-singularity-maverick-wallen-0.1.0",
+    "name" : "jupyter-singularity-maverick-wallen",
+    "version" : "0.1.0",
+    "revision" : 1,
+    "executionSystem" : "hpc-tacc-maverick-wallen",
+    "shortDescription" : "Creates an interactive jupyter notebook on the Maverick HPC system  and emails connection details.",
+    "isPublic" : false,
+    "label" : "HPC Jupyter Notebook - Maverick",
+    "lastModified" : "2017-10-19T10:27:08.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/jupyter-singularity-maverick-wallen-0.1.0"
+      }
+    }
+  }, {
+    "id" : "sailfish-0.10.1u4",
+    "name" : "sailfish",
+    "version" : "0.10.1",
+    "revision" : 4,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "Quantifies RNA-Seq transcripts",
+    "isPublic" : true,
+    "label" : "Sailfish",
+    "lastModified" : "2017-10-18T15:30:23.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/sailfish-0.10.1u4"
+      }
+    }
+  }, {
+    "id" : "lcms-maverick-0.1.0u2",
+    "name" : "lcms-maverick",
+    "version" : "0.1.0",
+    "revision" : 2,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "Auto-generate LCMS data set summaries",
+    "isPublic" : true,
+    "label" : "LCMS Parser [TACC Maverick]",
+    "lastModified" : "2017-10-15T19:52:02.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/lcms-maverick-0.1.0u2"
+      }
+    }
+  }, {
+    "id" : "lcms-wrangler-0.1.0u2",
+    "name" : "lcms-wrangler",
+    "version" : "0.1.0",
+    "revision" : 2,
+    "executionSystem" : "hpc-tacc-wrangler",
+    "shortDescription" : "Auto-generate LCMS data set summaries",
+    "isPublic" : true,
+    "label" : "LCMS Parser [TACC Wrangler]",
+    "lastModified" : "2017-10-15T19:51:48.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/lcms-wrangler-0.1.0u2"
+      }
+    }
+  }, {
+    "id" : "sortmerna-0.0.1u1",
+    "name" : "sortmerna",
+    "version" : "0.0.1",
+    "revision" : 1,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "sorts and filters RNA",
+    "isPublic" : true,
+    "label" : "SortMeRNA",
+    "lastModified" : "2017-10-14T11:51:38.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/sortmerna-0.0.1u1"
+      }
+    }
+  }, {
+    "id" : "hello-agave-hpc-0.1.0u1",
+    "name" : "hello-agave-hpc",
+    "version" : "0.1.0",
+    "revision" : 1,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "Get a cheery greeting from a remote computer",
+    "isPublic" : true,
+    "label" : "Hello AgaveAPI (HPC)",
+    "lastModified" : "2017-10-10T15:19:05.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/hello-agave-hpc-0.1.0u1"
+      }
+    }
+  }, {
+    "id" : "hello-agave-cli-0.1.0u1",
+    "name" : "hello-agave-cli",
+    "version" : "0.1.0",
+    "revision" : 1,
+    "executionSystem" : "cli-tacc-maverick",
+    "shortDescription" : "Get a cheery greeting from a remote computer",
+    "isPublic" : true,
+    "label" : "Hello AgaveAPI (CLI)",
+    "lastModified" : "2017-10-10T15:18:30.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/hello-agave-cli-0.1.0u1"
+      }
+    }
+  }, {
+    "id" : "msf-0.1.0u3",
+    "name" : "msf",
+    "version" : "0.1.0",
+    "revision" : 3,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "",
+    "isPublic" : true,
+    "label" : "MSF Parser",
+    "lastModified" : "2017-10-10T14:12:23.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/msf-0.1.0u3"
+      }
+    }
+  }, {
+    "id" : "kallisto-0.43.1u3",
+    "name" : "kallisto",
+    "version" : "0.43.1",
+    "revision" : 3,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "Quantifies RNA-Seq transcripts",
+    "isPublic" : true,
+    "label" : "Kallisto",
+    "lastModified" : "2017-10-10T14:12:09.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/kallisto-0.43.1u3"
+      }
+    }
+  }, {
+    "id" : "hello-container-0.1.0u1",
+    "name" : "hello-container",
+    "version" : "0.1.0",
+    "revision" : 1,
+    "executionSystem" : "hpc-tacc-maverick",
+    "shortDescription" : "It's so nice to have root back where it belongs",
+    "isPublic" : true,
+    "label" : "Hello, Container!",
+    "lastModified" : "2017-10-10T14:10:11.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/hello-container-0.1.0u1"
+      }
+    }
+  }, {
+    "id" : "fcs-tasbe-wallen-0.1.0",
+    "name" : "fcs-tasbe-wallen",
+    "version" : "0.1.0",
+    "revision" : 1,
+    "executionSystem" : "hpc-tacc-jetstream",
+    "shortDescription" : "",
+    "isPublic" : false,
+    "label" : "FCS TABSE Demo",
+    "lastModified" : "2017-10-03T11:21:27.000-05:00",
+    "_links" : {
+      "self" : {
+        "href" : "https://api.sd2e.org/apps/v2/fcs-tasbe-wallen-0.1.0"
+      }
+    }
+  } ]
+}

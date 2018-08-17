@@ -6,138 +6,22 @@ CLI integration tests for "clients-*" cli commands.
 import json
 from flask import jsonify, request
 from flask_restful import Resource
+from .response_templates import response_template_to_json
 
-# Sample response for "cients-create -N rm -D 'remove this client'" cli
+# Sample response for "clients-create -N rm -D 'remove this client'" cli
 # command.
 # curl -sku "user:XXXXX" -X POST -d clientName=rm -d "tier=Unlimited" \
 #        -d "description=remove this client" -d "callbackUrl=" \
 #        'https://api.tenant.org/clients/v2/?pretty=true'
-clients_create_response = {
-    "status": "success",
-    "message": "Client created successfully.",
-    "version": "2.0.0-SNAPSHOT-rc3fad",
-    "result": {
-        "description": "{DESCRIPTION}",
-        "name": "{NAME}",
-        "consumerKey": "xxxxxxxxxxxxxxxxxxxxxxxxxx",
-        "_links": {
-            "subscriber": {
-                "href": "{URL_ROOT}profiles/v2/{USER}"
-            },
-            "self": {
-                "href": "{URL_ROOT}clients/v2/{NAME}"
-            },
-            "subscriptions": {
-                "href": "{URL_ROOT}clients/v2/{NAME}/subscriptions/"
-            }
-        },
-        "tier": "{TIER}",
-        "consumerSecret": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-        "callbackUrl": "{CALLBACK_URL}"
-    }
-}
+clients_create_response = response_template_to_json("clients-create.json") 
 
 # Sample response for "clients-delete <client>" cli command.
 # curl -sku "usr:xxxx" -X DELETE 'https://api.tenant.org/clients/v2/rm?pretty=true'
-clients_delete_response = {
-    "status": "success",
-    "message": "Client removed successfully.",
-    "version": "2.0.0-SNAPSHOT-rc3fad",
-    "result": {}
-}
-
-# Sample response for "cients-create -N rm -D 'remove this client'" cli
-# command.
-# curl -sku "user:XXXXX" -X POST -d clientName=rm -d "tier=Unlimited" \
-#        -d "description=remove this client" -d "callbackUrl=" \
-#        'https://api.tenant.org/clients/v2/?pretty=true'
-clients_create_response = {
-  "status": "success",
-  "message": "Client created successfully.",
-  "version": "2.0.0-SNAPSHOT-rc3fad",
-  "result": {
-    "description": "{DESCRIPTION}",
-    "name": "{NAME}",
-    "consumerKey": "xxxxxxxxxxxxxxxxxxxxxxxxxx",
-    "_links": {
-      "subscriber": {
-        "href": "{URL_ROOT}profiles/v2/{USER}"
-      },
-      "self": {
-        "href": "{URL_ROOT}clients/v2/{NAME}"
-      },
-      "subscriptions": {
-        "href": "{URL_ROOT}clients/v2/{NAME}/subscriptions/"
-      }
-    },
-    "tier": "{TIER}",
-    "consumerSecret": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    "callbackUrl": "{CALLBACK_URL}"
-  }
-}
-
+clients_delete_response = response_template_to_json("clients-delete.json")
 
 # Sample response for "clients-list" cli command.
-clients_list_response = {
-    "status":
-    "success",
-    "message":
-    "Clients retrieved successfully.",
-    "version":
-    "2.0.0-SNAPSHOT-rc3fad",
-    "result": [{
-        "description": "Sample description for Oauth client",
-        "name": "agave-cli",
-        "consumerKey": "xxxxxxxxxxxxxxxxxxxxxxxx",
-        "_links": {
-            "subscriber": {
-                "href": "{URL_ROOT}profiles/v2/{USER}"
-            },
-            "self": {
-                "href": "{URL_ROOT}clients/v2/agave-cli"
-            },
-            "subscriptions": {
-                "href": "{URL_ROOT}clients/v2/agave-cli/subscriptions/"
-            }
-        },
-        "tier": "Unlimited",
-        "callbackUrl": ""
-    }, {
-        "description": "test container",
-        "name": "container",
-        "consumerKey": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-        "_links": {
-            "subscriber": {
-                "href": "{URL_ROOT}profiles/v2/{USER}"
-            },
-            "self": {
-                "href": "{URL_ROOT}clients/v2/container"
-            },
-            "subscriptions": {
-                "href": "{URL_ROOT}clients/v2/container/subscriptions/"
-            }
-        },
-        "tier": "Unlimited",
-        "callbackUrl": ""
-    }, {
-        "description": "testing agavecli",
-        "name": "testclient",
-        "consumerKey": "xxxxxxxxxxxxxxxxxxxxxxxxxx",
-        "_links": {
-            "subscriber": {
-                "href": "{URL_ROOT}profiles/v2/{USER}"
-            },
-            "self": {
-                "href": "{URL_ROOT}clients/v2/testclient"
-            },
-            "subscriptions": {
-                "href": "{URL_ROOT}clients/v2/testclient/subscriptions/"
-            }
-        },
-        "tier": "Unlimited",
-        "callbackUrl": ""
-    }]
-}
+# curl -sku "usr:xxxx" 'https://api.tenant.org/clients/v2/?pretty=true'
+clients_list_response = response_template_to_json("clients-list.json")
 
 
 class AgaveClients(Resource):
