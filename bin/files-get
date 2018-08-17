@@ -192,16 +192,35 @@ main() {
         if ((veryverbose)); then
             [ "$piped" -eq 0 ] && log "Calling $cmd"
         fi
-        
-        if [ -z "$filename" ]; then
-            filename=$(basename "$args")
-            if [ -n "$filename" ]; then
-                filename=$(basename "${args}")
-            fi
-        fi
-        
+      fi
+
+      if ((verbose)); then
+        [ "$piped" -eq 0 ] && out "Downloading $args ..."
+      fi
+
+      output=$(curl -# -k -H "${authheader}" ${filerange} ${outputarg} "${filesurl}" -w "%{http_code} %{filename_effective}")
+      http_code=$(echo $output | awk '{print $1}')
+      file_name=$(echo $output | awk '{print $2}')
+
+      # The curl command wil redirect all output to the file being created.
+      # This will make sure the message is not quietly saved in the file and
+      # will remove the file is.
+      # HTTP status should be a 200 if download was successful.
+      if [ ! -z "$http_code" ] && [ "$http_code" != "200" ]; then 
+          cat $file_name && rm $file_name
+      fi
+
+      # Curl version < 7.42.0 may return an error upon trying to download an
+      # empty file.
+      if [ "$?" -eq 0 ] && [ ! -f "$filename" ]; then
         if ((verbose)); then
-            [ "$piped" -eq 0 ] && out "Downloading $args ..."
+          echo "Creating empty file $filename..."
+        fi
+        touch $filename
+      else # Print error message if curl command exited with an error code.
+        response=$(grep '"status":"error"' $filename)
+        if [ -n "$response" ]; then
+          err "$response"
         fi
         
         # Download file.
