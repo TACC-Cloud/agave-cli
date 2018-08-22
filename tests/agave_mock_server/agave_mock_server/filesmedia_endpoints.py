@@ -11,6 +11,11 @@ from .validation_helpers import (basic_access_token_checks,
     basic_file_path_checks, basic_system_id_checks)
 
 
+# Sample response for "files-delete --V -S systemid file".
+# curl -sk -H "Authorization: Bearer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+#   -X DELETE 'https://api.tenant.org/files/v2/media/system/systemid/file?pretty=true'
+files_delete_response = response_template_to_json("files-delete.json")
+
 # Sample response for "files-mkdir -V -S system -N name /path".
 # curl -sk -H "Authorization: Bearer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
 #   -X PUT -d "action=mkdir&path=name" \
@@ -127,7 +132,7 @@ class AgaveFilesMedia(Resource):
 
         new_dirname = request.form.get("path")
         if new_dirname is None or new_dirname == "":
-            resp = jsonify({"error": "Bad authorization header"})
+            resp = jsonify({"error": "Bad file system path"})
             resp.status_code = 400
             return resp
 
@@ -137,3 +142,28 @@ class AgaveFilesMedia(Resource):
         response = response.replace("{SYSTEMID}", system_id)
         response = response.replace("{DIRNAME}", new_dirname)
         return jsonify(json.loads(response))
+
+    def delete(self, system_id, file_path):
+        """ Test files=delete command
+
+        curl -k -H "Authorization: Bearer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+            -X DELETE 'https://localhost:5000/files/v2/media/system/system_id/file_path?pretty=true'
+        """
+        # Test api access token.
+        token = request.headers.get("Authorization")
+        resp = basic_access_token_checks(token)
+        if resp:
+            return resp
+
+        # Test system ID.
+        resp = basic_system_id_checks(system_id)
+        if resp:
+            return resp
+
+        # Test file/dir path.
+        resp = basic_file_path_checks(file_path)
+        if resp:
+            return resp
+
+        return jsonify(files_delete_response)
+
