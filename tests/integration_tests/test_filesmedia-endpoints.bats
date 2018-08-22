@@ -8,6 +8,12 @@
 }
 
 
+@test "Check that files-delete deletes a file" {
+    run files-delete -V -S system somefile 
+    [ $status = 0 ]
+}
+
+
 @test "Check that files-mkdir creates a new directory" {
     run files-mkdir -S system -N name /path
     [ $status = 0 ]
