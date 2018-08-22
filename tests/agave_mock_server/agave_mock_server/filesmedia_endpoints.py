@@ -11,7 +11,13 @@ from .validation_helpers import (basic_access_token_checks,
     basic_file_path_checks, basic_system_id_checks)
 
 
-# Sample response for "files-delete --V -S systemid file".
+# Sample response for "files-copy -V -S sytemid copy original".
+# curl -sk -H "Authorization: Bearer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -X PUT \
+#   -d "action=copy&path=copy" \
+#   'https://api.tenant.org/files/v2/media/system/systemid/original?pretty=true'
+files_copy_response = response_template_to_json("files-copy.json")
+
+# Sample response for "files-delete -V -S systemid file".
 # curl -sk -H "Authorization: Bearer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
 #   -X DELETE 'https://api.tenant.org/files/v2/media/system/systemid/file?pretty=true'
 files_delete_response = response_template_to_json("files-delete.json")
@@ -100,9 +106,15 @@ class AgaveFilesMedia(Resource):
         response = response.replace("{SYSTEMID}", system_id)
         return jsonify(json.loads(response)) 
 
-    def put(self, system_id, file_path):
-        """ Test files-mkdir command
 
+    def put(self, system_id, file_path):
+        """ Test files-copy and files-mkdir commands
+
+        files-copy will make the following request:
+        curl -k -H "Authorization: Bearer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+            -X PUT -d "action=copy&path=copy" 'https://localhost:5000/files/v2/media/system/system/original?pretty=true'
+
+        files-mkdir command will make the following request:
         curl -k -H "Authorization: Bearer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
             -X PUT -d "action=mkdir&path=name" \
             'https://localhost:5000/files/v2/media/system/system//path?pretty=true'
@@ -124,24 +136,33 @@ class AgaveFilesMedia(Resource):
             return resp
 
         # Test form data fields "action" and "path".
-        action = request.form.get("action")
-        if action != "mkdir":
-            resp = jsonify({"error": "Bad authorization header"})
-            resp.status_code = 400
-            return resp
-
-        new_dirname = request.form.get("path")
-        if new_dirname is None or new_dirname == "":
+        new_path = request.form.get("path")
+        if new_path is None or new_path == "":
             resp = jsonify({"error": "Bad file system path"})
             resp.status_code = 400
             return resp
+        
+        action = request.form.get("action")
+        if action == "copy":
+            response = json.dumps(files_copy_response)
+            response = response.replace("{URL_ROOT}", request.url_root)
+            response = response.replace("{SYSTEMID}", system_id)
+            response = response.replace("{ORIGINAL_FILE}", file_path)
+            response = response.replace("{NEW_FILE}", new_path)
+            response = jsonify(json.loads(response))
+        elif action == "mkdir":
+            response = json.dumps(files_mkdir_response)
+            response = response.replace("{URL_ROOT}", request.url_root)
+            response = response.replace("{REMOTEPATH}", file_path)
+            response = response.replace("{SYSTEMID}", system_id)
+            response = response.replace("{DIRNAME}", new_path)
+            response = jsonify(json.loads(response))
+        else:
+            response = jsonify({"error": "Bad action option"})
+            response.status_code = 400
+        
+        return response
 
-        response = json.dumps(files_mkdir_response)                            
-        response = response.replace("{URL_ROOT}", request.url_root)
-        response = response.replace("{REMOTEPATH}", file_path)
-        response = response.replace("{SYSTEMID}", system_id)
-        response = response.replace("{DIRNAME}", new_dirname)
-        return jsonify(json.loads(response))
 
     def delete(self, system_id, file_path):
         """ Test files=delete command
