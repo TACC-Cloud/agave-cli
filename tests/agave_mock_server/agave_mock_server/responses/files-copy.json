@@ -1,0 +1,31 @@
+{
+  "status": "success",
+  "message": "Copy success",
+  "version": "2.2.22-r7deb380",
+  "result": {
+    "name": "{ORIGINAL_FILE}",
+    "uuid": "5387522041618567656-242ac113-0001-002",
+    "owner": "user",
+    "internalUsername": null,
+    "lastModified": "2018-08-22T14:40:58.299-05:00",
+    "source": "{URL_ROOT}files/v2/media/system/{SYSTEMID}/{ORIGINAL_FILE}",
+    "path": "{NEW_FILE}",
+    "status": "STAGING_COMPLETED",
+    "systemId": "{SYSTEMID}",
+    "nativeFormat": "raw",
+    "_links": {
+      "self": {
+        "href": "{URL_ROOT}files/v2/media/system/{SYSTEMID}/{NEW_FILE}"
+      },
+      "system": {
+        "href": "{URL_ROOT}systems/v2/{SYSTEMID}"
+      },
+      "profile": {
+        "href": "{URL_ROOT}profiles/v2/user"
+      },
+      "history": {
+        "href": "{URL_ROOT}files/v2/history/system/{SYSTEMID}/{NEW_FILE}"
+      }
+    }
+  }
+}
