@@ -4,6 +4,7 @@
 Test the "/files/v2/media" endpoints.
 """
 import json
+import ntpath
 from flask import jsonify, request
 from flask_restful import Resource
 from .response_templates import response_template_to_json
@@ -28,6 +29,11 @@ files_delete_response = response_template_to_json("files-delete.json")
 #   'https://api.tenant.org/files/v2/media/system/system//path?pretty=true'
 files_mkdir_response = response_template_to_json("files-mkdir.json")
 
+# Sample response for "files-move -V -S systemid -D new/dest.ext dest.ext".
+# curl -sk -H "Authorization: Bearer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -X PUT \
+#   -d "action=move&path=new/dest.ext" \
+#   'https://api.tenant.org/files/v2/media/system/systemid/dest.ext?pretty=true
+files_move_response = response_template_to_json("files-move.json")
 
 # Sample response for "files-upload -V -S system -F file.ext /path" cli
 # command.
@@ -108,7 +114,7 @@ class AgaveFilesMedia(Resource):
 
 
     def put(self, system_id, file_path):
-        """ Test files-copy and files-mkdir commands
+        """ Test files-copy, files-mkdir, and files-move commands
 
         files-copy will make the following request:
         curl -k -H "Authorization: Bearer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
@@ -118,6 +124,10 @@ class AgaveFilesMedia(Resource):
         curl -k -H "Authorization: Bearer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
             -X PUT -d "action=mkdir&path=name" \
             'https://localhost:5000/files/v2/media/system/system//path?pretty=true'
+
+        curl -k -H "Authorization: Bearer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+            -X PUT -d "action=move&path=new/path.ext" \
+            'https://localhost:5000/files/v2/media/system/system/file-to-move.ext?pretty=true'
         """
         # Test api access token.
         token = request.headers.get("Authorization")
@@ -156,6 +166,14 @@ class AgaveFilesMedia(Resource):
             response = response.replace("{REMOTEPATH}", file_path)
             response = response.replace("{SYSTEMID}", system_id)
             response = response.replace("{DIRNAME}", new_path)
+            response = jsonify(json.loads(response))
+        elif action == "move":
+            response = json.dumps(files_move_response)
+            response = response.replace("{URL_ROOT}", request.url_root)
+            response = response.replace("{REMOTEPATH}", file_path)
+            response = response.replace("{SYSTEMID}", system_id)
+            response = response.replace("{NEW_FILEPATH}", new_path)
+            response = response.replace("{NEW_FILENAME}", ntpath.basename(new_path))
             response = jsonify(json.loads(response))
         else:
             response = jsonify({"error": "Bad action option"})
