@@ -33,6 +33,12 @@
 }
 
 
+@test "Check that files-move moves a file to a new path" {
+    run files-move -S systemid -D new/dest.ext dest.ext
+    [ $status = 0 ]
+}
+
+
 @test "Check that files-upload uploads a file" {
     echo "testfile" > file.txt
     run files-upload -S some-system-id -F file.txt /tests
