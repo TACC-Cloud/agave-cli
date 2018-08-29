@@ -22,4 +22,4 @@ before_install:
     - git log --oneline -n 1
 
 script:
-    - ./travis_tests.sh
+    - docker run --rm -v "$PWD":/agave-cli agavecli-dev /agave-cli/tests/hack/run-integration-tests.run
