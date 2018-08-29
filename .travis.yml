@@ -2,8 +2,13 @@ sudo: required
 
 language: python
 
+addons:
+    apt:
+        packages:
+            - docker-ce
+
 services:
-  - docker
+    - docker
 
 before_install:
     - cp tests.Dockerfile tests/
@@ -11,6 +16,10 @@ before_install:
     - pwd
     - ls
     - docker build --force-rm -f tests.Dockerfile -t "agavecli-dev" .
+    - cd ../
+    - pwd
+    - ls
+    - git log --oneline -n 1
 
 script:
-    - docker run agavecli-dev /bin/bash -c "/agave-cli/tests/hack/run-integration-tests.run"
+    - ./travis_tests.sh
