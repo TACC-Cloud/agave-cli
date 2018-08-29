@@ -1,0 +1,20 @@
+sudo: required
+
+language: python
+
+addons:
+    apt:
+        packages:
+            - docker-ce
+
+services:
+    - docker
+
+before_install:
+    - cp tests.Dockerfile tests/
+    - cd tests/
+    - docker build --force-rm -f tests.Dockerfile -t "agavecli-dev" .
+    - cd ../
+
+script:
+    - docker run --rm -v "$PWD":/agave-cli agavecli-dev /agave-cli/tests/hack/run-integration-tests.run

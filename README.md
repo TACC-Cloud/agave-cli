@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/TACC-Cloud/agave-cli.svg?branch=develop)](https://travis-ci.org/TACC-Cloud/agave-cli)
+
 ## What is Agave?
 
 [Agave] is an open Science-as-a-Service platform built by TACC and a thriving user community that empowers users to run code reproducibly, manage data efficiently, collaborate meaningfully, and integrate easily with third-party applications. TACC operates a professionally managed and supported instance of Agave as part of its TACC.cloud Platform.
