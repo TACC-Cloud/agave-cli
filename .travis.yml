@@ -13,13 +13,8 @@ services:
 before_install:
     - cp tests.Dockerfile tests/
     - cd tests/
-    - pwd
-    - ls
     - docker build --force-rm -f tests.Dockerfile -t "agavecli-dev" .
     - cd ../
-    - pwd
-    - ls
-    - git log --oneline -n 1
 
 script:
     - docker run --rm -v "$PWD":/agave-cli agavecli-dev /agave-cli/tests/hack/run-integration-tests.run
