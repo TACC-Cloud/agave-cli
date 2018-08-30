@@ -1,6 +1,18 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2.3.0 - 2018-08-30
+### ADDED
+- Integration tests and mock server(test coverage low)
+
+### FIXED
+- files-get --recursive
+- better support for GNU based systems
+
+### REMOVED
+- old test directory
+
+
 ## 2.2.1 - 2018-02-11
 ### ADDED
 - Implemented an Authors list
