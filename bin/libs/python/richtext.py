@@ -14,10 +14,10 @@ def print_table(table):
     widths=[max(len(value) for value in row) for row in zip_table]
 
     for row in table:
-	result="| "
+        result="| "
         for i in range(len(row)):
             result=result + row[i].ljust(widths[i]) + " | "
-	print result
+        print(result)
 
 
 
@@ -59,5 +59,5 @@ if __name__ == "__main__":
         if debug:
             raise
         else:
-            print e
+            print(e)
 
