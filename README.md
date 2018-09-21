@@ -36,7 +36,7 @@ To use `TACC/agave-cli` you'll need the following dependencies.
 	* curl 7.2+ with TLS support
 	* jq 1.5+
     * Python 3+
-    * [TACC/agavepy:develop](https://github.com/TACC/agavepy)
+    * TACC/agavepy
 
 To install [TACC/agavepy](https://github.com/TACC/agavepy) we recommend the 
 following steps:
@@ -51,9 +51,9 @@ make install
 If you are interested in contributing to `TACC-Cloud/agave-cli` you will also
 need:
   
-    * Docker (we recommend using the latest stable release of [Docker](https://docs.docker.com/install/#supported-platforms))
+    * Docker (we recommend using the latest stable release of Docker)
     * Make 4.1+
-    * [yapf](https://github.com/google/yapf)
+    * yapf https://github.com/google/yapf
 
 For development, we recoomend you use the development container for your work.
 
