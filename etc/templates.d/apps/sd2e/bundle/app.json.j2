@@ -1,0 +1,29 @@
+{
+  "name": "{{ agave.username }}-{{ app.name }}",
+  "version": "{{ app.version }}",
+  "executionType": "HPC",
+  "executionSystem": "hpc-tacc-maverick-{{ agave.username }}",
+  "parallelism": "SERIAL",
+  "deploymentPath": "{{ agave.username }}/apps/{{ app.bundle }}",
+  "deploymentSystem": "data-sd2e-projects-users",
+  "defaultProcessorsPerNode": 1,
+  "defaultNodeCount": 1,
+  "defaultQueue": "normal",
+  "label": "{{ date_time.iso8601_micro }}",
+  "modules": ["load tacc-singularity"],
+  "shortDescription": "{{ app.description }}",
+  "templatePath": "runner-template.sh",
+  "testPath": "tester.sh",
+  "inputs": [],
+  "parameters": [{
+    "id": "CONTAINER_IMAGE",
+    "value": {
+      "default": "{{ docker.organization }}/{{ docker.repo }}:{{ docker.tag }}",
+      "description": "Container Image. Do not edit.",
+      "type": "string",
+      "visible": false,
+      "required": true
+    }
+  }],
+  "outputs": []
+}

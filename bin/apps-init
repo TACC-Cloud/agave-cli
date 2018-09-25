@@ -1,0 +1,526 @@
+#!/usr/bin/env bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "$DIR/common.sh"
+source "$DIR/cli-common.sh"
+source "$DIR/apps-deploy-common.sh"
+source "$DIR/template-common.sh"
+
+# check_dependencies is permissive, only failing if python and jq are
+#   unavailable, but apps-init & apps-deploy need to be more strict
+if ((! hasgit)) || (( ! hasdocker )); then
+  err "Both Git and Docker must be installed to use $(basename $0)"
+fi
+
+function usage() {
+
+cat <<EOF
+$(basename $0): [OPTION]...
+
+Create and configure a project template for building a container-based Agave
+app[a] optimized for use with TACC.cloud. Assumes the current user is
+authenticated to TACC.cloud Agave and Gitlab as well as Docker Hub.
+
+ Options:
+  -n, --name            Project name (generated if not provided)
+  -d, --description     Project "free-text description"
+  -p, --type            Project type [ubuntu17]
+  -a, --app             App name [\$name>]
+  -r, --version         App semantic version [0.1.0]
+  -c, --image           Container image name [\$name]
+  -t, --tag             Container tag [:\$version]
+      --dockerfile      Dockerfile name [Dockerfile]
+      --no-git          Don't set up the project as a Git repository
+      --git-remote      Connect project to TACC.cloud GitLab
+      --no-open         Don't open TACC.cloud GitLab URL after creating
+      --no-pull         Don't try to 'docker pull' \$source-repo
+      --no-tree         Don't print a tree view of project at the end
+      --source-repo     Container repo for project type 'import'
+  -v, --verbose         Verbose output
+  -V, --veryverbose     Very verbose output
+  -h, --help            Display this help and exit
+      --version         Output version information and exit
+
+ Overrides: Supercede values set by 'taccreg login'
+  -U, --username        Docker registry user
+  -O, --organization    Docker registry organization
+
+Project types:
+
+  ubuntu16 - Ubuntu Xenial
+  ubuntu17 - Ubuntu Artful (default)
+  ubuntu18 - Ubuntu Bionic*
+  centos7  - Centos 7.4
+  python2  - Artful/Python 2.7.14
+  python3  - Artful/Python 3.6.x
+  import   - Adapt an existing Docker image
+
+* Warning: Very experimental
+
+References:
+
+  a) https://docs.tacc.cloud/apps#template
+EOF
+
+}
+
+interactive_opts=("name" "type")
+interactive=1
+envvars=
+filetoupload=
+template_output=
+
+# script vars
+# read tenant-level variables
+variablesfile=
+buildconfig="app.ini"
+dockerfile="Dockerfile"
+organization=
+imagename=
+imagetag=
+registryuri=
+buildopts=
+
+# from taccreg-auth.sh
+# TODO: commenting this out - not sure what to do with it.
+#registryuser=$(get_registry_user)
+registryuser=
+registrypass=
+
+# app vars
+projname=
+projdesc=
+appname=
+appversion="0.1.0"
+projdir=
+bundledir=
+projtype="ubuntu17"
+sourcerepo=
+# behaviors
+gitrepo=1
+gitremote=0
+gitopen=1
+dockerpull=1
+showtree=1
+verbose=0
+veryverbose=0
+# The upstream project
+gitlab_remote_uri=
+
+# Bash handler for passing variables to template engine
+declare -a envs
+template=1
+function exportenv() {
+
+  inenv="${1}"
+  escenv=${inenv// /+}
+  envs=("${envs[@]}" "-e ${escenv}")
+
+}
+
+function git_setup_remote() {
+
+  if ((gitrepo)) && ((gitremote)); then
+
+    if ((verbose)); then
+      stderr "Calling tacclab projects create -v --name \"${projname}\" --description \"${projdesc}\" ${initopts}"
+    fi
+
+    initopts=
+    if ((gitopen)); then
+      initopts="--open"
+    fi
+
+    response=$(${DIR}/tacclab projects create -v --name "${projname}" --description "${projdesc} ${initopts}")
+    if [ "$response" != "" ]; then
+      proj_name=$(jsonquery "$response" "name")
+      proj_path=$(jsonquery "$response" "path_with_namespace")
+      proj_url=$(jsonquery "$response" "web_url")
+      proj_ssh=$(jsonquery "$response" "ssh_url_to_repo")
+      proj_vis=$(jsonquery "$response" "visibility")
+      proj_sum="\n  Name: ${proj_name}\n  Path: ${proj_path}\n"
+      proj_sum="${proj_sum}  Visibility: ${proj_vis}\n  URL: ${proj_url}\n  SSH: ${proj_ssh}\n"
+      out "Created Gitlab project. $proj_sum"
+      gitlab_remote_uri=${proj_ssh}
+    else
+      err "Gitlab project ${projname} already exists"
+    fi
+  else
+    true
+  fi
+
+}
+
+function new_project_dir() {
+
+  # Copy in template
+  # TEMPLATES_DIR defined in apps-deploy-common
+  if [ ! -d "${TEMPLATES_DIR}/apps/$(get_agave_tenant)/${projtype}" ] || [ -f "${TEMPLATES_DIR}/apps/$(get_agave_tenant)/${projtype}/placeholder" ]; then
+    out "$proj_type is not yet supported. Reverting to default."
+    proj_type="ubuntu17"
+  fi
+
+  projdir=${projname}
+  if [ -d "${projname}" ]; then
+    out "Directory ${projname} exists already."
+    source "${DIR}/libs/petname.sh"
+    projdir="${projname}-$(petname 2)"
+    out "  Project will be set up in '${projdir}' instead"
+  fi
+
+
+  mkdir -p "${projdir}" ; \
+    cp -Rf "${TEMPLATES_DIR}/apps/$(get_agave_tenant)/project/" "${projdir}/" ; \
+    cp -Rf "${TEMPLATES_DIR}/apps/$(get_agave_tenant)/${projtype}/" "${projdir}/"
+
+  if ((veryverbose)); then
+    ls -alth ${projdir}/
+  fi
+
+  # Programmatically generate Dockerfile for custom source
+  if [ ${projtype} == "import" ]; then
+    template_dockerfile
+  fi
+
+  if [ "$?" == 0 ]; then
+    success "Directory $projdir created."
+  else
+    err "Failed to create local directory ${projdir}"
+  fi
+
+}
+
+function template_dockerfile() {
+
+  if [ -z "${sourcerepo}" ]; then
+    err "Project type 'import' was seleced without specifying --source-repo"
+  fi
+  exportenv "params.sourcerepo=${sourcerepo}"
+
+  df_source="${TEMPLATES_DIR}/apps/$(get_agave_tenant)/files/Dockerfile.j2"
+  df_destination="${projdir}/${dockerfile}"
+
+  if [ ! -f "${df_source}" ]; then
+    err "Dockerfile template file is missing"
+  fi
+
+  if ((template)); then
+    _sourcefile=${df_source}
+    _destfile=${df_destination}
+    if [ -f ${variablesfile} ]; then
+      rvarsfile="-E ${variablesfile}"
+    fi
+    if ((veryverbose)); then
+      echo "Calling python ${PYDIR}/rendertemplate.py --blank-empty ${envs[@]} ${rvarsfile} ${_sourcefile} ${_destfile}"
+    fi
+    python "${PYDIR}/rendertemplate.py" --blank-empty ${envs[@]} ${rvarsfile} ${_sourcefile} ${_destfile}
+    if [ "$?" != 0 ]; then
+      err "Error rendering ${_destfile} from template"
+    else
+      if ((veryverbose)); then
+        cat ${df_destination}
+      fi
+    fi
+  fi
+
+  # if [ "$?" == 0 ]; then
+  #   out "Dockerfile ${dockerfile} generated."
+  #   if ((veryverbose)); then
+  #     cat ${df_destination}
+  #   fi
+  # else
+  #   err "Failed to create ${dockerfile}."
+  # fi
+
+}
+
+function git_init_project() {
+
+  # Set the repo up with user's name and email
+  # and set origin to upstream, if we created a
+  # gitlab project for it
+
+  if ((gitrepo)); then
+    cd ${projdir} && \
+    git init -q && \
+    git config user.name "$(get_agave_human_name)" && \
+    git config user.email "$(get_agave_email)"
+
+    if ((gitremote )) && [ ! -z "${gitlab_remote_uri}" ]; then
+      git remote add origin ${gitlab_remote_uri}
+    fi
+
+    if [ "$?" == 0 ]; then
+      out "Git config for ${projdir} initialized."
+      if ((verbose)); then
+        printf '  '; git config --get user.name
+        printf '  '; git config --get user.email
+        if ((gitremote )); then
+          printf '  '; git remote -v
+        fi
+      fi
+    else
+      err "Error configuring ${projdir} git"
+    fi
+  fi
+
+}
+
+function app_generate_ini(){
+
+  # if the template directory contains an app template, use it
+  if [ ! -f "${projdir}/app.ini.j2" ]; then
+    ini_source="${TEMPLATES_DIR}/apps/$(get_agave_tenant)/files/app.ini.j2"
+  else
+    ini_source="${projdir}/app.ini.j2"
+  fi
+  ini_destination="${projdir}/${buildconfig}"
+  if ((veryverbose)); then
+    echo "app_generate_ini | src: ${ini_source} | dest: ${ini_destination}"
+  fi
+
+  exportenv "app.name=${appname}"
+  exportenv "app.version=${appversion}"
+  exportenv "docker.dockerfile=${dockerfile}"
+  exportenv "docker.organization=${organization}"
+  exportenv "docker.username=${registryuser}"
+  exportenv "docker.repo=${imagename}"
+  exportenv "docker.tag=${imagetag}"
+
+  if [ ! -f "${ini_source}" ]; then
+    err ".ini template file is missing"
+  fi
+
+  if ((template)); then
+    _sourcefile=${ini_source}
+    _destfile=${ini_destination}
+    if [ -f ${variablesfile} ]; then
+      rvarsfile="-E ${variablesfile}"
+    fi
+    if ((veryverbose)); then
+      echo "Calling python ${PYDIR}/rendertemplate.py --blank-empty ${envs[@]} ${rvarsfile} ${_sourcefile} ${_destfile}"
+    fi
+    python "${PYDIR}/rendertemplate.py" --blank-empty ${envs[@]} ${rvarsfile} ${_sourcefile} ${_destfile}
+    if [ "$?" != 0 ]; then
+      err "Error rendering ${_destfile} from template"
+    else
+      if ((veryverbose)); then
+        cat ${ini_destination}
+      fi
+    fi
+  fi
+
+  # if [ "$?" == 0 ]; then
+  #   out "App configuration file generated."
+  #   if ((veryverbose)); then
+  #     cat $ini_destination
+  #   fi
+  # else
+  #   err "Failed to create ${buildconfig}."
+  # fi
+
+  # delete if there was a local template
+  rm -f "${projdir}/app.ini.j2"
+
+}
+
+function app_make_asset_bundle(){
+
+  bundledir="${appname}-${appversion}"
+
+  mkdir -p "${projdir}/${bundledir}" && \
+    cp -R "${TEMPLATES_DIR}/apps/$(get_agave_tenant)/bundle/" "${projdir}/${bundledir}/"
+
+  if [ "$?" == 0 ]; then
+    if ((veryverbose)); then
+      ls -alth ${projdir}/${bundledir}
+    fi
+  else
+    err "Failed to create asset bundle ${bundledir}"
+  fi
+
+}
+
+function preflight_auth_integrations(){
+
+  # has_agave_token_store, has_tacclab_token_store, &
+  # has_tacclab_registry_store are set in cli-common.sh
+
+  if ((! has_agave_store )); then
+    out "Connect your TACC.cloud API account then re-run $(basename $0)\n"
+    #${DIR}/tacc-cloud-login
+    safe_exit
+  fi
+
+  if ((! has_tacc_gitlab_store )); then
+    out "Connect your Gitlab account then re-run $(basename $0)\n"
+    ${DIR}/tacclab login
+    safe_exit
+  fi
+
+  if ((! has_tacc_registry_store )); then
+    out "Connect your Docker Hub account then re-run $(basename $0)\n"
+    ${DIR}/taccreg login
+    safe_exit
+  fi
+
+}
+
+function preflight_pull() {
+
+  if [ "${projtype} == "import ] && ((dockerpull)) && [ ! -z "${sourcerepo}" ]; then
+    if ((veryverbose)); then
+      echo "Calling docker pull ${sourcerepo}"
+    fi
+    docker pull ${sourcerepo} > /dev/null
+    if [ "$?" != 0 ]; then
+      err "Project type is ${projtype} but ${registryuser} is unable to access docker://${sourcerepo}"
+    fi
+  fi
+
+}
+
+function main() {
+
+  OWD=$(pwd)
+  preflight_auth_integrations
+
+  # Extends the Bash environment with per-tenant configs
+  local globalconfig=$(get_tenant_config)
+  if ((veryverbose)); then
+    stderr "Global config: file:///${_CONFIG}"
+  fi
+  if [ -f "${globalconfig}" ]; then
+    if ((verbose)); then
+      stderr "Global config: file:///${globalconfig}"
+    fi
+    source "${globalconfig}"
+  else
+    stderr "Global config not available"
+  fi
+
+  # Variables file for template engine defaults
+  variablesfile="${TEMPLATES_DIR}/apps/$(get_agave_tenant)/files/config.ini"
+  if [ ! -f ${variablesfile} ]; then
+    warning "Templates config ${variablesfile} not found"
+  else
+    if ((verbose)); then
+      stderr "Templates config: file:///${variablesfile}"
+    fi
+  fi
+
+  # URL-safen project name
+  if [ -z "${projname}" ]; then
+    source "${DIR}/libs/petname.sh"
+    projname="$(petname 2)"
+  else
+    safename=`slugify "${projname}"`
+    if [ "${safename}" != "${projname}" ]
+    then
+      out "Project name '${projname}' transformed to ${safename}"
+      projname="${safename}"
+    fi
+  fi
+  # URL-safen app name (if specified), and
+  # inherit from projname if not
+  if [ -z "${appname}" ]; then
+    appname="${projname}"
+  else
+    safeapp=`slugify "${appname}"`
+    if [ "${safeapp}" != "${appname}" ]
+    then
+      out "App name '${appname}' transformed to ${safeapp}"
+      appname="${safeapp}"
+    fi
+  fi
+  # URL-safen app version(if specified), and
+  # inherit  if not
+  if [ -z "${appversion}" ]; then
+    appversion="0.0.1"
+  else
+    safeversion=`slugify "${appversion}"`
+    if [ "${safeversion}" != "$appversion" ]
+    then
+      out "App version '${appversion}' transformed to ${safeversion}"
+      appversion="${safeversion}"
+    fi
+  fi
+
+  if [ -z "${imagename}" ]; then
+    imagename=${appname}
+  fi
+  if [ -z "${imageversion}" ]; then
+    imagetag=${appversion}
+  fi
+
+  if [ ! -z "$sourcerepo" ]; then
+    # force type to import if user specifies --source-repo
+    projtype="import"
+  fi
+
+  if ((verbose)); then
+    stderr "Starting work..."
+  fi
+
+  preflight_pull
+  new_project_dir
+  app_make_asset_bundle
+  app_generate_ini
+  git_setup_remote
+  git_init_project
+
+  # Pretty print directory tree when all done
+  if [ "$?" == 0 ]; then
+    if ((showtree)); then
+    cd ${OWD}
+    echo -e "\n${projdir}"
+    ${DIR}/libs/tree ${projdir}
+    else
+      out "$(basename $0) ran successfully"
+    fi
+  fi
+
+}
+
+# Handle arguments
+source "$DIR/options.sh"
+[[ $# -eq 0 ]] && set -- "-i"
+
+# Read the options and set stuff
+while [[ $1 = -?* ]]; do
+  case $1 in
+    -h|--help) usage >&2; safe_exit ;;
+    --version) version; disclaimer; safe_exit ;;
+    -i|--interactive) interactive=0 ;;
+    -v|--verbose) verbose=1 ;;
+    -V|--veryverbose) veryverbose=1; verbose=1 ;;
+    -n|--name) shift; projname="$1" ;;
+    -d|--description) shift; projdesc="$1" ;;
+    -a|--app) shift; appname=$1 ;;
+    -r|--version) shift; appversion=$1 ;;
+    -p|--type) shift; projtype=$1 ;;
+    -c|--image) shift; imagename=$1 ;;
+    -t|--tag) shift; imagetag=$1 ;;
+    --source-repo) shift; sourcerepo=$1 ;;
+    --dockerfile)  shift; dockerfile=$1 ;;
+    --no-git) gitrepo=0 ;;
+    --git-remote) gitrepo=1; gitremote=1 ;;
+    --no-open) gitopen=0 ;;
+    --no-pull) dockerpull=0 ;;
+    --no-tree) showtree=0 ;;
+    -U|--username) shift; registryuser=$1 ;;
+    -P|--password) shift; registrypass=$1 ;;
+    -O|--organization) shift; organization=$1 ;;
+    -R|--registry) shift; registryuri=$1 ;;
+    --endopts) shift; break ;;
+    *) die "invalid option: $1" ;;
+  esac
+  shift
+done
+
+args=("$@")
+
+# Run the script logic
+source "$DIR/runner.sh"
+

@@ -1,0 +1,15 @@
+[app]
+name = hello-world
+version = 1.0.0
+bundle = hello-world-1.0.0
+
+[docker]
+username = {{ docker.username }}
+; username = {{ docker.organization }}
+repo = {{ docker.repo }}
+tag = {{ docker.tag }}
+dockerfile = {{ docker.dockerfile }}
+buildopts = {{ docker.buildopts }}
+
+[job]
+test_data_dir =

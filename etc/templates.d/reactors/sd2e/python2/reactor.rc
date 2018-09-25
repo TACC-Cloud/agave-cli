@@ -1,0 +1,15 @@
+# Reactor mandatory settings
+REACTOR_NAME=my_reactor
+
+# Reactor optional settings
+# REACTOR_DESCRIPTION=
+# REACTOR_WORKERS=1
+# REACTOR_PRIVILEGED=0
+# REACTOR_STATELESS=0
+# REACTOR_USE_UID=0
+# REACTOR_ALIAS=aka_reactor_demo
+
+# Docker settings
+DOCKER_HUB_ORG=valid_dockerhub_username
+DOCKER_IMAGE_TAG=my_reactor
+DOCKER_IMAGE_VERSION=0.1.0

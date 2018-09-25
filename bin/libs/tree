@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# bash script to generate tree structure of a directory
+# Pravendra Singh : https://pravj.github.io
+
+DIR=$1
+
+if [ -z "$DIR" ]; then
+    DIR=$(pwd)
+fi
+
+find $DIR ! -path "*.git/*" ! -path "*.DS_Store" \
+    -maxdepth 5 -print  | sed -e "s;${DIR};\.;g;s;[^/]*\/;|__;g;s;__|; |;g"
