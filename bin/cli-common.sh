@@ -404,7 +404,7 @@ function jsonquery {
 # String functions
 
 function slugify {
-  echo "${1}" | tr -c -d [.0-9A-Za-z\-_] | tr ' ' '_' | tr '[:upper:]' '[:lower:]'
+  echo "${1}" | tr ' ' '_' | tr -c -d [.0-9A-Za-z\-_] | tr '[:upper:]' '[:lower:]'
 }
 
 function join {
