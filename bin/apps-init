@@ -25,7 +25,7 @@ authenticated to TACC.cloud Agave and Gitlab as well as Docker Hub.
  Options:
   -n, --name            Project name (generated if not provided)
   -d, --description     Project "free-text description"
-  -p, --type            Project type [ubuntu17]
+  -p, --type            Project type [ubuntu18]
   -a, --app             App name [\$name>]
   -r, --version         App semantic version [0.1.0]
   -c, --image           Container image name [\$name]
@@ -95,7 +95,7 @@ appname=
 appversion="0.1.0"
 projdir=
 bundledir=
-projtype="ubuntu17"
+projtype="ubuntu18"
 sourcerepo=
 # behaviors
 gitrepo=1
@@ -158,7 +158,7 @@ function new_project_dir() {
   # TEMPLATES_DIR defined in apps-deploy-common
   if [ ! -d "${TEMPLATES_DIR}/apps/$(get_agave_tenant)/${projtype}" ] || [ -f "${TEMPLATES_DIR}/apps/$(get_agave_tenant)/${projtype}/placeholder" ]; then
     out "$proj_type is not yet supported. Reverting to default."
-    proj_type="ubuntu17"
+    proj_type="ubuntu18"
   fi
 
   projdir=${projname}
@@ -170,9 +170,9 @@ function new_project_dir() {
   fi
 
 
-  mkdir -p "${projdir}" ; \
-    cp -Rf "${TEMPLATES_DIR}/apps/$(get_agave_tenant)/project/" "${projdir}/" ; \
-    cp -Rf "${TEMPLATES_DIR}/apps/$(get_agave_tenant)/${projtype}/" "${projdir}/"
+  mkdir -p "${projdir}"
+  cp -Rf "${TEMPLATES_DIR}/apps/$(get_agave_tenant)/project/." "${projdir}/"
+  cp -Rf "${TEMPLATES_DIR}/apps/$(get_agave_tenant)/${projtype}/." "${projdir}/"
 
   if ((veryverbose)); then
     ls -alth ${projdir}/
@@ -330,7 +330,7 @@ function app_make_asset_bundle(){
   bundledir="${appname}-${appversion}"
 
   mkdir -p "${projdir}/${bundledir}" && \
-    cp -R "${TEMPLATES_DIR}/apps/$(get_agave_tenant)/bundle/" "${projdir}/${bundledir}/"
+    cp -R "${TEMPLATES_DIR}/apps/$(get_agave_tenant)/bundle/." "${projdir}/${bundledir}/"
 
   if [ "$?" == 0 ]; then
     if ((veryverbose)); then

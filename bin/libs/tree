@@ -9,5 +9,5 @@ if [ -z "$DIR" ]; then
     DIR=$(pwd)
 fi
 
-find $DIR ! -path "*.git/*" ! -path "*.DS_Store" \
-    -maxdepth 5 -print  | sed -e "s;${DIR};\.;g;s;[^/]*\/;|__;g;s;__|; |;g"
+find $DIR -maxdepth 5 ! -path "*.git/*" ! -path "*.DS_Store" -print \
+    | sed -e "s;${DIR};\.;g;s;[^/]*\/;|__;g;s;__|; |;g"

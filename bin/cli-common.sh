@@ -124,11 +124,6 @@ function get_tenant_config(){
     # The CLI ships with a global config that can be used to set globals
     local tenant=$(get_agave_tenant)
 
-    # hard code till I fix this
-    if [[ "${tenant}" == "null" ]] || [ -z "$tenant" ]; then
-      tenant="sd2e"
-    fi
-
     if [ ! -z "$TENANT_GLOBAL_CONFIG_FILE" ]; then
         printf "$TENANT_GLOBAL_CONFIG_FILE"
     else
@@ -404,7 +399,7 @@ function jsonquery {
 # String functions
 
 function slugify {
-  echo "${1}" | tr -c -d [\.0-9A-Za-z\ _-] | tr ' ' '_' | tr '[:upper:]' '[:lower:]'
+  echo "${1}" | tr ' ' '_' | tr -c -d [.0-9A-Za-z\-_] | tr '[:upper:]' '[:lower:]'
 }
 
 function join {
