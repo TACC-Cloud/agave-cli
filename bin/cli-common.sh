@@ -124,11 +124,6 @@ function get_tenant_config(){
     # The CLI ships with a global config that can be used to set globals
     local tenant=$(get_agave_tenant)
 
-    # hard code till I fix this
-    if [[ "${tenant}" == "null" ]] || [ -z "$tenant" ]; then
-      tenant="sd2e"
-    fi
-
     if [ ! -z "$TENANT_GLOBAL_CONFIG_FILE" ]; then
         printf "$TENANT_GLOBAL_CONFIG_FILE"
     else
