@@ -9,9 +9,9 @@ source "$DIR/template-common.sh"
 
 # check_dependencies is permissive, only failing if python and jq are
 #   unavailable, but apps-init & apps-deploy need to be more strict
-if ((! hasgit)) || (( ! hasdocker )); then
-  err "Both Git and Docker must be installed to use $(basename $0)"
-fi
+#if ((! hasgit)) || (( ! hasdocker )); then
+#  err "Both Git and Docker must be installed to use $(basename $0)"
+#fi
 
 function usage() {
 
@@ -384,7 +384,9 @@ function preflight_pull() {
 function main() {
 
   OWD=$(pwd)
-  preflight_auth_integrations
+  # TODO: getting rid of this dependency checking. If an external tool is to be
+  # used the the command that uses it should report directly to the user. 
+  #preflight_auth_integrations
 
   # Extends the Bash environment with per-tenant configs
   local globalconfig=$(get_tenant_config)

@@ -9,9 +9,11 @@ if [[ -z "$DIR" ]]; then
     DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 fi
 
+# TODO: getting rid of this dependency checking. If an external tool is to be
+# used the the command that uses it should report directly to the user. 
 # Command build on apps-deploy leverages multiple external dependencies:
 # Return an error if essentials are missing!
-check_dependencies
+#check_dependencies
 
 cliauthopt=
 if [ ! -z "$auth_token" ]; then
