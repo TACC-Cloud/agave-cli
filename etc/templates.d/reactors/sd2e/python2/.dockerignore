@@ -1,0 +1,16 @@
+secrets.json
+.agave
+.agpy
+*.md
+env/*
+*.pyc
+.DS_Store
+.git
+.env
+.aws
+ida_rsa.*
+*.key
+*.pem
+*.crt
+*.pkcs8
+.docker

@@ -1,0 +1,5 @@
+TACC_GITLAB_URI="https://gitlab.sd2e.org"
+TACC_GITLAB_API="v4"
+DOCKER_REGISTRY_URI="https://index.docker.io"
+DOCKER_REGISTRY_CANARY_REPO=
+AGAVE_APPS_DEFAULT_TYPE="ubuntu17"

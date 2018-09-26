@@ -1,54 +1,26 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 '''Python >=2.7 command line utility for querying JSON using dot notation'''
 
 from __future__ import absolute_import
 from __future__ import print_function
 
 from easydict import EasyDict as edict
-import argparse
-import json
-import re
-import six
-import sys
-
+import json, sys, argparse, re
 from operator import attrgetter
-from six.moves import map
 
 debug = False
 
-
 def parse_args():
-    parser = argparse.ArgumentParser(
-        prog="pydotjson.py",
-        description="Command line utility to query JSON with dot.notation")
+    parser = argparse.ArgumentParser(prog="jsonquery.py", description="A command line utility for querying JSON data using dot notation.")
 
-    parser.add_argument(
-        "-d",
-        "--debug",
-        action='store_true',
-        default=False,
-        help="Show debug information")
-
-    parser.add_argument(
-        "-s",
-        "--stripquotes",
-        action='store_true',
-        default=False,
-        help="Do not quote the query response")
-    parser.add_argument(
-        "-q",
-        "--query",
-        dest="query",
-        type=str,
-        nargs='?',
-        default=None,
-        help="Query in JSON dot notation")
-    parser.add_argument(
-        'input',
-        nargs='?',
-        type=argparse.FileType('r'),
-        default=sys.stdin,
-        help="The JSON file to import or stdin if provided.")
+    parser.add_argument("-d", "--debug", action='store_true', default=False,
+                        help="Show debug information")
+    parser.add_argument("-s", "--stripquotes", action='store_true', default=False,
+                        help="If specified, the resulting response will not be quoted")
+    parser.add_argument("-q", "--query", dest="query", type=str, nargs='?', default=None,
+                        help="The JSON dot notation query.")
+    parser.add_argument('input', nargs='?', type=argparse.FileType('r'), default=sys.stdin,
+                        help="The JSON file to import or stdin if provided.")
 
     args = parser.parse_args()
 
@@ -63,17 +35,14 @@ def main():
     debug = args.debug
 
     if args.query is None:
-
-        print(
-            json.dumps(
-                args.input, sort_keys=True, indent=2, separators=(',', ': ')))
+        print(json.dumps(args.input, sort_keys=True, indent=2, separators=(',', ': ')))
 
     else:
 
         raw = args.input.read()
 
         if args.query.startswith('[]') == 1:
-            # Modify the JSON to be compatible with EasyDict
+            # Modify this json to be compatible with EasyDict
             raw = '{"things":' + raw + '}'
 
         if debug:
@@ -100,35 +69,29 @@ def main():
                 json_path = 'd.' + args.query
 
             json_path = json_path.strip('[]').strip('.')
-            json_path = re.sub(
-                r'\.\[(\d+)\]', '[\1]', json_path, flags=re.IGNORECASE)
-            json_path = re.sub(
-                r'\.\[(.+)\]', '[\'\1\']', json_path, flags=re.IGNORECASE)
-            json_path = re.sub(
-                r'\[\]\.', '.[].', json_path, flags=re.IGNORECASE)
+            json_path = re.sub(r'\.\[(\d+)\]', '[\1]', json_path, flags=re.IGNORECASE)
+            json_path = re.sub(r'\.\[(.+)\]', '[\'\1\']', json_path, flags=re.IGNORECASE)
+            json_path = re.sub(r'\[\]\.', '.[].', json_path, flags=re.IGNORECASE)
             json_path = re.sub(r'\.\.', '.', json_path, flags=re.IGNORECASE)
 
             if json_path.find('[]') != -1:
                 tokens = json_path.split('.[].', 1)
-                if debug:
-                    print('Path query: map(attrgetter({0}), eval({1}))'.format(
-                        tokens[0], tokens[1]))
-                query_result = list(map(attrgetter(tokens[1]), eval(tokens[0])))
+                if debug: print('Resulting path query is: map(attrgetter({0}), eval({1}))'.format(tokens[0], tokens[1]))
+                query_result = map(attrgetter(tokens[1]), eval(tokens[0]))
             else:
                 if debug:
-                    print('Path query is: ' + json_path)
+                    print('Resulting path query is: ' + json_path)
                 query_result = eval(json_path)
 
             # query produced a primary type
-            if isinstance(query_result, six.string_types):
+            if isinstance(query_result, basestring):
 
                 if args.stripquotes is False:
                     print('"{0}"'.format(query_result))
                 else:
                     print(query_result)
 
-            elif isinstance(query_result, int) or \
-                    isinstance(query_result, float):
+            elif isinstance(query_result, int) or isinstance(query_result, float):
 
                 print(query_result)
 
@@ -145,20 +108,14 @@ def main():
                     for r in query_result:
                         print(r)
                 else:
-                    print(
-                        json.dumps(
-                            query_result,
-                            sort_keys=True,
-                            indent=2,
-                            separators=(',', ': ')))
+                    print(json.dumps(query_result, sort_keys=True, indent=2, separators=(',', ': ')))
 
+
+            # result is dict, object, etc
             else:
-                print(
-                    json.dumps(
-                        query_result,
-                        sort_keys=True,
-                        indent=2,
-                        separators=(',', ': ')))
+
+                #if isinstance(query_result, list) || isinstance(query_result, dict) || isinstance(query_result, tuple):
+                print(json.dumps(query_result, sort_keys=True, indent=2, separators=(',', ': ')))
 
 
 if __name__ == "__main__":
@@ -168,4 +125,4 @@ if __name__ == "__main__":
         if debug:
             raise
         else:
-            print("Error: ".format(e))
+            print(e)
