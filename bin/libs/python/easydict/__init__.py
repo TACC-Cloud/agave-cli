@@ -89,6 +89,7 @@ class EasyDict(dict):
     >>> sorted(f.keys())
     ['height', 'power']
     """
+
     def __init__(self, d=None, **kwargs):
         if d is None:
             d = {}
@@ -103,8 +104,9 @@ class EasyDict(dict):
 
     def __setattr__(self, name, value):
         if isinstance(value, (list, tuple)):
-            value = [self.__class__(x)
-                     if isinstance(x, dict) else x for x in value]
+            value = [
+                self.__class__(x) if isinstance(x, dict) else x for x in value
+            ]
         else:
             value = self.__class__(value) if isinstance(value, dict) else value
         super(EasyDict, self).__setattr__(name, value)

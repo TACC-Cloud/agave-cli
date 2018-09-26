@@ -2,36 +2,78 @@
 
 ## What is Agave?
 
-[Agave] is an open Science-as-a-Service platform built by TACC and a thriving user community that empowers users to run code reproducibly, manage data efficiently, collaborate meaningfully, and integrate easily with third-party applications. TACC operates a professionally managed and supported instance of Agave as part of its TACC.cloud Platform.
+Agave is an open platform-as-a-service built by TACC designed for scalable and
+reproducible research that integrates HPC resources which can be managed
+through a single API.
+Agave forms part of a thriving community that empowers users to run code in a
+reproducible manner, manage data efficiently, collaborate meaningfully, and 
+integrate easily with third-party applications. 
+TACC operates a professionally managed and supported instance of Agave as part 
+of its TACC.cloud Platform.
+
 
 ## What is the Agave CLI?
 
-The Agave command line interface (CLI) is a rich, expressive Bash client for interacting with the Agave platform. The CLI empowers you to streamline common interactions with the API and automating repetitive and/or background tasks. Many developers and analysts use it as their primary interface to TACC and other computing environments. By default, this distribution of the CLI is configured to work with TACC-hosted instances of Agave, but it can easily be adapted to support on-premises or other hosted Agave installations. collection of Bash shell scripts allowing you to interact with the Agave Platform. The CLI allows you to streamline common interactions with the API and automating repetitive and/or background tasks.
+The Agave command line interface (CLI) is a client for interacting with the
+Agave platform. 
+The CLI empowers you to streamline common interactions with the API and 
+automating repetitive and/or background tasks. Many developers and analysts 
+use it as their primary interface to TACC and other computing environments. 
+By default, this distribution of the CLI is configured to work with 
+TACC-hosted instances of Agave, but it can easily be adapted to support 
+on-premises or other hosted Agave installations. 
 
 
 ## Installation from source
 
-The Agave CLI has the following dependencies. All must be in your `$PATH`:
+`TACC-Cloud/agave-cli` is, at this point, composed of legacy code writen in Bash, new
+tooling,bug fixes, and rewrites are done in Python 3. The Python scripts make
+use of [TACC/agavepy](https://github.com/TACC/agavepy).
+
+To use `TACC/agave-cli` you'll need the following dependencies. 
 
 	* Bash 3.2.50+
-	* Python 2.7.10+
 	* curl 7.2+ with TLS support
 	* jq 1.5+
+    * Python 3+
+    * TACC/agavepy
 
-To install from source, clone the repository and add its `bin` directory to your `$PATH`.
+To install [TACC/agavepy](https://github.com/TACC/agavepy) we recommend the 
+following steps:
+```shell
+git clone https://github.com/TACC/agavepy
+
+git checkout develop
+
+make install
+```
+
+If you are interested in contributing to `TACC-Cloud/agave-cli` you will also
+need:
+  
+    * Docker (we recommend using the latest stable release of Docker)
+    * Make 4.1+
+    * yapf https://github.com/google/yapf
+
+For development, we recoomend you use the development container for your work.
+
+Once you have these requirements installed, you'll need to clone thos
+repositpry and add it to your `$PATH`.
 
 ```shell
 $ git https://github.com/TACC-Cloud/agave-cli
-$ export PATH=$PWD/agave-cli/bin:$PATH
+$ export PATH=$PATH:$PWD/agave-cli/bin
 ```
 
 To persist the new `$PATH` between logins, run
 ```shell
-echo "export PATH=$PWD/agave-cli/bin:$PATH" >> ~/.bashrc
-
-# or
-echo "export PATH=$PWD/agave-cli/bin:$PATH" >> ~/.bash_profile
+echo "export PATH=$PATH:$PWD/agave-cli/bin" >> ~/.bashrc
 ```
+or
+```shell
+echo "export PATH=$PATH:$PWD/agave-cli/bin" >> ~/.bash_profile
+```
+
 
 ## Getting started
 

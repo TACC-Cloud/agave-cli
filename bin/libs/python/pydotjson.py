@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-# jsonquery.py
-#
-# A Python >=2.7 command line utility for querying JSON data using dot notation.
+'''Python >=2.7 command line utility for querying JSON using dot notation'''
+
+from __future__ import absolute_import
 from __future__ import print_function
 
 from easydict import EasyDict as edict
@@ -35,7 +35,6 @@ def main():
     debug = args.debug
 
     if args.query is None:
-
         print(json.dumps(args.input, sort_keys=True, indent=2, separators=(',', ': ')))
 
     else:
