@@ -5,27 +5,26 @@
 #
 
 import sys
-debug=False
+debug = False
 
 
 def print_table(table):
 
-    zip_table=zip(*table)
-    widths=[max(len(value) for value in row) for row in zip_table]
+    zip_table = zip(*table)
+    widths = [max(len(value) for value in row) for row in zip_table]
 
     for row in table:
-	result="| "
+        result = "| "
         for i in range(len(row)):
-            result=result + row[i].ljust(widths[i]) + " | "
-	print result
-
+            result = result + row[i].ljust(widths[i]) + " | "
+        print result
 
 
 def main():
 
-    last=""
-    row=[]
-    data=[]
+    last = ""
+    row = []
+    data = []
 
     sys.argv.pop(0)
     sys.argv.append("|")
@@ -38,18 +37,17 @@ def main():
         if (value == "|"):
             if (value == last):
                 data.append(row)
-                row=[]
+                row = []
         else:
             if (last != "|"):
-                value=last + " " + value
-                row[-1]=value
+                value = last + " " + value
+                row[-1] = value
             else:
                 row.append(value)
-        last=value
+        last = value
 
     # Control output format with env variable here
     print_table(data)
-
 
 
 if __name__ == "__main__":
@@ -60,4 +58,3 @@ if __name__ == "__main__":
             raise
         else:
             print e
-

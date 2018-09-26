@@ -22,6 +22,7 @@ AGAVE_CACHE_DIR = os.environ.get('AGAVE_CACHE_DIR',
                                  os.path.expanduser("~/.agave"))
 AGAVE_CRED_STORE = 'current'
 
+
 def main():
 
     # get baseurl from credential store
