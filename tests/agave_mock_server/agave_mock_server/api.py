@@ -21,7 +21,7 @@ api.add_resource(AgaveFilesListings,
     "/files/v2/listings/system/<string:system_id>/<string:file_path>",
     "/files/v2/listings/system/<string:system_id>//<string:file_path>")
 api.add_resource(AgavePostits, "/postits/v2/")
-api.add_resource(AgaveTenants, "/tenants")
+api.add_resource(AgaveTenants, "/tenants/")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", ssl_context="adhoc")
