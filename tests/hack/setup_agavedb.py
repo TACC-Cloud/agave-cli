@@ -7,7 +7,7 @@ import time
 
 agavedb = {
     "tenantid": "sd2e",
-    "baseurl": "https://localhost:5000",
+    "baseurl": "http://localhost:5000",
     "devurl": "",
     "apisecret": "xxx",
     "apikey": "xxx",
