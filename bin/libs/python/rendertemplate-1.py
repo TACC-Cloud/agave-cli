@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 '''
 usage: rendertemplate.py --variables file.ini template output
 
@@ -24,6 +23,7 @@ from agavepy.agave import Agave
 
 debug = False
 
+
 # this should be its own module
 def get_date_time_facts():
     '''Return a dictonary of handy date and time values'''
@@ -46,7 +46,8 @@ def get_date_time_facts():
         date_time_facts['epoch'] = str(int(time.time()))
     date_time_facts['date'] = now.strftime('%Y-%m-%d')
     date_time_facts['time'] = now.strftime('%H:%M:%S')
-    date_time_facts['iso8601_micro'] = now.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    date_time_facts['iso8601_micro'] = now.utcnow().strftime(
+        "%Y-%m-%dT%H:%M:%S.%fZ")
     date_time_facts['iso8601'] = now.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     date_time_facts['iso8601_basic'] = now.strftime("%Y%m%dT%H%M%S%f")
     date_time_facts['iso8601_basic_short'] = now.strftime("%Y%m%dT%H%M%S")
@@ -79,12 +80,14 @@ def flatten(sourcedict, replacelevel=None):
 
 def get_agave_vars(ag):
     '''Return a dict of essential Agave-related facts'''
-    agave_dict = {'username': 'taco',
-                  'full_name': 'TACO Bot',
-                  'def_public_storagesystem': '',
-                  'def_public_executionsystem': '',
-                  'def_private_executionsystem': '',
-                  'def_private_storagesystem': ''}
+    agave_dict = {
+        'username': 'taco',
+        'full_name': 'TACO Bot',
+        'def_public_storagesystem': '',
+        'def_public_executionsystem': '',
+        'def_private_executionsystem': '',
+        'def_private_storagesystem': ''
+    }
     try:
         # user profile
         profile = ag.profiles.get()
@@ -92,27 +95,27 @@ def get_agave_vars(ag):
             agave_dict[k] = profile.get(k, '')
         agave_dict['full_name'] = "{} {}".format(
             profile.get('first_name', ''), profile.get('last_name', ''))
-        # can be consolidated into a single call to 'default=True' and 
+        # can be consolidated into a single call to 'default=True' and
         # smart parsing results
         # default public hpc
-        def_pubexec = ag.systems.list(type='execution', default=True,
-                                      public=True, limit=1)
+        def_pubexec = ag.systems.list(
+            type='execution', default=True, public=True, limit=1)
         if len(def_pubexec) > 0:
             agave_dict['def_public_executionsystem'] = def_pubexec[0].get('id')
         # default pub store
-        def_pubstor = ag.systems.list(type='storage', default=True,
-                                      public=True, limit=1)
+        def_pubstor = ag.systems.list(
+            type='storage', default=True, public=True, limit=1)
         if len(def_pubstor) > 0:
             agave_dict['def_public_storagesystem'] = def_pubstor[0].get('id')
 
         # default private hpc
-        def_prvexec = ag.systems.list(type='execution', default=True,
-                                      public=False, limit=1)
+        def_prvexec = ag.systems.list(
+            type='execution', default=True, public=False, limit=1)
         if len(def_prvexec) > 0:
             agave_dict['def_private_executionsystem'] = def_prvexec[0].get('id')
         # default private store
-        def_prvstor = ag.systems.list(type='storage', default=True,
-                                      public=False, limit=1)
+        def_prvstor = ag.systems.list(
+            type='storage', default=True, public=False, limit=1)
         if len(def_prvstor) > 0:
             agave_dict['def_private_storagesystem'] = def_prvstor[0].get('id')
 
@@ -159,42 +162,51 @@ def get_docker_vars(context):
 
 def parse_args():
     '''Parse command line arguments'''
-    parser = argparse.ArgumentParser(prog="rendertemplate.py",
-                                     description="Jinja-like template rendering")
+    parser = argparse.ArgumentParser(
+        prog="rendertemplate.py", description="Jinja-like template rendering")
 
-    parser.add_argument("-d", "--debug",
-                        action='store_true', default=False,
-                        help="Show debugging information")
+    parser.add_argument(
+        "-d",
+        "--debug",
+        action='store_true',
+        default=False,
+        help="Show debugging information")
 
-    parser.add_argument("--no-empty",
-                        action='store_true',
-                        dest="noempty",
-                        default=False,
-                        help="Error on any undefined values for variables")
+    parser.add_argument(
+        "--no-empty",
+        action='store_true',
+        dest="noempty",
+        default=False,
+        help="Error on any undefined values for variables")
 
-    parser.add_argument("--blank-empty",
-                        action='store_true',
-                        dest="blankempty",
-                        default=False,
-                        help="Remove unmatched variables from output")
+    parser.add_argument(
+        "--blank-empty",
+        action='store_true',
+        dest="blankempty",
+        default=False,
+        help="Remove unmatched variables from output")
 
-    parser.add_argument("-E", "--variables",
-                        nargs='?',
-                        type=str,
-                        default=None,
-                        help="Variables file (ini format)")
+    parser.add_argument(
+        "-E",
+        "--variables",
+        nargs='?',
+        type=str,
+        default=None,
+        help="Variables file (ini format)")
 
-    parser.add_argument('input',
-                        nargs='?',
-                        type=argparse.FileType('r'),
-                        default=sys.stdin,
-                        help="Source template (STDIN)")
+    parser.add_argument(
+        'input',
+        nargs='?',
+        type=argparse.FileType('r'),
+        default=sys.stdin,
+        help="Source template (STDIN)")
 
-    parser.add_argument("output",
-                        nargs='?',
-                        type=argparse.FileType('w'),
-                        default=sys.stdout,
-                        help="Destination (STDOUT)")
+    parser.add_argument(
+        "output",
+        nargs='?',
+        type=argparse.FileType('w'),
+        default=sys.stdout,
+        help="Destination (STDOUT)")
 
     args = parser.parse_args()
 
@@ -236,7 +248,8 @@ def main():
             for k in config[s]:
                 if s != 'DEFAULT':
                     template_var_key = u'.'.join(
-                        [s.decode("utf-8"), k.decode("utf-8")])
+                        [s.decode("utf-8"),
+                         k.decode("utf-8")])
                 else:
                     template_var_key = k.decode("utf-8")
                 config_dict[template_var_key] = config[s][k]
