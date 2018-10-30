@@ -26,8 +26,9 @@ parser.add_argument(
     default=os.path.expanduser("~/.agave"),
     help="Directory to save confiurations in.")
 
-parser.add_argument("--tenants", 
-    default="https://agaveapi.co/tenants", 
+parser.add_argument(
+    "--tenants",
+    default="https://agaveapi.co/tenants",
     help="URL with tenants listings.")
 
 parser.add_argument("-t", "--tenant", help="Tenant id for session.")

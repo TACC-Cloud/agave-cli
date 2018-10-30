@@ -19,6 +19,7 @@ RUN apt-get update -y && apt-get install -yq git bash-completion \
     && cd ../ \
     && rm -r Python-${PYVERSION}.tgz Python-${PYVERSION} \
     && pip install sphinx \
+    && pip install sphinx-rtd-theme \
     && pip install pytest \
     && pip install yapf \
     && pip2.7 install mock

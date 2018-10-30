@@ -13,10 +13,8 @@ DOCKER_FLAGS := docker run --rm -it $(DOCKER_MOUNT)
 DOCKER_RUN_AGAVECLI := $(DOCKER_FLAGS) "$(DOCKER_IMAGE)"
 
 
-.PHONY: authors build format shell tests tests-setup clean
+.PHONY: authors build docs format shell tests tests-setup clean
 
-print:
-	echo $(PY_SRC)
 
 authors:
 	git log --format='%aN <%aE>' | sort -u --ignore-case | grep -v 'users.noreply.github.com' > AUTHORS.txt && \
@@ -26,6 +24,10 @@ authors:
 
 build:
 	docker build $(DOCKER_BUILD_ARGS) -f "$(DOCKERFILE)" -t "$(DOCKER_IMAGE)" .
+
+
+docs:
+	make -C docs html
 
 
 format: $(PY_SRC)    ## Format source code.
@@ -48,6 +50,7 @@ tests-setup:
 
 
 clean:
+	make -C docs clean
 	rm -rf tests/tests_results.tap
 	rm -rf tests/agave_mock_server.log
 	rm -rf tests/agave_mock_server/agave_mock_server.egg-info
