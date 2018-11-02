@@ -29,6 +29,7 @@ Agave-CLI is powered by `AgavePy <https://github.com/TACC/agavepy>`_.
    :caption: Using AgavePy                                                      
                                                                                 
    docsite/authentication/index
+   docsite/files/index
 
 
 Indices and tables
