@@ -77,6 +77,9 @@ if __name__=="__main__":
     config["current"]["client-name"]["created_at"] = now
     config["current"]["client-name"]["expires_at"] = time.strftime(
         "%a %b %-d %H:%M:%S %Z %Y", time.localtime(expires_at))
+    config["sessions"]["sd2e"]["xxx"]["client-name"]["created_at"] = now
+    config["sessions"]["sd2e"]["xxx"]["client-name"]["expires_at"] = time.strftime(
+        "%a %b %-d %H:%M:%S %Z %Y", time.localtime(expires_at))
 
     # Write agavedb.
     agave_path = "{}/current".format(agave_dir)
