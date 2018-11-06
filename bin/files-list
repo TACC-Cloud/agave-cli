@@ -18,19 +18,21 @@ import os
 import sys
 from agavepy.agave import Agave
 
-parser = argparse.ArgumentParser(description="List files on a remote storage system") 
-                                                                                
-parser.add_argument(                                                            
-    "-c",                                                                       
-    "--cachedir",                                                               
-    default=os.path.expanduser("~/.agave"),                                     
+parser = argparse.ArgumentParser(
+    description="List files on a remote storage system")
+
+parser.add_argument(
+    "-c",
+    "--cachedir",
+    default=os.path.expanduser("~/.agave"),
     help="Directory in which confiurations are saved in.")
 
-parser.add_argument("-l", "--long", action="store_true", help="Use long listing format.")
+parser.add_argument(
+    "-l", "--long", action="store_true", help="Use long listing format.")
 
 parser.add_argument("filepath", help="Path to list")
 
-if __name__=="__main__":
+if __name__ == "__main__":
     args = parser.parse_args()
 
     agave = Agave()
@@ -41,7 +43,7 @@ if __name__=="__main__":
     config_file = "{}/config.json".format(cache_dir)
     # Check if there is a session already saved.
     if os.path.exists(config_file):
-        agave.load_configs()
+        agave.load_configs(cache_dir=cache_dir)
     else:
         print("You need to initiate a session first. Use auth-sessions-init")
         sys.exit(1)
