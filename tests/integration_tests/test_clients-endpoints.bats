@@ -2,14 +2,12 @@
 
 @test "clients-list lists all clients for a user" {
 /usr/bin/expect <(cat <<EOF
-    spawn clients-list -V 
-    expect "API apiusername :"
-    send "username\n"
+    spawn clients-list
     expect "API password:"
     send "password\n"
     interact
 EOF
-) | grep "success"
+)
     [ "$?" -eq 0 ]
 }
 
