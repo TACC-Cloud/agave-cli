@@ -49,8 +49,8 @@ You can also do this by specifying the tenant, username, and client flags:
     API password:
 
 
-Restring a session
-##################
+Restoring a session
+###################
 
 If you have already have a ``config.json`` file created by
 ``auth-session-init`` then you can restore any of the sessions saved using the
@@ -59,4 +59,21 @@ For example, to restore the first session we created:
 
 .. code-block:: console
 
-    $ auth-session-init -t sd2e -u your-username -N 31d15159d307
+    $ auth-session-init -t sd2e -u your-username -N client-name
+
+
+
+Listing oauth clients
+#####################
+
+To find clients you have previously generated, you can use the ``clients-list``
+command:
+
+.. code-block:: console
+
+    $ clients-list 
+    API password:
+    NAME                         DESCRIPTION
+    agave-cli                    Sample description for Oauth client
+    container                    test container
+    testclient                   testing agavecli
