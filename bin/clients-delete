@@ -1,135 +1,47 @@
-#!/bin/bash
-#
-# clients-delete
-#
-# author: opensource@tacc.cloud
-#
-# This script is part of the Agave API command line interface (CLI).
-# It deletes a registered system. User must have admin privileges
-# on the system to perform this operation. Once deleted, the system
-# cannot be recovered and all registered applications on that system
-# will be disabled
-#
+#!/usr/bin/env python
+"""
+    Usage: clients-delete [flags] [client name]
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+Deletes an oauth client.
 
-source "$DIR/common.sh"
-interactive=1
+Flags:
+      -c, --cachedir    Directory where confiurations are saved in.
+"""
+from __future__ import print_function
+import argparse
+import os
+import sys
+from agavepy.agave import Agave
 
-# Script logic -- TOUCH THIS {{{
+parser = argparse.ArgumentParser(description="Delete an oauth client")
 
-# A list of all variables to prompt in interactive mode. These variables HAVE
-# to be named exactly as the longname option definition in usage().
-interactive_opts=(apiusername apipassword)
+parser.add_argument(
+    "-c",
+    "--cachedir",
+    default=os.path.expanduser("~/.agave"),
+    help="Directory in which confiurations are saved in.")
 
-# Print usage
-usage() {
-  echo -n "$(basename $0) [OPTION]... [CLIENT_NAME]
+parser.add_argument(
+    "name", action="store", help="Name of oauth client to delete")
 
-Deletes a client application and associated API keys.
+if __name__ == "__main__":
+    args = parser.parse_args()
 
- Options:
-  -u, --apiusername    API apiusername
-  -p, --apipassword    API apipassword
-  -H, --hosturl        URL of the service
-  -d, --development    Run in dev mode using default dev server
-  -f, --force          Skip all user interaction
-  -i, --interactive    Prompt for values
-  -q, --quiet          Quiet (no output)
-  -v, --verbose        Verbose output
-  -V, --veryverbose    Very verbose output
-  -h, --help           Display this help and exit
-      --version        Output version information and exit
-"
-}
+    agave = Agave()
+    cache_dir = args.cachedir
+    client_name = args.name
 
-##################################################################
-##################################################################
-#						Begin Script Logic						 #
-##################################################################
-##################################################################
+    config_file = "{}/config.json".format(cache_dir)
+    # Check if there is a session already saved.
+    if os.path.exists(config_file):
+        agave.load_configs(cache_dir=cache_dir)
+    else:
+        print("You need to initiate a session first. Use auth-sessions-init")
+        sys.exit(1)
 
-source "$DIR/clients-common.sh"
-
-main() {
-	#echo -n
-	#set -x
-
-	if [ -z "$args" ]; then
-		err "Please specify a valid client to delete"
-	else
-
-		cmd="curl -sku \"${apiusername}:xxxx\" -X DELETE '$hosturl$args?pretty=true'"
-
-		if ((veryverbose)); then
-			[ "$piped" -eq 0 ] && log "Calling $cmd"
-		fi
-
-		response=`curl -sku "${apiusername}:${apipassword}" -X DELETE "$hosturl$args?pretty=true"`
-
-		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-			result=$(format_api_json "$response")
-			success "$result"
-		else
-			errorresponse=$(jsonquery "$response" "message")
-			err "$errorresponse"
-		fi
-	fi
-}
-
-format_api_json() {
-
-	if ((veryverbose)); then
-		json_prettyify "${1}"
-	elif [[ $verbose -eq 1 ]]; then
-		result=$(jsonquery "$1" "result" 1)
-		json_prettyify "${result}"
-	else
-		echo "Successfully deleted client $args"
-	fi
-}
-
-##################################################################
-##################################################################
-#						End Script Logic						 #
-##################################################################
-##################################################################
-
-# }}}
-
-# Parse command line options
-source "$DIR/options.sh"
-
-
-# Main loop {{{
-
-# Print help if no arguments were passed.
-[[ $# -eq 0 ]] && set -- "-i"
-
-# Read the options and set stuff
-while [[ $1 = -?* ]]; do
-  case $1 in
-    -h|--help) usage >&2; safe_exit ;;
-    --version) version; copyright; disclaimer; safe_exit ;;
-    -u|--apiusername) shift; apiusername=$1 ;;
-    -p|--apipassword) shift; apipassword=$1;;
-    -H|--hosturl) shift; hosturl=$1;;
-  	-d|--development) development=1 ;;
-    -v|--verbose) verbose=1 ;;
-    -V|--veryverbose) veryverbose=1; verbose=1 ;;
-    -q|--quiet) quiet=1 ;;
-    -i|--interactive) interactive=1 ;;
-    -f|--force) force=1 ;;
-    --endopts) shift; break ;;
-    *) die "invalid option: $1" ;;
-  esac
-  shift
-done
-
-# Store the remaining part as arguments.
-args+=("$@")
-
-# }}}
-
-# Run the script logic
-source "$DIR/runner.sh"
+    # List clients.
+    try:
+        agave.clients_delete(client_name)
+    except Exception as err:
+        print(err)
+        sys.exit(1)

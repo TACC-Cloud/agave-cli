@@ -42,8 +42,8 @@ parser.add_argument(
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    cache_dir   = args.cachedir
-    source      = args.source
+    cache_dir = args.cachedir
+    source = args.source
     destination = args.destination
 
     agave = Agave()
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     agave.refresh_tokens()
 
     # Parse source and destination arguments.
-    source_remote      = False
+    source_remote = False
     destination_remote = False
     if source.startswith("agave://"):
         source_remote = True
