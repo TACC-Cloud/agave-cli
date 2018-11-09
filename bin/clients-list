@@ -13,29 +13,32 @@ import os
 import sys
 from agavepy.agave import Agave
 
-
 parser = argparse.ArgumentParser(
     description="List all oauth clients regisered to the user")
 
-parser.add_argument( 
-    "-c",                                                                       
-    "--cachedir",                                                               
-    default=os.path.expanduser("~/.agave"),                                     
+parser.add_argument(
+    "-c",
+    "--cachedir",
+    default=os.path.expanduser("~/.agave"),
     help="Directory in which confiurations are saved in.")
 
-if __name__ == "__main__":                                                      
-    args = parser.parse_args()                                                  
-                                                                                
-    agave = Agave()                                                             
-    cache_dir = args.cachedir                                                   
-                                                                                
-    config_file = "{}/config.json".format(cache_dir)                            
-    # Check if there is a session already saved.                                
-    if os.path.exists(config_file):                                             
-        agave.load_configs(cache_dir=cache_dir)                                 
-    else:                                                                       
-        print("You need to initiate a session first. Use auth-sessions-init")   
-        sys.exit(1)                                                             
-                                                                                
-    # List clients.                                              
-    agave.clients_list()
+if __name__ == "__main__":
+    args = parser.parse_args()
+
+    agave = Agave()
+    cache_dir = args.cachedir
+
+    config_file = "{}/config.json".format(cache_dir)
+    # Check if there is a session already saved.
+    if os.path.exists(config_file):
+        agave.load_configs(cache_dir=cache_dir)
+    else:
+        print("You need to initiate a session first. Use auth-sessions-init")
+        sys.exit(1)
+
+    # List clients.
+    try:
+        agave.clients_list()
+    except Exception as err:
+        print(err)
+        sys.exit(1)

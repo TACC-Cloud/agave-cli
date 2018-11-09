@@ -26,13 +26,11 @@ EOF
 
 @test "clients-delete 'name' deletes an Oauth client" {
 /usr/bin/expect <(cat <<EOF
-    spawn clients-delete -V "client_name"
-    expect "API apiusername :"
-    send "username\n"
+    spawn clients-delete "client_name"
     expect "API password:"
     send "password\n"
     interact
 EOF
-) | grep "success"
+)
     [ "$?" -eq 0 ]
 }

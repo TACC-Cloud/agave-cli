@@ -63,8 +63,8 @@ For example, to restore the first session we created:
 
 
 
-Listing oauth clients
-#####################
+Listing and deleting oauth clients
+##################################
 
 To find clients you have previously generated, you can use the ``clients-list``
 command:
@@ -77,3 +77,11 @@ command:
     agave-cli                    Sample description for Oauth client
     container                    test container
     testclient                   testing agavecli
+
+
+If needed, you can delete an oauth client as such:
+
+.. code-block:: console
+
+    $ clients-delete testclient
+    API password:
