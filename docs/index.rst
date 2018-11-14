@@ -31,6 +31,12 @@ Agave-CLI is powered by `AgavePy <https://github.com/TACC/agavepy>`_.
    docsite/authentication/index
    docsite/files/index
 
+.. toctree::
+    :maxdepth: 1
+    :caption: Advanced Usage
+
+    docsite/client_management/index
+
 
 Indices and tables
 ==================
