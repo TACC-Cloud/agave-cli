@@ -34,3 +34,14 @@ EOF
 )
     [ "$?" -eq 0 ]
 }
+
+@test "clients-subscriptions-update subscribes the current client to an api" {
+/usr/bin/expect <(cat <<EOF
+    spawn clients-subscriptions-update -a PublicKeys -r v2 -p admin
+    expect "API password:"
+    send "password\n"
+    interact
+EOF
+)
+    [ "$?" -eq 0 ]
+}
