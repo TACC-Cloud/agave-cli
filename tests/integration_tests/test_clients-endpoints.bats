@@ -45,3 +45,14 @@ EOF
 )
     [ "$?" -eq 0 ]
 }
+
+@test "clients-subscriptions-list lists the client's subscriptions" {
+/usr/bin/expect <(cat <<EOF
+    spawn clients-subscriptions-list
+    expect "API password:"
+    send "password\n"
+    interact
+EOF
+)
+    [ "$?" -eq 0 ]
+}
