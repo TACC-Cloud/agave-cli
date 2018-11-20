@@ -24,8 +24,8 @@
 }
 
 
-@test "Check that files-delete deletes a file" {
-    run files-delete -S system somefile 
+@test "Check that files-rm deletes a file" {
+    run files-rm agave://system/somefile 
     [ $status = 0 ]
 }
 

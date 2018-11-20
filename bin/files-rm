@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+"""
+    Usage: files-rm [flags] [agave://path]
+
+Deletes a remote file or folder. If no system is specified, your default storage
+system will be used. By specifying a system, the path given will be resolved on
+that remote system. The path must be specified as an agave uri - must be 
+prefixed by 'agave://'.
+
+
+Flags:
+    -c, --cachedir    Directory where confiurations are saved in.
+    -h, --help        Help
+"""
+from __future__ import print_function
+import argparse
+import os
+import sys
+from agavepy.agave import Agave
+
+parser = argparse.ArgumentParser(
+    description="Remove files on a remote storage system")
+
+parser.add_argument(
+    "-c",
+    "--cachedir",
+    default=os.path.expanduser("~/.agave"),
+    help="Directory in which confiurations are saved in.")
+
+parser.add_argument("filepath", help="Path to file to remove")
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    cache_dir = args.cachedir
+    uri = args.filepath
+
+    agave = Agave()
+
+    config_file = "{}/config.json".format(cache_dir)
+    # Check if there is a session already saved.
+    if os.path.exists(config_file):
+        agave.load_configs(cache_dir=cache_dir)
+    else:
+        print("You need to initiate a session first. Use auth-sessions-init")
+        sys.exit(1)
+
+    # Refresh tokens if necessary.
+    agave.refresh_tokens()
+
+    # Obtain uri - remove the prefix 'agave://'.
+    uri = uri[len("agave://"):]
+
+    # List files on remote system.
+    agave.files_delete(uri)

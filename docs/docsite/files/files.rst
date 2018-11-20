@@ -37,6 +37,20 @@ The ``-l`` flag provides a long listing (similar to ``ls -l`` in Linux).
     -rw- 22471 Jul  7 20:42 SP1.fq 
     drwx  4096 Oct 31 14:15 tests/
 
+
+Deleting files or folders
+#########################
+
+To remove a folder, use the ``files-rm`` command:
+
+.. code-block:: console
+
+    $ files-rm agave://data-tacc-work-username/sd2e-data/
+
+**WARNING**: The ``files-rm`` command will delete folders with or without
+contents.
+
+
 Uploading and downloading via the CLI
 #####################################
 
