@@ -51,6 +51,22 @@ To remove a folder, use the ``files-rm`` command:
 contents.
 
 
+Moving or renaming files and directories
+########################################
+
+Similarly, if you want to move (rename) a file or directory you can use
+``files-mv``:
+
+.. code-block:: console
+
+    $ files-mv agave://data-tacc-work-username/sd2e-data/renamed.txt \
+        agave://data-tacc-work-username/sd2e-data/renamedfolder/renamed.txt
+
+``files-md`` behaves similar to the GNU/Linux command ``mv``. The first
+argument most be the file you want to move and the second its new location or
+name.
+
+
 Uploading and downloading via the CLI
 #####################################
 

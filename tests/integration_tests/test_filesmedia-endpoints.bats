@@ -42,7 +42,7 @@
 }
 
 
-@test "Check that files-move moves a file to a new path" {
-    run files-move -S systemid -D new/dest.ext dest.ext
+@test "Check that files-mv moves a file to a new path" {
+    run files-mv agave://systemid/dest.ext agave://systemid/new/dest.ext
     [ $status = 0 ]
 }
