@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 """
-    Usage: files-cp [Flags] [agave://PATH]
+    Usage: files-cp [Flags] agave://source agave://destination
 
 Copy files to a remote system, from a remote system, and in remote systems. 
 The path must be specified as an agave uri - must be prefixed by 'agave://'.
 
     Example:
-                files-cp file.ext agave://systemId/path/file.ext
+        files-cp file.ext agave://systemId/path/file.ext
 
-                files-cp agave://systemId/path/to/file.ext local.ext
+        files-cp agave://systemId/path/to/file.ext local.ext
 
-                files-cp agave://systemId/file.ext agave://systemId/new.ext
+        files-cp agave://systemId/file.ext agave://systemId/new.ext
 
- Flags:
-  -c, --cachedir    Directory where confiurations are saved in.
+Flags:
+    -c, --cachedir    Directory where confiurations are saved in
 """
 from __future__ import print_function
 import argparse
