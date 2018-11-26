@@ -15,6 +15,7 @@ api.add_resource(AgaveApps, "/apps/v2")
 api.add_resource(AgaveClients, "/clients/v2/",
     "/clients/v2/<string:client_name>")
 api.add_resource(AgaveFilesMedia,
+    "/files/v2/media/system/<string:system_id>",
     "/files/v2/media/system/<string:system_id>/<string:file_path>",
     "/files/v2/media/system/<string:system_id>//<string:file_path>")
 api.add_resource(AgaveFilesListings,
