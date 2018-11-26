@@ -31,14 +31,8 @@
 
 
 @test "Check that files-mkdir creates a new directory" {
-    run files-mkdir -S system -N name /path
+    run files-mkdir agave://system/path/name
     [ $status = 0 ]
-    
-    echo "$output" | grep "Successfully created folder"
-    [ "$?" -eq 0 ]
-
-    files-mkdir -V -S system -N name /path | grep "success"
-    [ "$?" -eq 0 ]
 }
 
 

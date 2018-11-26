@@ -1,138 +1,52 @@
-#!/bin/bash
-#
-# files-mkdir
-#
-# author: opensource@tacc.cloud
-#
-# This script is part of the Agave API command line interface (CLI).
-# It creates a new folder on a remote system.
-#
-
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-source "$DIR/common.sh"
-
-# Script logic -- TOUCH THIS {{{
-
-# A list of all variables to prompt in interactive mode. These variables HAVE
-# to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey, name)
-
-# Print usage
-usage() {
-  echo -n "$(basename $0) [OPTION]... [PATH]
+#!/usr/bin/env python
+"""
+    Usage: files-mkdir [flags] agave://system/dest/new_dir  
 
 Create a folder on a remote system. If no system is specified, your default storage
 system will be used. By specifying a system, the path given will be resolved
 on that remote system. Note that the system id, not hostname must be given.
+The path must be specified as an agave uri - must be prefixed by 'agave://'.
 
- Options:
-  -z, --access_token    Access token
-  -S, --systemId        Specify the system id
-  -N, --name            Name of the new folder
-      --filter          Comma separated list of fields to return in the response
-  -H, --hosturl         URL of the service
-  -d, --development     Run in dev mode using default dev server
-  -f, --force           Skip all user interaction
-  -i, --interactive     Prompt for values
-  -q, --quiet           Quiet (no output)
-  -v, --verbose         Verbose output
-  -V, --veryverbose     Very verbose output
-  -h, --help            Display this help and exit
-      --version         Output version information and exit
-"
-}
+Flags:
+    -h, --help            Display this help and exit
+"""
+from __future__ import print_function
+import argparse
+import os
+import sys
+from agavepy.agave import Agave
 
-##################################################################
-##################################################################
-#						Begin Script Logic						 #
-##################################################################
-##################################################################
+parser = argparse.ArgumentParser(
+    description="Make directories on remote systems")
 
-source "$DIR/files-common.sh"
+parser.add_argument(
+    "-c",
+    "--cachedir",
+    default=os.path.expanduser("~/.agave"),
+    help="Directory in which confiurations are saved in.")
 
-main() {
-	#echo -n
-	#set -x
+parser.add_argument(
+    "destination",
+    action="store",
+    help="Directory to make (prefix with 'agave://')")
 
-	if [ -n "$systemId" ]; then
-		hosturl="${hosturl}media/system/${systemId}/"
-	else
-		hosturl="${hosturl}media/"
-	fi
+if __name__ == "__main__":
+    args = parser.parse_args()
+    cache_dir = args.cachedir
+    destination = args.destination
 
-	cmd="curl -sk -H \"${authheader}\" -X PUT -d \"action=mkdir&path=${name}\" '${hosturl}${args}?pretty=true'"
+    agave = Agave()
 
-	if ((veryverbose)); then
-			[ "$piped" -eq 0 ] && log "Calling $cmd"
-		fi
+    config_file = "{}/config.json".format(cache_dir)
+    # Check if there is a session already saved.
+    if os.path.exists(config_file):
+        agave.load_configs(cache_dir=cache_dir)
+    else:
+        print("You need to initiate a session first. Use auth-sessions-init")
+        sys.exit(1)
 
-	response=`curl -sk -H "${authheader}" -X PUT -d "action=mkdir&path=${name}" "${hosturl}${args}?pretty=true"`
+    # Refresh tokens if necessary.
+    agave.refresh_tokens()
 
-	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-		result=$(format_api_json "$response")
-		success "$result"
-	else
-		errorresponse=$(jsonquery "$response" "message")
-		err "$errorresponse"
-	fi
-}
-
-format_api_json() {
-
-	if ((veryverbose)); then
-		echo "$1"
-	elif [[ $verbose -eq 1 ]]; then
-		result=$(jsonquery "$1" "result" 1)
-		json_prettyify "${result}"
-	else
-        newfolder=${path%/}${name}
-        echo "Successfully created folder ${newfolder}"
-	fi
-}
-
-##################################################################
-##################################################################
-#						End Script Logic						 #
-##################################################################
-##################################################################
-
-# }}}
-
-# Parse command line options
-source "$DIR/options.sh"
-
-# Main loop {{{
-
-# Print help if no arguments were passed.
-#[[ $# -eq 0 ]] && set -- "--help"
-
-# Read the options and set stuff
-while [[ $1 = -?* ]]; do
-  case $1 in
-    -h|--help) usage >&2; safe_exit ;;
-    --version) version; copyright; disclaimer; safe_exit ;;
-    -z|--access_token) shift; access_token=$1 ;;
-    -S|--systemId) shift; systemId=$1 ;;
-    -N|--name) shift; name=$1 ;;
-    --filter) shift; responsefilter=$1 ;;
-    -H|--hosturl) shift; hosturl=$1;;
-  	-d|--development) development=1 ;;
-    -v|--verbose) verbose=1 ;;
-    -V|--veryverbose) veryverbose=1; verbose=1 ;;
-    -q|--quiet) quiet=1 ;;
-    -i|--interactive) interactive=1 ;;
-    -f|--force) force=1 ;;
-    --endopts) shift; break ;;
-    *) die "invalid option: $1" ;;
-  esac
-  shift
-done
-
-# Store the remaining part as arguments.
-args+=("$@")
-
-# }}}
-
-# Run the script logic
-source "$DIR/runner.sh"
+    destination = destination[len("agave://"):]
+    agave.files_mkdir(destination)

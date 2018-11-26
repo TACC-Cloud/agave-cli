@@ -75,7 +75,7 @@ class AgaveFilesMedia(Resource):
         return "{0}/{1}".format(system_id, file_path)
 
 
-    def post(self, system_id, file_path):
+    def post(self, system_id, file_path=None):
         """ Test files-upload cli command
 
         curl -# -k -H "Authorization: Bearer xxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
@@ -113,7 +113,7 @@ class AgaveFilesMedia(Resource):
         return jsonify(json.loads(response)) 
 
 
-    def put(self, system_id, file_path):
+    def put(self, system_id, file_path=None):
         """ Test files-copy, files-mkdir, and files-move commands
 
         files-copy will make the following request:
@@ -140,11 +140,6 @@ class AgaveFilesMedia(Resource):
         if resp:
             return resp
 
-        # Test file/dir path.
-        resp = basic_file_path_checks(file_path)
-        if resp:
-            return resp
-
         # Test form data fields "action" and "path".
         new_path = request.form.get("path")
         if new_path is None or new_path == "":
@@ -161,6 +156,7 @@ class AgaveFilesMedia(Resource):
             response = response.replace("{NEW_FILE}", new_path)
             response = jsonify(json.loads(response))
         elif action == "mkdir":
+            if file_path is None: file_path = ""
             response = json.dumps(files_mkdir_response)
             response = response.replace("{URL_ROOT}", request.url_root)
             response = response.replace("{REMOTEPATH}", file_path)

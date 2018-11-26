@@ -67,6 +67,13 @@ argument most be the file you want to move and the second its new location or
 name.
 
 
+To make a new folder, for example one named ``data``, do:
+
+.. code-block:: console
+
+    $ files-mkdir agave://data-tacc-work-username/data
+
+
 Uploading and downloading via the CLI
 #####################################
 
