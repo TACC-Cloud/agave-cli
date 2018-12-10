@@ -4,6 +4,7 @@ from .apps_endpoints import AgaveApps
 from .clients_endpoints import AgaveClients
 from .filesmedia_endpoints import AgaveFilesMedia
 from .fileslistings_endpoints import AgaveFilesListings
+from .files_pems_endpoints import AgaveFilesPems
 from .postits_endpoints import AgavePostits
 from .tenants_endpoints import AgaveTenants
 
@@ -21,6 +22,9 @@ api.add_resource(AgaveFilesMedia,
 api.add_resource(AgaveFilesListings,
     "/files/v2/listings/system/<string:system_id>/<string:file_path>",
     "/files/v2/listings/system/<string:system_id>//<string:file_path>")
+api.add_resource(AgaveFilesPems,
+    "/files/v2/pems/system/<string:system_id>/<string:file_path>",
+    "/files/v2/pems/system/<string:system_id>//<string:file_path>")
 api.add_resource(AgavePostits, "/postits/v2/")
 api.add_resource(AgaveTenants, "/tenants/")
 

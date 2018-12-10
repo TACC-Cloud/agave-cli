@@ -15,6 +15,7 @@ See the systems basics documentation for more details.
     :maxdepth: 2
 
     files
+    admin
 
 
 .. only::  subproject and html                                                  

@@ -27,7 +27,6 @@ RUN apt-get update -y && apt-get install -yq git bash-completion \
 # Install TACC/agavepy.
 RUN git clone https://github.com/TACC/agavepy \
     && cd agavepy \
-    && git checkout develop \
     && make install
 
 # Install requirments for test framework.
