@@ -14,6 +14,12 @@ or other file system ACL.
     USER     READ   WRITE  EXEC
     username yes    yes    yes
 
+To remove all the permissions on a file, except those of the owner:             
+                                                                                
+.. code-block:: console
+
+    files-pems-delete agave://system-id/some-dir
+    
 To edit permissions for another user, let's say her username is "collab,"       
 to view a file:                                                                 
                                                                                 
