@@ -46,5 +46,5 @@ if __name__ == "__main__":
     # Obtain uri - remove the prefix 'agave://'.
     uri = uri[len("agave://"):]
 
-    # List files on remote system.
+    # List permissions.
     agave.files_pems_list(uri)
