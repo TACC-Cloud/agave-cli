@@ -115,3 +115,20 @@ Then, download the result:
 
     $ ls
     file.txt  my_file.txt
+
+
+Import files from ther systems     
+##############################                                                  
+                                                                                
+It may be useful to import data from other storage systems, e.g. from the       
+community data space to your private data space.                                
+The ``files-import`` tool can be used for that purpose.                       
+                                                                                
+.. code-block:: console
+
+    files-import agave://data-community/test.txt agave://system-id/path         
+
+    Please also note that even though you are able to import files from other Agave 
+storage systems, you may not always need to import those files.                 
+Also, note that the source, the first argument, must be an agave compliant uri  
+by prefixing the system if and path convination with the string ``agave://``.
