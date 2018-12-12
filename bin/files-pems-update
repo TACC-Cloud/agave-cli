@@ -1,26 +1,6 @@
-#!/bin/bash
-#
-# files-pems-list
-#
-# author: opensource@tacc.cloud
-#
-# This script is part of the Agave API command line interface (CLI).
-# It provides a mechanism for setting user permissions on a file or folder.
-#
-
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-source "$DIR/common.sh"
-
-# Script logic -- TOUCH THIS {{{
-
-# A list of all variables to prompt in interactive mode. These variables HAVE
-# to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey username permission)
-
-# Print usage
-usage() {
-  echo -n "$(basename $0) [OPTION]... [PATH]
+#!/usr/bin/env python
+"""
+    Usage: files-pems-update [flags] agave://path
 
 Edit user permissions on a file or folder. For all but iRODS systems, these
 permissions are set at the API level and do not reflect *nix or other file
@@ -30,133 +10,71 @@ the remote system.
 
 Also remember that no permissions can be set on public files and folders.
 
- Options:
-  -z, --access_token    Access token
-  -U, --pemusername     *deprecated* Same as -u
-  -u, --pemusername     The user whose permissions should be listed
-  -P, --permission      *deprecated* Same as -p
+Flags:
+  -u, --username        The user whose permissions should be listed
   -p, --permission      The permission to set. Valid values are READ,
                         WRITE, EXECUTE, READ_WRITE, READ_EXECUTE,
                         WRITE_EXECUTE, ALL, and NONE
-  -R, --recursive       Recursively apply permissions to folder contents
-  -S, --systemId        Specify the system id
-      --filter          Comma separated list of fields to return in the response
-  -H, --hosturl         URL of the service
-  -d, --development     Run in dev mode using default dev server
-  -f, --force           Skip all user interaction
-  -i, --interactive     Prompt for values
-  -q, --quiet           Quiet (no output)
-  -v, --verbose         Verbose output
-  -V, --veryverbose     Very verbose output
+  -r, --recursive       Recursively apply permissions to folder contents
   -h, --help            Display this help and exit
-      --version         Output version information and exit
-"
-}
+"""
+from __future__ import print_function
+import argparse
+import os
+import sys
+from agavepy.agave import Agave
 
-##################################################################
-##################################################################
-#						Begin Script Logic						 #
-##################################################################
-##################################################################
+parser = argparse.ArgumentParser(
+    description="Edit user permissions associated with a file or folder")
 
-source "$DIR/files-common.sh"
+parser.add_argument(
+    "-c",
+    "--cachedir",
+    default=os.path.expanduser("~/.agave"),
+    help="Directory in which confiurations are saved in.")
 
-main() {
-	#echo -n
-	#set -x
+parser.add_argument("filepath", help="Path to list")
 
-	if [ -z "$args" ]; then
-		err "Please specify a valid file path for which to retrieve permissions"
-	else
+parser.add_argument("-u", "--username", help="Edit user's permissions.")
 
-		if [ -n "$systemId" ]; then
-			hosturl="${hosturl}pems/system/${systemId}/"
-		else
-			hosturl="${hosturl}pems/"
-		fi
+parser.add_argument(
+    "-p",
+    "--permission",
+    choices=[
+        "READ", "WRITE", "EXECUTE", "READ_WRITE", "READ_EXECUTE",
+        "WRITE_EXECUTE", "ALL", "NONE"
+    ],
+    help="Permission to set.")
 
-    if ((recursive)); then
-      recursive="true";
-    else
-      recursive="false";
-    fi
+parser.add_argument(
+    "-r",
+    "--recursive",
+    action="store_true",
+    help="Recursively apply permissions to folder contents")
 
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"username=${pemusername}&permission=${permission}&recursive=${recursive}\" '${hosturl}${args}?pretty=true'"
+if __name__ == "__main__":
+    args = parser.parse_args()
 
-		if ((veryverbose)); then
-			[ "$piped" -eq 0 ] && log "Calling $cmd"
-		fi
+    agave = Agave()
+    cache_dir = args.cachedir
+    uri = args.filepath
+    username = args.username
+    permissions = args.permission
+    recursive = args.recursive
 
-		response=`curl -sk -H "${authheader}" -X POST -d "username=${pemusername}&permission=${permission}&recursive=${recursive}" "${hosturl}${args}?pretty=true"`
+    config_file = "{}/config.json".format(cache_dir)
+    # Check if there is a session already saved.
+    if os.path.exists(config_file):
+        agave.load_configs(cache_dir=cache_dir)
+    else:
+        print("You need to initiate a session first. Use auth-sessions-init")
+        sys.exit(1)
 
-		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-			result=$(format_api_json "$response")
-			success "$result"
-		else
-			errorresponse=$(jsonquery "$response" "message")
-			err "$errorresponse"
-		fi
-	fi
+    # Refresh tokens if necessary.
+    agave.refresh_tokens()
 
-}
+    # Obtain uri - remove the prefix 'agave://'.
+    uri = uri[len("agave://"):]
 
-format_api_json() {
-
-	if ((veryverbose)); then
-		echo "$1"
-	elif [[ $verbose -eq 1 ]]; then
-		result=$(jsonquery "$1" "result" 1)
-		json_prettyify "${result}"
-	else
-		echo "Successfully updated permission for $pemusername"
-	fi
-}
-
-##################################################################
-##################################################################
-#						End Script Logic						 #
-##################################################################
-##################################################################
-
-# }}}
-
-# Parse command line options
-source "$DIR/options.sh"
-
-
-# Main loop {{{
-
-# Print help if no arguments were passed.
-#[[ $# -eq 0 ]] && set -- "--help"
-
-# Read the options and set stuff
-while [[ $1 = -?* ]]; do
-  case $1 in
-    -h|--help) usage >&2; safe_exit ;;
-    --version) version; copyright; disclaimer; safe_exit ;;
-    -z|--access_token) shift; access_token=$1 ;;
-    -u|-U|--pemusername) shift; pemusername=$1 ;;
-    -p|-P|--permission) shift; permission=$1 ;;
-    -R|--recursive) recursive=1 ;;
-    -S|--systemId) shift; systemId=$1 ;;
-    --filter) shift; responsefilter=$1 ;;
-    -H|--hosturl) shift; hosturl=$1;;
-  	-d|--development) development=1 ;;
-    -v|--verbose) verbose=1 ;;
-    -V|--veryverbose) veryverbose=1; verbose=1 ;;
-    -q|--quiet) quiet=1 ;;
-    -i|--interactive) interactive=1 ;;
-    -f|--force) force=1 ;;
-    --endopts) shift; break ;;
-    *) die "invalid option: $1" ;;
-  esac
-  shift
-done
-
-# Store the remaining part as arguments.
-args+=("$@")
-
-# }}}
-
-# Run the script logic
-source "$DIR/runner.sh"
+    # List files on remote system.
+    agave.files_pems_update(uri, username, permissions, recursive=recursive)
