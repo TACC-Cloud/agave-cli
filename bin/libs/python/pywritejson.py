@@ -16,33 +16,47 @@ debug = False
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(prog="pywritejson.py",
-                                     description="Write a field in a JSON doc")
+    parser = argparse.ArgumentParser(
+        prog="pywritejson.py", description="Write a field in a JSON doc")
 
-    parser.add_argument("-d", "--debug",
-                        action='store_true', default=False,
-                        help="Show debug information")
+    parser.add_argument(
+        "-d",
+        "--debug",
+        action='store_true',
+        default=False,
+        help="Show debug information")
 
-    parser.add_argument("-f", "--field",
-                        dest="field", type=str,
-                        nargs='?', default=None,
-                        help="Field")
+    parser.add_argument(
+        "-f",
+        "--field",
+        dest="field",
+        type=str,
+        nargs='?',
+        default=None,
+        help="Field")
 
-    parser.add_argument("-v", "--value",
-                        dest="value", type=str,
-                        nargs='?', default=None,
-                        help="Value")
+    parser.add_argument(
+        "-v",
+        "--value",
+        dest="value",
+        type=str,
+        nargs='?',
+        default=None,
+        help="Value")
 
-    parser.add_argument("-n", "--novalidate",
-                        action='store_true',
-                        default=False,
-                        help="Write field without validating it exists")
+    parser.add_argument(
+        "-n",
+        "--novalidate",
+        action='store_true',
+        default=False,
+        help="Write field without validating it exists")
 
-    parser.add_argument('input',
-                        nargs='?',
-                        type=argparse.FileType('r'),
-                        default=sys.stdin,
-                        help="The JSON file to modify")
+    parser.add_argument(
+        'input',
+        nargs='?',
+        type=argparse.FileType('r'),
+        default=sys.stdin,
+        help="The JSON file to modify")
 
     args = parser.parse_args()
 

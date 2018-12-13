@@ -1,150 +1,69 @@
-#!/bin/bash
-#
-# clients-subscriptions-update
-#
-# author: opensource@tacc.cloud
-#
-# This script is part of the Agave API command line interface (CLI).
-# It subscribes the client to one or all APIs.
-#
+#!/usr/bin/env python
+"""
+    Usage: clients-subscriptions-update [flags] [client name]
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+Subscribe a client to a TACC api.
 
-source "$DIR/common.sh"
-interactive=1
+Flags:
+    -c, --cachedir      Directory where confiurations are saved in
+    -a, --apiname       Name of the API to subscribe the client application to
+    -r, --apiversion    Version of the API to subscribe the client application to
+    -p, --apiprovider   User who registered the API
+    -h, --help          Display this help and exit
+"""
+from __future__ import print_function
+import argparse
+import os
+import sys
+from agavepy.agave import Agave
 
-# Script logic -- TOUCH THIS {{{
+parser = argparse.ArgumentParser(description="Delete an oauth client")
 
-# A list of all variables to prompt in interactive mode. These variables HAVE
-# to be named exactly as the longname option definition in usage().
-interactive_opts=(apiusername apipassword apiName)
+parser.add_argument(
+    "-c",
+    "--cachedir",
+    default=os.path.expanduser("~/.agave"),
+    help="Directory in which confiurations are saved in.")
 
-# Print usage
-usage() {
-  echo -n "$(basename $0) [OPTION]... [CLIENT_NAME]
+parser.add_argument("-n", "--name", help="Name of oauth client")
 
-Subscribe a client to one or all apis.
+parser.add_argument(
+    "-a",
+    "--apiname",
+    required=True,
+    help="Name of the API to subscribe the client application to")
 
- Options:
-  -u, --apiusername    API username
-  -p, --apipassword    API password
-  -N, --apiName        The name of the API to subscribe the client application to.
-                       Use a wildcard to subscribe to all APIs
-  -T, --tier           The subscription tier
-  -R, --apiVersion     The version of the API to subscribe the client application to
-  -P, --apiProvider    The user who registered the API
-  -H, --hosturl        URL of the service
-  -d, --development    Run in dev mode using default dev server
-  -f, --force          Skip all user interaction
-  -i, --interactive    Prompt for values
-  -q, --quiet          Quiet (no output)
-  -v, --verbose        Verbose output
-  -V, --veryverbose    Very verbose output
-  -h, --help           Display this help and exit
-      --version        Output version information and exit
-"
-}
+parser.add_argument(
+    "-r",
+    "--apiversion",
+    required=True,
+    help="Version of the API to subscribe the client application to")
 
-##################################################################
-##################################################################
-#						Begin Script Logic						 #
-##################################################################
-##################################################################
+parser.add_argument(
+    "-p", "--apiprovider", required=True, help="User who registered the API")
 
-source "$DIR/clients-common.sh"
+if __name__ == "__main__":
+    args = parser.parse_args()
+    cache_dir = args.cachedir
+    client_name = args.name
+    api_name = args.apiname
+    api_version = args.apiversion
+    api_provider = args.apiprovider
 
-main() {
-	#echo -n
-	#set -x
+    agave = Agave()
 
-	if [ -z "$args" ]; then
-		err "Please specify a valid client name"
-	else
+    config_file = "{}/config.json".format(cache_dir)
+    # Check if there is a session already saved.
+    if os.path.exists(config_file):
+        agave.load_configs(cache_dir=cache_dir)
+    else:
+        print("You need to initiate a session first. Use auth-sessions-init")
+        sys.exit(1)
 
-		if [ -z "$apiName" ]; then
-			err "Please specify an API name or * for all APIs"
-		fi
-
-		if [ -z "$tier" ]; then
-			tier='Unlimited'
-		fi
-
-		cmd="curl -sku \"${apiusername}:xxxx\" -X POST -d \"apiName=${apiName}&tier=${tier}&apiVersion=${apiVersion}&apiProvider=${apiProvider}\" '${hosturl}${args}/subscriptions?pretty=true'"
-
-		if ((veryverbose)); then
-			[ "$piped" -eq 0 ] && log "Calling $cmd"
-		fi
-
-		response=`curl -sku "${apiusername}:${apipassword}" -X POST -d "apiName=${apiName}&tier=${tier}&apiVersion=${apiVersion}&apiProvider=${apiProvider}" "${hosturl}${args}/subscriptions?pretty=true"`
-
-		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-			result=$(format_api_json "$response")
-			success "${result}"
-		else
-			errorresponse=$(jsonquery "$response" "message")
-			err "$errorresponse"
-		fi
-	fi
-}
-
-format_api_json() {
-
-	if ((veryverbose)); then
-		json_prettyify "${1}"
-	elif [[ $verbose -eq 1 ]]; then
-		result=$(jsonquery "$1" "result" 1)
-		json_prettyify "${result}"
-	else
-		result=$(jsonquery "$1" "result.[].apiName")
-		echo "${result}"
-	fi
-}
-
-##################################################################
-##################################################################
-#						End Script Logic						 #
-##################################################################
-##################################################################
-
-# }}}
-
-# Parse command line options
-source "$DIR/options.sh"
-
-
-# Main loop {{{
-
-# Print help if no arguments were passed.
-[[ $# -eq 0 ]] && set -- "-i"
-
-# Read the options and set stuff
-while [[ $1 = -?* ]]; do
-  case $1 in
-    -h|--help) usage >&2; safe_exit ;;
-    --version) version; copyright; disclaimer; safe_exit ;;
-    -u|--apiusername) shift; apiusername=$1 ;;
-    -p|--apipassword) shift; apipassword=$1 ;;
-    -N|--apiName) shift; apiName=$1 ;;
-  	-T|--tier) shift; tier=$1 ;;
-  	-P|--apiProvider) shift; apiProvider=$1 ;;
-  	-R|--apiVersion) shift; apiVersion=$1 ;;
-    -H|--hosturl) shift; hosturl=$1;;
-  	-d|--development) development=1 ;;
-    -v|--verbose) verbose=1 ;;
-    -V|--veryverbose) veryverbose=1; verbose=1 ;;
-    -q|--quiet) quiet=1 ;;
-    -i|--interactive) interactive=1 ;;
-    -f|--force) force=1 ;;
-    --endopts) shift; break ;;
-    *) die "invalid option: $1" ;;
-  esac
-  shift
-done
-
-# Store the remaining part as arguments.
-args+=("$@")
-
-# }}}
-
-# Run the script logic
-source "$DIR/runner.sh"
+    # Subscribe oauth client to api.
+    try:
+        agave.clients_subscribe(
+            api_name, api_version, api_provider, client_name=client_name)
+    except Exception as err:
+        print(err)
+        sys.exit(1)

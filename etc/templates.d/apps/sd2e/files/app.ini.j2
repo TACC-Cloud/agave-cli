@@ -1,0 +1,15 @@
+[app]
+name = {{ app.name }}
+version = {{ app.version }}
+bundle = {{ app.name }}-{{ app.version }}
+
+[docker]
+username = {{ docker.username }}
+; username = {{ docker.organization }}
+repo = {{ docker.repo }}
+tag = {{ docker.tag }}
+dockerfile = {{ docker.dockerfile }}
+buildopts = {{ docker.buildopts }}
+
+[job]
+test_data_dir =

@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-set -e
-
-
-/agave-cli/tests/hack/setup_agavedb.py && \
-    pip install -e /agave-cli/tests/agave_mock_server && \
-    /agave-cli/tests/hack/serve_agave_mock_server.sh && \
-    /agave-cli/tests/hack/wait-for-it.sh localhost:5000 -- echo "Server is up" && \
-    bats /agave-cli/tests/integration_tests --tap 2>&1 | tee /agave-cli/tests/tests_results.tap

@@ -1,146 +1,51 @@
-#!/bin/bash
-#
-# files-history
-#
-# author: opensource@tacc.cloud
-#
-# This script is part of the Agave API command line interface (CLI).
-# Shows the history of actions on a given file or folder.
-#
-
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-source "$DIR/common.sh"
-
-# Script logic -- TOUCH THIS {{{
-
-# A list of all variables to prompt in interactive mode. These variables HAVE
-# to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey)
-
-# Print usage
-usage() {
-  echo -n "$(basename $0) [OPTION]... [PATH]
+#!/usr/bin/env python
+"""
+    Usage: files-history [flags] agave://path
 
 List the history of events for a specific file/folder. This will give more descriptive
 information related to number of retries, permission grants and revocations, reasons for
 failure, and hiccups that may have occurred in the transfer process.
 
- Options:
-  -z, --access_token    Access token
-  -S, --systemId        Specify the system id
-  -l, --limit           Maximum number of results to return
-  -o, --offset          Number of results to skip from the start
-      --filter          Comma separated list of fields to return in the response
-  -H, --hosturl         URL of the service
-  -d, --development     Run in dev mode using default dev server
-  -f, --force           Skip all user interaction
-  -i, --interactive     Prompt for values
-  -q, --quiet           Quiet (no output)
-  -v, --verbose         Verbose output
-  -V, --veryverbose     Very verbose output
+Flags:
   -h, --help            Display this help and exit
-      --version         Output version information and exit
-      --rich            Provide rich response
-"
-}
+"""
+from __future__ import print_function
+import argparse
+import os
+import sys
+from agavepy.agave import Agave
 
-##################################################################
-##################################################################
-#						Begin Script Logic						 #
-##################################################################
-##################################################################
+parser = argparse.ArgumentParser(
+    description="List history of events for a file or folder")
 
-source "$DIR/files-common.sh"
+parser.add_argument(
+    "-c",
+    "--cachedir",
+    default=os.path.expanduser("~/.agave"),
+    help="Directory in which confiurations are saved in.")
 
-main() {
-	#echo -n
-	#set -x
+parser.add_argument("filepath", help="Path to list")
 
-	if [ -n "$systemId" ]; then
-		hosturl="${hosturl}history/system/${systemId}/${args}?pretty=true$(pagination)"
-	else
-		hosturl="${hosturl}history/${args}?pretty=true$(pagination)"
-	fi
+if __name__ == "__main__":
+    args = parser.parse_args()
 
-	cmd="curl -sk -H \"${authheader}\" '${hosturl}'"
+    agave = Agave()
+    cache_dir = args.cachedir
+    uri = args.filepath
 
-	if ((veryverbose)); then
-		version;
-		[ "$piped" -eq 0 ] && log "Calling $cmd"
-	fi
+    config_file = "{}/config.json".format(cache_dir)
+    # Check if there is a session already saved.
+    if os.path.exists(config_file):
+        agave.load_configs(cache_dir=cache_dir)
+    else:
+        print("You need to initiate a session first. Use auth-sessions-init")
+        sys.exit(1)
 
-	response=`curl -sk -H "${authheader}" "${hosturl}"`
+    # Refresh tokens if necessary.
+    agave.refresh_tokens()
 
-	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-		result=$(format_api_json "$response")
-		success "$result"
-	else
-		errorresponse=$(jsonquery "$response" "message")
-		err "$errorresponse"
-	fi
-}
+    # Obtain uri - remove the prefix 'agave://'.
+    uri = uri[len("agave://"):]
 
-format_api_json() {
-
-	if ((veryverbose)); then
-		json_prettyify "${1}"
-	elif [[ $verbose -eq 1 ]]; then
-		result=$(jsonquery "$1" "result" 1)
-		json_prettyify "${result}"
-	elif [[ $rich -eq 1 ]]; then
-		result=$(richify "$1")
-		columnize "${result}"
-	else
-		result=$(jsonquery "$1" "result.[].description")
-		echo "${result}"
-	fi
-}
-
-##################################################################
-##################################################################
-#						End Script Logic						 #
-##################################################################
-##################################################################
-
-# }}}
-
-# Parse command line options
-source "$DIR/options.sh"
-
-# Main loop {{{
-
-# Print help if no arguments were passed.
-#[[ $# -eq 0 ]] && set -- "--help"
-
-# Read the options and set stuff
-while [[ $1 = -?* ]]; do
-  case $1 in
-    -h|--help) usage >&2; safe_exit ;;
-    --version) version; copyright; disclaimer; safe_exit ;;
-    -z|--access_token) shift; access_token=$1 ;;
-    -S|--systemId) shift; systemId=$1 ;;
-    -l|--limit) shift; limit=$1;;
-    -o|--offset) shift; offset=$1;;
-    --filter) shift; responsefilter=$1 ;;
-    -H|--hosturl) shift; hosturl=$1;;
-  	-d|--development) development=1 ;;
-    -v|--verbose) verbose=1 ;;
-    -V|--veryverbose) veryverbose=1; verbose=1 ;;
-    -q|--quiet) quiet=1 ;;
-    -i|--interactive) interactive=1 ;;
-    -f|--force) force=1 ;;
-    --rich) rich=1 ;;
-    --endopts) shift; break ;;
-    *) die "invalid option: $1" ;;
-  esac
-  shift
-done
-
-# Store the remaining part as arguments.
-args+=("$@")
-
-# }}}
-
-# Run the script logic
-source "$DIR/runner.sh"
+    # List history.
+    agave.files_history(uri)

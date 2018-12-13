@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+# ABOUT kv-bash:
+#    key/value dabatase
+#    database store in HOME directory
+#    each user has 1 database
+#    imports 5 bash functions via ```$ source kv-bash```
+#
+# Author: damphat
+# Version: 0.1
+# Requirements: unix-like environement, no dependencies
+#
+# USAGE:
+#    source ./kv-bash        # import kv-bash functions
+#    kvset <key> <value>     # assign value to key
+#    kvget <key>             # get value of key
+#    kvdel <key>             # kvdelete by key
+#    kvlist                  # list all current key/value pairs
+#    kvclear                 # clear database
+#
+# EXAMPLES:
+#    $ source ./kv-bash
+#    $ kvset user mr.bob
+#    $ kvset pass abc@123
+#    $ kvlist
+#      user mr.bob
+#      pass abc@123
+#    $ kvget user
+#      mr.bob
+#    $ kvget pass
+#      abc@123
+#    $ kvdel pass
+#    $ kvget pass
+#
+#    $ kvclear
+
+########################
+# CONSTANTS
+########################
+
+########################
+# LOCAL FUNCTIONS
+########################
+
+# print to stderr, red color
+tacc.kv_echo_err() {
+	echo -e "\e[01;31m$@\e[0m" >&2
+}
+
+# Usage: tacc.kv_echo_err_box <err-msg> <function-name>
+tacc.kv_echo_err_box() {
+	tacc.kv_echo_err "  +-------------------------------+"
+	tacc.kv_echo_err "  | ERROR: $1"
+	tacc.kv_echo_err "  | function: $2"
+	tacc.kv_echo_err "  +-------------------------------+"
+}
+
+# Usage: tacc.kv_validate_key <key>
+tacc.kv_validate_key() {
+	[[ "$1" =~ ^[0-9a-zA-Z._:-]+$  ]]
+}
+
+########################
+# ENSURE THIS-FILE IS CALL BY 'source ./kv-bash'
+########################
+
+[[ "${BASH_SOURCE[0]}" != "${0}" ]] || {
+	tacc.kv_echo_err "  +------------------------------------------------+"
+	tacc.kv_echo_err "  | FALTAL ERROR: wrong usage :(                   |"
+	tacc.kv_echo_err "  | You should use this via source                 |"
+	tacc.kv_echo_err "  |     $ source ./kv-bash                         |"
+	tacc.kv_echo_err "  |                                                |"
+	tacc.kv_echo_err "  | Examples:                                      |"
+	tacc.kv_echo_err "  |     $ source ./kv-bash                         |"
+	tacc.kv_echo_err "  |     $ kvset user mr.bob                        |"
+	tacc.kv_echo_err "  |     $ kvset pass abc@123                       |"
+	tacc.kv_echo_err "  |     $ kvlist                                   |"
+	tacc.kv_echo_err "  |       user mr.bob                              |"
+	tacc.kv_echo_err "  |       pass abc@123                             |"
+	tacc.kv_echo_err "  |     $ kvget user                               |"
+	tacc.kv_echo_err "  |       mr.bob                                   |"
+	tacc.kv_echo_err "  |     $ kvget pass                               |"
+	tacc.kv_echo_err "  |       abc@123                                  |"
+	tacc.kv_echo_err "  |     $ kvdel pass                               |"
+	tacc.kv_echo_err "  |     $ kvget pass                               |"
+	tacc.kv_echo_err "  |                                                |"
+	tacc.kv_echo_err "  |     $ kvclear                                  |"
+	tacc.kv_echo_err "  +------------------------------------------------+"
+	exit 1
+}
+
+########################
+# PUBLIC FUNCTIONS
+########################
+
+# Usage: kvget <key>
+tacc.kvget() {
+	key="$1"
+	tacc.kv_validate_key "$key" || {
+		tacc.kv_echo_err_box 'invalid param "key"' 'kvget()'
+		return 1
+	}
+	VALUE="$([ -f "$TACCLAB_CACHE_DIR/$key" ] && cat "$TACCLAB_CACHE_DIR/$key")"
+	echo "$VALUE"
+
+	[ "$VALUE" != "" ]
+}
+
+# Usage: kvset <key> [value]
+tacc.kvset() {
+	key="$1"
+	value="$2"
+	tacc.kv_validate_key "$key" || {
+		tacc.kv_echo_err_box 'invalid param "key"' 'kvset()'
+		return 1
+	}
+	test -d "$TACCLAB_CACHE_DIR" || mkdir "$TACCLAB_CACHE_DIR"
+	echo "$value" > "$TACCLAB_CACHE_DIR/$key"
+}
+
+# Usage: kvdel <key>
+tacc.kvdel() {
+	key="$1"
+	tacc.kv_validate_key "$key" || {
+		tacc.kv_echo_err_box 'invalid param "key"' 'kvdel()'
+		return 1
+	}
+	test -f "$TACCLAB_CACHE_DIR/$key" && rm -f "$TACCLAB_CACHE_DIR/$key"
+}
+
+# list all key/value pairs to stdout
+# Usage: kvlist
+tacc.kvlist() {
+	for i in "$TACCLAB_CACHE_DIR/"*; do
+		if [ -f "$i" ]; then
+			key="$(basename "$i")"
+			echo "$key" "$(kvget "$key")"
+		fi
+	done
+}
+
+# clear all key/value pairs in database
+# Usage: kvclear
+tacc.kvclear() {
+	rm -rf "$TACCLAB_CACHE_DIR"
+}
