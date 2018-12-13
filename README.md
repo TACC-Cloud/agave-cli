@@ -102,6 +102,11 @@ After selecting a tenant to interact with, `auth-session-init` will help you
 create an oauth client and obtain an access and a refresh token to get you
 ready to interact with TACC apis.
 
+To restore a stored session:
+```
+$ auth-session-init -t tenant-name -u your-username -N client-name
+```
+
 For more info on `auth-session-init` see
 [authentication docs](docs/docsite/authentication/auth.rst).
 

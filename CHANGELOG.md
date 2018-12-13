@@ -1,6 +1,19 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 3.0.0 - 2018-12-13
+### ADDED
+- Documentationi.
+- TACC/agavepy as dependency.
+
+### CHANGED
+- Rewrite authentication-related scripts.
+- Rewrite files-related scripts.
+
+### REMOVED
+- Test framework (preparing for integration with `TACC/agavepy`).
+
+
 ## 2.3.0 - 2018-08-30
 ### ADDED
 - Integration tests and mock server(test coverage low)
