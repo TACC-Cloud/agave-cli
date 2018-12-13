@@ -24,7 +24,7 @@ TACC-hosted instances of Agave, but it can easily be adapted to support
 on-premises or other hosted Agave installations. 
 
 
-## Installation from source
+## Installation
 
 `TACC-Cloud/agave-cli` is, at this point, composed of legacy code writen in Bash, new
 tooling,bug fixes, and rewrites are done in Python 3. The Python scripts make
@@ -38,30 +38,24 @@ To use `TACC/agave-cli` you'll need the following dependencies.
     * Python 3+
     * TACC/agavepy
 
-To install [TACC/agavepy](https://github.com/TACC/agavepy) we recommend the 
-following steps:
+`Agave-CLI` relies on [TACC/agavepy](https://github.com/TACC/agavepy) version
+v0.8+.
+To install [TACC/agavepy](https://github.com/TACC/agavepy) from source you'll
+need to clone the repo and and install it as such:
 ```shell
 git clone https://github.com/TACC/agavepy
-
-git checkout develop
 
 make install
 ```
 
-If you are interested in contributing to `TACC-Cloud/agave-cli` you will also
-need:
-  
-    * Docker (we recommend using the latest stable release of Docker)
-    * Make 4.1+
-    * yapf https://github.com/google/yapf
-
-For development, we recoomend you use the development container for your work.
-
-Once you have these requirements installed, you'll need to clone thos
-repositpry and add it to your `$PATH`.
+Once you have these requirements installed, you'll need to clone this
+repository and add it to your `$PATH`.
 
 ```shell
 $ git https://github.com/TACC-Cloud/agave-cli
+
+$ cd agave-cli
+
 $ export PATH=$PATH:$PWD/agave-cli/bin
 ```
 
@@ -77,75 +71,39 @@ echo "export PATH=$PATH:$PWD/agave-cli/bin" >> ~/.bash_profile
 
 ## Getting started
 
-The first time you use the CLI, you will need to initialize it. This will create a credentials store inside `~/.agave/` and set your API server to point at a specific _tenant_. Tenant, in this case, refers to an organization that has its own logically-isolated slice of the hosted Agave API platform.
+To get more details 
+[see the documentation for the latest changes](docs/docsite).
+For more oficial documentation see
+[Agave](https://tacc-cloud.readthedocs.io/projects/agave/en/latest/).
 
-Initialize the CLI as follows, selecting the appropriate tenant. If you don't know which to select, choose the default. Your Agave username and password will be the same as your TACC credentials.
+The first time you use the CLI, you will need to create a session.
+You will need to create credentials to interact with a tenant.
+The credentials will, by default, be store in `~/.agave/`.
 
 ```
-$ tenants-init
-Please select a tenant from the following list:
-[0] 3dem
-[1] agave.prod
-[2] araport.org
-[3] designsafe
-[4] iplantc.org
-[5] irec
-[6] sd2e
-[7] sgci
-[8] tacc.cloud
-[9] vdjserver.org
-Your choice [8]:
+$ auth-session-init 
+ID                   NAME                                     URL                                               
+3dem                 3dem Tenant                              https://api.3dem.org/                             
+agave.prod           Agave Public Tenant                      https://public.agaveapi.co/                       
+araport.org          Araport                                  https://api.araport.org/                          
+designsafe           DesignSafe                               https://agave.designsafe-ci.org/                  
+iplantc.org          CyVerse Science APIs                     https://agave.iplantc.org/                        
+irec                 iReceptor                                https://irec.tenants.prod.tacc.cloud/             
+portals              Portals Tenant                           https://portals-api.tacc.utexas.edu/              
+sd2e                 SD2E Tenant                              https://api.sd2e.org/                             
+sgci                 Science Gateways Community Institute     https://sgci.tacc.cloud/                          
+tacc.prod            TACC                                     https://api.tacc.utexas.edu/                      
+vdjserver.org        VDJ Server                               https://vdj-agave-api.tacc.utexas.edu/            
 
-Your CLI is now configured to interact with APIs owned by 'tacc.cloud'.
-Use 'clients-create' to set up a new API client or 'auth-tokens-create' to
-re-use an existing API key and secret.
+Please specify the ID for the tenant you wish to interact with:
 ```
 
-### Get an API Client
+After selecting a tenant to interact with, `auth-session-init` will help you
+create an oauth client and obtain an access and a refresh token to get you
+ready to interact with TACC apis.
 
-TACC.cloud APIs, including Agave, use an authentication called Oauth2. The basic idea is that instead of always sending your very precious password over the wire when you interact with the APIs, you send secure, but expirable strings of text in place of your password. To do this, you need to have an API client, which is a unique combination of API key and secret, and you need at least one access token.
-
-You can have as many clients as you want, and each can have exactly one active token. Technically, clients can have different levels of access to TACC.cloud resources, but that is not currently exposed. Some users like to think of clients as "sub-accounts" of their main Agave account.
-
-Create a client as follows. Take note of the key and secret returned, as you can use them elsewhere.
-
-```shell
-$ clients-create -S
-The name of the client application : cli_docs
-API username : taco
-API password: *********
-
-Successfully created client cli_docs
-key: XgzF0kXZK4cRfiyslXtCfqUEgPAa
-secret: tgn1Oi_8XO7JEZVDhQWtsgcLNiUa
-```
-
-These values are used behind the scenes to generate, and then refresh, your access token, which is a little string that your CLI and other clients send to the Agave authentication servers.
-
-### Authenticate for the first time
-
-Use your newly created client to generate a pair of tokens. One token is an *access token* which is sent over the wire in place of your password. The other is a *refresh token* which can can, in combination with the client secret and key, be used to get a new access token when the current one expires. Depending on your tenant's policy, access tokens have a lifespan of 1-4 hours.
-
-```shell
-$ auth-tokens-create -S
-API password: *******
-Token for tacc.cloud:taco successfully refreshed and cached for 14400 seconds
-f1c972d9d4cb34faec981edbadc938d0
-```
-
-### Reauthenticating at a later date
-
-After a while, the access token expires. This is an important security feature, since that token is being sent all over the place and might get intercepted by annoying people and used to access your resources without your permission. Getting a new one is easy. If you're using the Agave CLI or the AgavePy Python library, a good faith attempt will be made to refresh your token automatically.
-
-If you need to manually refresh your token, do the following:
-
-```shell
-$ auth-tokens-refresh -S
-Token for tacc.cloud:taco successfully refreshed and cached for 14400 seconds
-cc378eac99cb171687eb6e55a85c1756
-```
-
-If this fails, run `auth-tokens-create -S` as above
+For more info on `auth-session-init` see
+[authentication docs](docs/docsite/authentication/auth.rst).
 
 ### Using the CLI
 
