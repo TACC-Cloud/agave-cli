@@ -13,7 +13,7 @@ DOCKER_FLAGS := docker run --rm -it $(DOCKER_MOUNT)
 DOCKER_RUN_AGAVECLI := $(DOCKER_FLAGS) "$(DOCKER_IMAGE)"
 
 
-.PHONY: authors build docs format shell tests tests-setup clean
+.PHONY: authors build docs format shell clean
 
 
 authors:
@@ -38,21 +38,5 @@ shell: build
 	$(DOCKER_RUN_AGAVECLI) bash
 
 
-tests: tests-setup
-	bats /agave-cli/tests/integration_tests                                     
-
-
-tests-setup:
-	./tests/hack/setup_agavedb.py
-	pip install -e /agave-cli/tests/agave_mock_server
-	./tests/hack/serve_agave_mock_server.sh
-	./tests/hack/wait-for-it.sh localhost:5000 -- echo "Server is up" || exit 1
-
-
 clean:
 	make -C docs clean
-	rm -rf tests/tests_results.tap
-	rm -rf tests/agave_mock_server.log
-	rm -rf tests/agave_mock_server/agave_mock_server.egg-info
-	rm -rf tests/agave_mock_server/__pycache__/
-	rm -rf tests/agave_mock_server/agave_mock_server/__pycache__/
