@@ -28,7 +28,7 @@ parser.add_argument(
 
 parser.add_argument(
     "--tenants",
-    default="https://agaveapi.co/tenants",
+    default="https://api.tacc.utexas.edu/tenants",
     help="URL with tenants listings.")
 
 parser.add_argument("-t", "--tenant", help="Tenant id for session.")
