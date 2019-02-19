@@ -52,20 +52,20 @@ Once you have these requirements installed, you'll need to clone this
 repository and add it to your `$PATH`.
 
 ```shell
-$ git https://github.com/TACC-Cloud/agave-cli
+$ git clone https://github.com/TACC-Cloud/agave-cli
 
 $ cd agave-cli
 
-$ export PATH=$PATH:$PWD/agave-cli/bin
+$ export PATH=$PATH:$PWD/bin
 ```
 
 To persist the new `$PATH` between logins, run
 ```shell
-echo "export PATH=$PATH:$PWD/agave-cli/bin" >> ~/.bashrc
+echo "export PATH=$PATH:$PWD/bin" >> ~/.bashrc
 ```
 or
 ```shell
-echo "export PATH=$PATH:$PWD/agave-cli/bin" >> ~/.bash_profile
+echo "export PATH=$PATH:$PWD/bin" >> ~/.bash_profile
 ```
 
 
@@ -73,12 +73,12 @@ echo "export PATH=$PATH:$PWD/agave-cli/bin" >> ~/.bash_profile
 
 To get more details 
 [see the documentation for the latest changes](docs/docsite).
-For more oficial documentation see
+For more official documentation see
 [Agave](https://tacc-cloud.readthedocs.io/projects/agave/en/latest/).
 
 The first time you use the CLI, you will need to create a session.
 You will need to create credentials to interact with a tenant.
-The credentials will, by default, be store in `~/.agave/`.
+The credentials will, by default, be stored in `~/.agave/`.
 
 ```
 $ auth-session-init 
