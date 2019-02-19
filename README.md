@@ -43,9 +43,11 @@ v0.8+.
 To install [TACC/agavepy](https://github.com/TACC/agavepy) from source you'll
 need to clone the repo and and install it as such:
 ```shell
-git clone https://github.com/TACC/agavepy
+$ git clone https://github.com/TACC/agavepy
 
-make install
+$ cd agavepy
+
+$ make install
 ```
 
 Once you have these requirements installed, you'll need to clone this
@@ -61,11 +63,11 @@ $ export PATH=$PATH:$PWD/bin
 
 To persist the new `$PATH` between logins, run
 ```shell
-echo "export PATH=$PATH:$PWD/bin" >> ~/.bashrc
+$ echo "export PATH=$PATH:$PWD/bin" >> ~/.bashrc
 ```
 or
 ```shell
-echo "export PATH=$PATH:$PWD/bin" >> ~/.bash_profile
+$ echo "export PATH=$PATH:$PWD/bin" >> ~/.bash_profile
 ```
 
 
@@ -127,7 +129,7 @@ The Agave CLI is broken down into the following groups of scripts
 	- tenants*        query and initialize the CLI for your tenant
 	- uuid*           lookup and expand one or more Agave UUID
 
-All commands follow a common syntax and share many of the same flags `-h` for help, `-d` for debug mode, `-v` for verbose output, `-V` for very verbose (prints curl command and full service response), and `-i` for interactive mode. Additionaly, individual commands will have their own options specific to their functionality. The general syntax all commands follow is:
+All commands follow a common syntax and share many of the same flags `-h` for help, `-d` for debug mode, `-v` for verbose output, `-V` for very verbose (prints curl command and full service response), and `-i` for interactive mode. Additionally, individual commands will have their own options specific to their functionality. The general syntax all commands follow is:
 
 	<command> [-hdv]
 	<command> [-hdv] [target]
