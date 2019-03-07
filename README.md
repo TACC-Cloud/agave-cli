@@ -52,9 +52,7 @@ Once you have these requirements installed, you'll need to clone this
 repository and add it to your `$PATH`.
 
 ```shell
-$ git https://github.com/TACC-Cloud/agave-cli
-
-$ cd agave-cli
+$ git clone https://github.com/TACC-Cloud/agave-cli
 
 $ export PATH=$PATH:$PWD/agave-cli/bin
 ```
