@@ -1,10 +1,20 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 3.0.1 - 2019-04-23
+### ADDED
+- Updated documentation to reflect transition to api.tacc.utexas.edu
+
+### CHANGED
+- Revised references to agaveapi.co domains
+
+### REMOVED
+- Support for requestbin and json-mirror
+
 ## 3.0.0 - 2018-12-13
 ### ADDED
-- Documentationi.
-- TACC/agavepy as dependency.
+- Updated documentation.
+- TACC/agavepy as dependency
 
 ### CHANGED
 - Rewrite authentication-related scripts.
@@ -63,7 +73,7 @@ All notable changes to this project will be documented in this file.
 
 ## 2.1.8.1 - 2016-07-13
 ### ADDED
-- `Dockerfile` to build a minimal image with embedded webhook server written in Golang and `ngrok.com` reverse tunnel for local webhook inspection behind a proxy. 
+- `Dockerfile` to build a minimal image with embedded webhook server written in Golang and `ngrok.com` reverse tunnel for local webhook inspection behind a proxy.
 
 ### FIXED
 - Fixed a bug in `systems-roles-addupdate` where the curl statement was misprinting.
@@ -77,7 +87,7 @@ All notable changes to this project will be documented in this file.
 - `jobs-kick` command to roll a job back to its previous status and retry processing from there.
 - Added search support to the `monitors-checks-list` command.
 - Added support for specify custom notification delivery retry policy in the `notifications-addupdate` script.
-- Adding support for strict validation of inputs and paramters in the `jobs-resubmit` script. You can now use the `-I` and `--strictinputs` to enforce strict reproducibility on the submissi    on syntax and `-P` and  `--strictparams` to enforce strict reproducibility on the input syntax. Thes allow you to shield yourself against changes to the app descriptions that would otherwise silently go through. 
+- Adding support for strict validation of inputs and paramters in the `jobs-resubmit` script. You can now use the `-I` and `--strictinputs` to enforce strict reproducibility on the submissi    on syntax and `-P` and  `--strictparams` to enforce strict reproducibility on the input syntax. Thes allow you to shield yourself against changes to the app descriptions that would otherwise silently go through.
 
 ### FIXED
 - Fixed a bug in `monitors-addupdate` preventing json descriptions from being read from stdin.
@@ -116,7 +126,6 @@ All notable changes to this project will be documented in this file.
 ## 2.1.0 - 2015-02-23
 ### ADDED
 - `*-addupdate` Adding support for reading from stdin to all the scripts that previously accepted only files by replacing the file name with `-`
-- `jobs-template` adding webhook url with [Agave RequestBin](http://requestbin.agaveapi.co/) valid for 24 hours created on each request.
 - `jobs-template` added support for parsing most enum values, properly creating arrays vs primary types based on min and max cardinality, and the ability to populate with random default values, including inputs
 
 ### FIXED
