@@ -60,7 +60,7 @@ main() {
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X POST  -H \"Content-Type: application/json\" "$hosturl$args/stop"`
+		response=`curl -sk -H "${authheader}" -X POST  -H "Content-Type: application/json" "$hosturl$args/stop"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
