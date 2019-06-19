@@ -494,7 +494,7 @@ main() {
     if ((allfields)); then
       printf "{\n  \"name\":\"%s\",\n  \"appId\": \"%s\",\n  \"batchQueue\": \"%s\",\n  \"executionSystem\": \"%s\",\n  \"maxRunTime\": \"%s\",\n  \"memoryPerNode\": \"%sGB\",\n  \"nodeCount\": %s,\n  \"processorsPerNode\": %s,\n  \"archive\": %s,\n  \"archiveSystem\": \"%s\",\n  \"archivePath\": %s,\n  \"inputs\": {%s\n  },\n  \"parameters\": {%s\n  },\n  \"notifications\": [\n%s\n  ]\n}\n" "$job_name" "$args" "$queue" "$execution_system_id" "$maxRunTime" "$memoryPerNode" "$nodeCount" "$processorsPerNode" "$archive" "$archiveSystem" "$archivePath" "$inputs" "$parameters" "$notifications"
     else
-      printf "{\n  \"name\": \"%s\",\n  \"appId\": \"%s\",\n  \"archive\": %s,\n  \"inputs\": {%s\n  },\n  \"parameter\": {%s\n  }\n}\n" "$job_name" "$args" "$archive" "$inputs" "$parameters"
+      printf "{\n  \"name\": \"%s\",\n  \"appId\": \"%s\",\n  \"archive\": %s,\n  \"inputs\": {%s\n  },\n  \"parameters\": {%s\n  }\n}\n" "$job_name" "$args" "$archive" "$inputs" "$parameters"
     fi
 
     if ((verbose)); then
