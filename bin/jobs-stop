@@ -54,13 +54,14 @@ main() {
 	if [ -z "$args" ]; then
 		err "Please specify a job id to stop"
 	else
-		cmd="curl -sk -H \"${authheader}\" -X POST -d \"action=stop\" '$hosturl$args?pretty=true'"
+		cmd="curl -sk -H \"${authheader}\" -X POST  -H \"Content-Type: application/json\" --data '{\"action\":\"stop\"}' '$hosturl$args?pretty=true'"
+
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -X POST -d "action=stop" "$hosturl$args?pretty=true"`
+		response=`curl -sk -H "${authheader}" -X POST  -H "Content-Type: application/json" --data '{"action":"stop"}' "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 			result=$(format_api_json "$response")
