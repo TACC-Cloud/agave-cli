@@ -4,3 +4,4 @@
 # test data
 tests/*.log
 tests/agave_mock_server/*.egg-info
+._DS_Store

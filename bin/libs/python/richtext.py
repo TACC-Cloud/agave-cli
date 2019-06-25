@@ -17,7 +17,7 @@ def print_table(table):
         result = "| "
         for i in range(len(row)):
             result = result + row[i].ljust(widths[i]) + " | "
-        print result
+        print(result)
 
 
 def main():
@@ -57,4 +57,4 @@ if __name__ == "__main__":
         if debug:
             raise
         else:
-            print e
+            print(e)

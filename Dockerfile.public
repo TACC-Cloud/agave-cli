@@ -1,0 +1,74 @@
+FROM ubuntu:cosmic
+
+LABEL org.label-schema.vendor = "Texas Advanced Computing Center"
+LABEL org.label-schema.name = "TACC Tapis API CLI"
+LABEL org.label-schema.vcs-url = "https://github.com/TACC-Cloud/home"
+LABEL org.label-schema.vcs-ref = "master"
+LABEL org.label-schema.version = "3.0.1"
+LABEL org.label-schema.organization=tacc.cloud
+LABEL cloud.tacc.project="Tapis API CLI"
+
+ARG AGAVEPY_BRANCH=v0.8.0
+ARG PYTHON_PIP_VERSION=9.0.3
+
+#### This is a temporary fix for an issue with OverlayFS on TACC systems ###
+RUN mkdir -p /work && chown root:root /work
+RUN mkdir -p /gpfs && chown root:root /gpfs
+RUN mkdir -p /data && chown root:root /data
+RUN mkdir -p /scratch && chown root:root /scratch
+
+# In-container volume mounts
+# (For containers launched using TACC.cloud SSO identity)
+ARG CORRAL=/corral
+ARG STOCKYARD=/work/projects
+
+# Basics
+RUN apt-get -y update && \
+    apt-get -y install --no-install-recommends \
+    apt-utils bash curl dialog git vim rsync && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# jq for parsing JSON
+RUN curl -L -sk -o /usr/local/bin/jq "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" \
+    && chmod a+x /usr/local/bin/jq
+
+RUN apt-get -y update && \
+    apt-get -y install --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-setuptools && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Make python3 the default user python
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 10
+RUN pip3 install --upgrade pip==${PYTHON_PIP_VERSION}
+RUN pip3 install --upgrade virtualenv==16.0.0
+
+# Make pip behave
+RUN curl -skL -o /etc/pip.conf \
+    https://raw.githubusercontent.com/SD2E/base-images/master/languages/python3/files/pip.conf
+
+# AgavePy
+WORKDIR /tmp
+RUN git clone https://github.com/TACC/agavepy \
+    && cd agavepy \
+    && git fetch --all && \
+    git checkout ${AGAVEPY_BRANCH} && \
+    python setup.py install --quiet
+
+RUN mkdir -p /home
+WORKDIR /home
+
+COPY bin /home/bin
+COPY completion/agave-cli /etc/bash_completion.d/agave-cli
+COPY etc /home/etc
+ENV PATH $PATH:/home/bin
+ENV HOME /home
+ENV AGAVE_CACHE_DIR=/home/.agave
+
+# Set command prompt
+RUN echo 'source /home/etc/.dockerprompt' >> /home/.bashrc
+
+CMD ["/bin/bash"]

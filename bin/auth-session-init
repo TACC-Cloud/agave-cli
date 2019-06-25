@@ -2,7 +2,7 @@
 """
     auth-session-init [OPTION]
 
-Creates a new API client application and generates a set of API keys for the user.
+Creates a new API client application and generates a set of API keys.
 
  Options:
     -c, --cachedir     Directory to save confiurations in.

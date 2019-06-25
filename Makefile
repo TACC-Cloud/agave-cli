@@ -40,3 +40,6 @@ shell: build
 
 clean:
 	make -C docs clean
+
+public-image:
+	docker build $(DOCKER_BUILD_ARGS)  -f Dockerfile.public -t tacc/tapis-cli:latest .

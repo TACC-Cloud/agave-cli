@@ -6,22 +6,22 @@ Agave is an open platform-as-a-service built by TACC designed for scalable and
 reproducible research that integrates HPC resources which can be managed
 through a single API.
 Agave forms part of a thriving community that empowers users to run code in a
-reproducible manner, manage data efficiently, collaborate meaningfully, and 
-integrate easily with third-party applications. 
-TACC operates a professionally managed and supported instance of Agave as part 
+reproducible manner, manage data efficiently, collaborate meaningfully, and
+integrate easily with third-party applications.
+TACC operates a professionally managed and supported instance of Agave as part
 of its TACC.cloud Platform.
 
 
 ## What is the Agave CLI?
 
 The Agave command line interface (CLI) is a client for interacting with the
-Agave platform. 
-The CLI empowers you to streamline common interactions with the API and 
-automating repetitive and/or background tasks. Many developers and analysts 
-use it as their primary interface to TACC and other computing environments. 
-By default, this distribution of the CLI is configured to work with 
-TACC-hosted instances of Agave, but it can easily be adapted to support 
-on-premises or other hosted Agave installations. 
+Agave platform.
+The CLI empowers you to streamline common interactions with the API and
+automating repetitive and/or background tasks. Many developers and analysts
+use it as their primary interface to TACC and other computing environments.
+By default, this distribution of the CLI is configured to work with
+TACC-hosted instances of Agave, but it can easily be adapted to support
+on-premises or other hosted Agave installations.
 
 
 ## Installation
@@ -30,7 +30,7 @@ on-premises or other hosted Agave installations.
 tooling,bug fixes, and rewrites are done in Python 3. The Python scripts make
 use of [TACC/agavepy](https://github.com/TACC/agavepy).
 
-To use `TACC/agave-cli` you'll need the following dependencies. 
+To use `TACC/agave-cli` you'll need the following dependencies.
 
 	* Bash 3.2.50+
 	* curl 7.2+ with TLS support
@@ -71,9 +71,9 @@ echo "export PATH=$PATH:$PWD/agave-cli/bin" >> ~/.bash_profile
 
 ## Getting started
 
-To get more details 
+To get more details
 [see the documentation for the latest changes](docs/docsite).
-For more oficial documentation see
+For more official documentation see
 [Agave](https://tacc-cloud.readthedocs.io/projects/agave/en/latest/).
 
 The first time you use the CLI, you will need to create a session.
@@ -81,19 +81,18 @@ You will need to create credentials to interact with a tenant.
 The credentials will, by default, be store in `~/.agave/`.
 
 ```
-$ auth-session-init 
-ID                   NAME                                     URL                                               
-3dem                 3dem Tenant                              https://api.3dem.org/                             
-agave.prod           Agave Public Tenant                      https://public.agaveapi.co/                       
-araport.org          Araport                                  https://api.araport.org/                          
-designsafe           DesignSafe                               https://agave.designsafe-ci.org/                  
-iplantc.org          CyVerse Science APIs                     https://agave.iplantc.org/                        
-irec                 iReceptor                                https://irec.tenants.prod.tacc.cloud/             
-portals              Portals Tenant                           https://portals-api.tacc.utexas.edu/              
-sd2e                 SD2E Tenant                              https://api.sd2e.org/                             
-sgci                 Science Gateways Community Institute     https://sgci.tacc.cloud/                          
-tacc.prod            TACC                                     https://api.tacc.utexas.edu/                      
-vdjserver.org        VDJ Server                               https://vdj-agave-api.tacc.utexas.edu/            
+$ auth-session-init
+ID                   NAME                                     URL
+3dem                 3dem Tenant                              https://api.3dem.org/
+araport.org          Araport                                  https://api.araport.org/
+designsafe           DesignSafe                               https://agave.designsafe-ci.org/
+iplantc.org          CyVerse Science APIs                     https://agave.iplantc.org/
+irec                 iReceptor                                https://irec.tenants.prod.tacc.cloud/
+portals              Portals Tenant                           https://portals-api.tacc.utexas.edu/
+sd2e                 SD2E Tenant                              https://api.sd2e.org/
+sgci                 Science Gateways Community Institute     https://sgci.tacc.cloud/
+tacc.prod            TACC                                     https://api.tacc.utexas.edu/
+vdjserver.org        VDJ Server                               https://vdj-agave-api.tacc.utexas.edu/
 
 Please specify the ID for the tenant you wish to interact with:
 ```
