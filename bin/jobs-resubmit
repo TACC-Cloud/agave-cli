@@ -77,13 +77,13 @@ main() {
             strictparams='false'
         fi
 
-		cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary '{ \"action\": \"resubmit\", \"ignoreInputConflicts\": $strictinputs, \"ignoreParameterConflicts\": $strictparams }' '$hosturl$args?pretty=true'"
+		cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST '$hosturl$args?pretty=true'"
 
 		if ((veryverbose)); then
 			[ "$piped" -eq 0 ] && log "Calling $cmd"
 		fi
 
-		response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary '{"action": "resubmit", "ignoreInputConflicts": '$strictinputs', "ignoreParameterConflicts": '$strictparams' }'  "$hosturl$args?pretty=true"`
+		response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST "$hosturl$args?pretty=true"`
 
 		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
 

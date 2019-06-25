@@ -1,6 +1,17 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 3.0.2 - 2019-06-25
+### ADDED
+- jobs-hide and jobs-unhide; this replaces jobs-delete and jobs-restore
+
+### CHANGED
+- Updated jobs-submit and jobs-template to reflect the new jobs service API updates
+
+### REMOVED
+- Depricated commands jobs-tail, jobs-delete (now jobs-hide), jobs-restore (now jobs-unhide), jobs-kick, jobs-run-this, and jobs-output
+
+
 ## 3.0.1 - 2019-04-23
 ### ADDED
 - Updated documentation to reflect transition to api.tacc.utexas.edu
