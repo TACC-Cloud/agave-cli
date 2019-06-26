@@ -1,6 +1,19 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+
+## 2.3.1 - 2019-06-26
+### ADDED
+- hotfix for Aloe jobs update
+- jobs-hide and jobs-unhide; this replaces jobs-delete and jobs-restore
+
+### CHANGED
+- Updated jobs-submit and jobs-template to reflect the new jobs service API updates
+
+### REMOVED
+- Depricated commands jobs-tail, jobs-delete (now jobs-hide), jobs-restore (now jobs-unhide), jobs-kick, jobs-run-this, and jobs-output
+
+
 ## 2.3.0 - 2018-08-30
 ### ADDED
 - Integration tests and mock server(test coverage low)
