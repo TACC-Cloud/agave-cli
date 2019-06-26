@@ -87,13 +87,13 @@ main() {
     # standard file upload
     else
 
-      cmd="curl -sk -H \"${authheader}\" -X POST -d \"fileToUpload=@$filetoupload\" '$hosturl?pretty=true'"
+      cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST -d \"@$filetoupload\" '$hosturl?pretty=true'"
 
       if ((veryverbose)); then
         [ "$piped" -eq 0 ] && log "Calling $cmd"
       fi
 
-      response=`curl -sk -H "${authheader}" -X POST -F "fileToUpload=@$filetoupload" "$hosturl?pretty=true"`
+      response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST -d "@$filetoupload" "$hosturl?pretty=true"`
 
     fi
 
