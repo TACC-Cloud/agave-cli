@@ -4,7 +4,7 @@ LABEL org.label-schema.vendor = "Texas Advanced Computing Center"
 LABEL org.label-schema.name = "TACC Tapis API CLI"
 LABEL org.label-schema.vcs-url = "https://github.com/TACC-Cloud/home"
 LABEL org.label-schema.vcs-ref = "master"
-LABEL org.label-schema.version = "3.0.1"
+LABEL org.label-schema.version = "3.0.2"
 LABEL org.label-schema.organization=tacc.cloud
 LABEL cloud.tacc.project="Tapis API CLI"
 

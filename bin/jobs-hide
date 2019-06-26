@@ -1,13 +1,12 @@
 #!/bin/bash
 #
-# jobs-kick
+# jobs-hide
 #
 # author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
-# It resets a job's status by rolling it back to a previous state and
-# resubmitting it to the work queue.
-#
+# It marks a job as invisible to most APIs like job listing or history calls.
+# This can only be done for jobs in a terminal state.
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -21,17 +20,13 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... JOB_ID...
+  echo -n "$(basename $0) [OPTION]... [JOB_ID]
 
-Rolls a job back to the previous state and returns it to the processing queue.
-Without going into details of the plumbing behind the scenes, this works similar
-to kicking a vending machine when your purchase is stuck. It works pretty well
-most times, but there will always be some situations where your job is too jammed
-up to resolve this way and you are better off just stopping and deleting it.
+Hide an existing job from most APIs, such as listing and history. If the job is
+still running, it cannot be hidden. It must be stopped first.
 
  Options:
   -z, --access_token    Access token
-      --filter          Comma separated list of fields to return in the response
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
   -f, --force           Skip all user interaction
@@ -56,43 +51,37 @@ main() {
 	#echo -n
 	#set -x
 
-	hosturl=${hosturl%/}
 	if [ -z "$args" ]; then
-		err "Please specify one or more valid job ids to kick"
+		err "Please specify a valid app id to hide"
 	else
 
-        for jobid in "${args[@]}"
-        do
-            cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary '{\"action\": \"reset\"}' '$hosturl/$jobid?pretty=true$(pagination)'"
+		cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST '$hosturl${args}/hide?pretty=true'"
 
-            if ((veryverbose)); then
-                [ "$piped" -eq 0 ] && log "Calling $cmd"
-            fi
+		if ((veryverbose)); then
+			[ "$piped" -eq 0 ] && log "Calling $cmd"
+		fi
 
-            response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary '{"action":"reset"}' "$hosturl/$jobid?pretty=true"`
+		response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST "$hosturl${args}/hide?pretty=true"`
 
-            if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-                result=$(format_api_json "$response")
-                success "$result"
-            else
-                errorresponse=$(jsonquery "$response" "message")
-                err "$errorresponse"
-            fi
-        done
+		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+			result=$(format_api_json "$response")
+			success "$result"
+		else
+			errorresponse=$(jsonquery "$response" "message")
+			err "$errorresponse"
+		fi
 	fi
 }
 
 format_api_json() {
 
-  if ((veryverbose)); then
+	if ((veryverbose)); then
 		echo "$1"
 	elif [[ $verbose -eq 1 ]]; then
 		result=$(jsonquery "$1" "result" 1)
 		json_prettyify "${result}"
 	else
-		jobstatus=$(jsonquery "$1" "result.status")
-        jobid=$(jsonquery "$1" "result.id")
-		echo "Successfully kicked job $jobid. The current job status is now $jobstatus"
+		echo "Successfully hid job $args"
 	fi
 }
 
@@ -107,10 +96,11 @@ format_api_json() {
 # Parse command line options
 source "$DIR/options.sh"
 
+
 # Main loop {{{
 
 # Print help if no arguments were passed.
-#[[ $# -eq 0 ]] && set -- "--help"
+[[ $# -eq 0 ]] && set -- "-i"
 
 # Read the options and set stuff
 while [[ $1 = -?* ]]; do
@@ -118,7 +108,6 @@ while [[ $1 = -?* ]]; do
     -h|--help) usage >&2; safe_exit ;;
     --version) version; copyright; disclaimer; safe_exit ;;
     -z|--access_token) shift; access_token=$1 ;;
-    --filter) shift; responsefilter=$1 ;;
     -H|--hosturl) shift; hosturl=$1;;
   	-d|--development) development=1 ;;
     -v|--verbose) verbose=1 ;;

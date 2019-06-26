@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# jobs-restore
+# jobs-unhide
 #
 # author: opensource@tacc.cloud
 #
 # This script is part of the Agave API command line interface (CLI).
-# It restores a job from a hidden or deleted status
+# It restores a job from a hidden status
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -22,8 +22,7 @@ interactive_opts=(apisecret apikey)
 usage() {
     echo -n "$(basename $0) [OPTION]... JOB_ID...
 
-Restores a job from a hidden or deleted state to visible and
-available for interaction.
+Restores a job from a hidden state to visible and available for interaction.
 
  Options:
   -z, --access_token    Access token
@@ -54,18 +53,18 @@ main() {
 
     hosturl=${hosturl%/}
     if [ -z "$args" ]; then
-        err "Please specify one or more valid job ids to restore"
+        err "Please specify one or more valid job ids to unhide"
     else
 
         for jobid in "${args[@]}"
         do
-            cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary '{\"action\": \"restore\"}' '$hosturl/$jobid?pretty=true$(pagination)'"
+            cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST '$hosturl/$jobid/unhide?pretty=true'"
 
             if ((veryverbose)); then
                 [ "$piped" -eq 0 ] && log "Calling $cmd"
             fi
 
-            response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary '{"action":"restore"}' "$hosturl/$jobid?pretty=true"`
+            response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST "$hosturl/$jobid/unhide?pretty=true"`
 
             if [[ $(jsonquery "$response" "status") = 'success' ]]; then
                 result=$(format_api_json "$response")
