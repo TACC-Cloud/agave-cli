@@ -8,14 +8,22 @@ LABEL org.label-schema.version = "3.0.1"
 LABEL org.label-schema.organization=tacc.cloud
 LABEL cloud.tacc.project="Tapis API CLI"
 
-ARG AGAVEPY_BRANCH=v0.8.0
-ARG PYTHON_PIP_VERSION=9.0.3
+ARG AGAVEPY_BRANCH=master
+ARG PYTHON_PIP_VERSION=19.1.1
 
-#### This is a temporary fix for an issue with OverlayFS on TACC systems ###
-RUN mkdir -p /work && chown root:root /work
-RUN mkdir -p /gpfs && chown root:root /gpfs
-RUN mkdir -p /data && chown root:root /data
-RUN mkdir -p /scratch && chown root:root /scratch
+# Force locale to UTF-8
+RUN apt-get update && \
+    apt-get install -y locales locales-all && \
+    apt-get clean
+ENV LC_ALL en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US.UTF-8
+
+# #### This is a temporary fix for an issue with OverlayFS on TACC systems ###
+# RUN mkdir -p /work && chown root:root /work
+# RUN mkdir -p /gpfs && chown root:root /gpfs
+# RUN mkdir -p /data && chown root:root /data
+# RUN mkdir -p /scratch && chown root:root /scratch
 
 # In-container volume mounts
 # (For containers launched using TACC.cloud SSO identity)
