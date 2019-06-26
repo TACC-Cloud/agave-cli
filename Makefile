@@ -46,5 +46,11 @@ clean:
 public-image:
 	docker build $(DOCKER_BUILD_ARGS) -f Dockerfile.public -t tacc/tapis-cli:latest .
 
+public-image-py2:
+	docker build $(DOCKER_BUILD_ARGS) -f Dockerfile.public.py2 -t tacc/tapis-cli:python2 .
+
 interactive: public-image
 	docker run --rm -it $(DOCKER_MOUNT) $(DOCKER_MOUNT_AUTHCACHE) $(PUBLIC_DOCKER_IMAGE) bash
+
+interactive-py2: public-image
+	docker run --rm -it $(DOCKER_MOUNT) $(DOCKER_MOUNT_AUTHCACHE) tacc/tapis-cli:python2 bash
