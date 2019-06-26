@@ -95,10 +95,10 @@ class EasyDict(dict):
             d = {}
         if kwargs:
             d.update(**kwargs)
-        for k, v in d.items():
+        for k, v in list(d.items()):
             setattr(self, k, v)
         # Class attributes
-        for k in self.__class__.__dict__.keys():
+        for k in list(self.__class__.__dict__.keys()):
             if not (k.startswith('__') and k.endswith('__')):
                 setattr(self, k, getattr(self, k))
 
