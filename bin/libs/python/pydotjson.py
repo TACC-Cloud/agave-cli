@@ -4,6 +4,8 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+from builtins import map
+from past.builtins import basestring
 from easydict import EasyDict as edict
 import json, sys, argparse, re
 from operator import attrgetter
@@ -107,7 +109,7 @@ def main():
                     print(
                         'Resulting path query is: map(attrgetter({0}), eval({1}))'.
                         format(tokens[0], tokens[1]))
-                query_result = map(attrgetter(tokens[1]), eval(tokens[0]))
+                query_result = list(map(attrgetter(tokens[1]), eval(tokens[0])))
             else:
                 if debug:
                     print('Resulting path query is: ' + json_path)
