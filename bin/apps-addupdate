@@ -14,7 +14,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$DIR/common.sh"
 source "$DIR/apps-common.sh"
-source "$DIR/template-common.sh"
 
 # Script logic -- TOUCH THIS {{{
 
@@ -36,7 +35,6 @@ existing application, an application id must be provided.
   -F, --filetoupload    File containing the JSON app description to submit
                         Use - to read from STDIN and when piping
   -E, --variables       Variables file for populating template variables (app.ini)
-      --notemplate      Do not attempt to render upload file as a template
       --filter          Comma separated list of fields to return in the response
   -H, --hosturl         URL of the service
   -d, --development     Run in dev mode using default dev server
@@ -57,7 +55,7 @@ existing application, an application id must be provided.
 ##################################################################
 
 variablesfile=app.ini
-template=1
+template=0
 declare -a envs
 
 main() {
@@ -185,7 +183,6 @@ while [[ $1 = -?* ]]; do
     -F|--filetoupload) shift; filetoupload=$1 ;;
     -E|--variables) shift; variablesfile=$1 ;;
     -e|--env) shift; exportenv "${1}" ;;
-    --notemplate) template=0 ;;
     --filter) shift; responsefilter=$1;;
     -H|--hosturl) shift; hosturl=$1 ;;
   	-d|--development) development=1 ;;
