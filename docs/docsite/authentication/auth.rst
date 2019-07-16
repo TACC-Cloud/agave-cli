@@ -31,7 +31,7 @@ initiate a session as follows:
     Getting oauth bearer tokens...
     API password:
 
-You shoould now be ready to interact with the rest of TACC's services.
+You should now be ready to interact with the rest of TACC's services.
 ``auth-session-init`` will save your session configuration by default in
 ``~/.agave``, unless you specify another location using the ``-c, --cachedir``
 flag.
