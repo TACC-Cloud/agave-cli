@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """
-    Usage: clients-subscriptions-update [flags] [client name]
+    Usage: clients-subscriptions-update [OPTIONS] [CLIENT NAME]
 
-Subscribe a client to a TACC api.
+Update or add API subscriptions for a Tapis Oauth client.
 
 Flags:
-    -c, --cachedir      Directory where confiurations are saved in
+    -c, --cachedir      Directory where session configurations are saved
     -a, --apiname       Name of the API to subscribe the client application to
     -r, --apiversion    Version of the API to subscribe the client application to
     -p, --apiprovider   User who registered the API
@@ -17,30 +17,31 @@ import os
 import sys
 from agavepy.agave import Agave
 
-parser = argparse.ArgumentParser(description="Delete an oauth client")
+parser = argparse.ArgumentParser(
+    description="Update or add API subscriptions to a Tapis Oauth client.")
 
-parser.add_argument(
-    "-c",
-    "--cachedir",
-    default=os.path.expanduser("~/.agave"),
-    help="Directory in which confiurations are saved in.")
-
-parser.add_argument("-n", "--name", help="Name of oauth client")
+parser.add_argument("-u", "--username", default=None, help="Tapis username.")
+parser.add_argument("-p", "--password", default=None, help="Tapis password.")
+parser.add_argument("-N", "--name", help="Name of Oauth client.")
 
 parser.add_argument(
     "-a",
     "--apiname",
     required=True,
-    help="Name of the API to subscribe the client application to")
-
+    help="Name of the API to subscribe the client application to.")
 parser.add_argument(
     "-r",
     "--apiversion",
     required=True,
-    help="Version of the API to subscribe the client application to")
+    help="Version of the API to subscribe the client application to.")
+parser.add_argument(
+    "-p", "--apiprovider", required=True, help="User who registered the API.")
 
 parser.add_argument(
-    "-p", "--apiprovider", required=True, help="User who registered the API")
+    "-c",
+    "--cachedir",
+    default=os.path.expanduser("~/.agave"),
+    help="Directory where session configurations are saved.")
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -49,6 +50,8 @@ if __name__ == "__main__":
     api_name = args.apiname
     api_version = args.apiversion
     api_provider = args.apiprovider
+    username = args.username
+    password = args.password
 
     agave = Agave()
 
@@ -63,7 +66,8 @@ if __name__ == "__main__":
     # Subscribe oauth client to api.
     try:
         agave.clients_subscribe(
-            api_name, api_version, api_provider, client_name=client_name)
+            api_name, api_version, api_provider, client_name=client_name,
+            username=username, password=password, quiet=False)
     except Exception as err:
         print(err)
         sys.exit(1)

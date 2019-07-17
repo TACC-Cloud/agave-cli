@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-"""                                                                             
-    Usage: clients-subscriptions-list [flags] [client name]                   
-                                                                                
-Subscribe a client to a TACC api.                                               
-                                                                                
-Flags:                                                                          
-    -c, --cachedir      Directory where confiurations are saved in              
-    -h, --help          Display this help and exit                              
+"""
+    Usage: clients-subscriptions-list [OPTIONS] [CLIENT NAME]
+
+List API subscriptions for a Tapis Oauth client
+
+Flags:
+    -c, --cachedir      Directory where session configurations are saved
+    -h, --help          Display this help and exit
 """
 from __future__ import print_function
 import argparse
@@ -14,15 +14,18 @@ import os
 import sys
 from agavepy.agave import Agave
 
-parser = argparse.ArgumentParser(description="Delete an oauth client")
+parser = argparse.ArgumentParser(
+    description="List API subscriptions for a Tapis Oauth client.")
+
+parser.add_argument("-u", "--username", default=None, help="Tapis username.")
+parser.add_argument("-p", "--password", default=None, help="Tapis password.")
+parser.add_argument("-N", "--name", help="Name of Oauth client.")
 
 parser.add_argument(
     "-c",
     "--cachedir",
     default=os.path.expanduser("~/.agave"),
-    help="Directory in which confiurations are saved in.")
-
-parser.add_argument("-n", "--name", help="Name of oauth client")
+    help="Directory where session configurations are saved.")
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -30,8 +33,10 @@ if __name__ == "__main__":
     client_name = args.name
 
     agave = Agave()
+    username = args.username
+    password = args.password
 
-    config_file = "{}/config.json".format(cache_dir)
+    config_file = os.path.join(cache_dir, 'config.json')
     # Check if there is a session already saved.
     if os.path.exists(config_file):
         agave.load_configs(cache_dir=cache_dir)
@@ -41,7 +46,9 @@ if __name__ == "__main__":
 
     # List client's subscriptions.
     try:
-        agave.clients_subscribtions(client_name=client_name)
+        agave.clients_subscriptions(
+            client_name=client_name, username=username,
+            password=password, quiet=False)
     except Exception as err:
         print(err)
         sys.exit(1)

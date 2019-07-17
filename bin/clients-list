@@ -5,7 +5,7 @@ clients-list [flags] [client name]
 List all oauth clients registered to the user.
 
 Flags:
-    -c, --cachedir    Directory where confiurations are saved in.
+    -c, --cachedir    Directory where session configurations are saved
 """
 from __future__ import print_function
 import argparse
@@ -14,21 +14,26 @@ import sys
 from agavepy.agave import Agave
 
 parser = argparse.ArgumentParser(
-    description="List all oauth clients regisered to the user")
+    description="List Tapis Oauth clients registered to the user in the current tenant.")
+
+parser.add_argument("-u", "--username", default=None, help="Tapis username.")
+parser.add_argument("-p", "--password", default=None, help="Tapis password.")
 
 parser.add_argument(
     "-c",
     "--cachedir",
     default=os.path.expanduser("~/.agave"),
-    help="Directory in which confiurations are saved in.")
+    help="Directory where session configurations are saved.")
 
 if __name__ == "__main__":
     args = parser.parse_args()
 
     agave = Agave()
     cache_dir = args.cachedir
+    username = args.username
+    password = args.password
 
-    config_file = "{}/config.json".format(cache_dir)
+    config_file = os.path.join(cache_dir, 'config.json')
     # Check if there is a session already saved.
     if os.path.exists(config_file):
         agave.load_configs(cache_dir=cache_dir)
@@ -38,7 +43,7 @@ if __name__ == "__main__":
 
     # List clients.
     try:
-        agave.clients_list()
+        agave.clients_list(username=username, password=password, quiet=False)
     except Exception as err:
         print(err)
         sys.exit(1)
