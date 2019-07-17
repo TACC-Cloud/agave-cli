@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-    Usage: files-pems-update [flags] agave://path
+    Usage: files-pems-update [flags] agave://SYSTEM/PATH
 
 Edit user permissions on a file or folder. For all but iRODS systems, these
 permissions are set at the API level and do not reflect *nix or other file

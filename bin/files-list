@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-    Usage: [Flags] [agave://PATH]
+    Usage: [Flags] [agave://SYSTEM/PATH]
 
-List files on a remote system. The path must be specified as an agave uri - 
+List files on a remote system. The path must be specified as an agave uri -
 must be prefixed by 'agave://'.
 
     Example:
