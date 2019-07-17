@@ -95,6 +95,8 @@ if __name__ == "__main__":
         utils.print_stderr(
             "Refreshing Oauth access token for {} on {}...".format(
                 agave.username, agave.tenant_id))
+
+        agave.refresh_tokens()
         new_token = agave.token
         token_expires = agave.expires_at
 
