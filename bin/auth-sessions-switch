@@ -12,10 +12,11 @@ Switches between configured Tapis Oauth API clients on the host
     -c, --cachedir     Directory where session configurations are saved.
 """
 from __future__ import print_function
+from agavepy import utils
+from agavepy.agave import Agave
 import argparse
 import os
-from agavepy.agave import Agave
-from agavepy import utils
+import json
 
 parser = argparse.ArgumentParser(
     description="Switch between configured Tapis Oauth API clients on the host")
@@ -47,15 +48,35 @@ if __name__ == "__main__":
     config_file = os.path.join(cache_dir, 'config.json')
     # Check if there is a session already saved.
     if os.path.exists(config_file):
+
+        # Default to contents of 'current'
+        config = json.load(open(config_file, 'rb'))
+        current_client_name = list(config['current'])[0]
+        current_username = config['current'][current_client_name]['username']
+        current_tenant_id = config['current'][current_client_name]['tenantid']
+
+        if username != current_username and username is None:
+            username = current_username
+        if client_name != current_client_name and client_name is None:
+            client_name = current_client_name
+        if tenant_id != current_tenant_id and tenant_id is None:
+            tenant_id = current_tenant_id
+
         try:
             agave.load_configs(
                 cache_dir=cache_dir,
                 tenant_id=tenant_id,
                 username=username,
                 client_name=client_name)
-        except KeyError:
-            raise ValueError('Cannot load client {} for {} on tenant {}'.format(
-                client_name, username, tenant_id))
+
+            username = agave.username
+            tenant_id = agave.tenant_id
+            client_name = agave.client_name
+
+        except (KeyError, TypeError):
+            raise
+            # raise ValueError(
+            #     'Cannot load client {}'.format(client_name))
 
     # Get access token or refresh if necessary.
     if not args.norefresh:
