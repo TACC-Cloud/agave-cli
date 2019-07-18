@@ -83,7 +83,7 @@ if __name__ == "__main__":
         new_token = tok.get('access_token')
         token_expires = tok.get('expires_at')
     else:
-        utils.print_stderr('Loading current Oauth client configuration')
+        utils.print_stderr('Loading Oauth client configuration')
         config_file = os.path.join(cache_dir, 'config.json')
         # Check if there may be a session already saved.
         if os.path.exists(config_file):
@@ -93,8 +93,9 @@ if __name__ == "__main__":
             except KeyError:
                 raise
         utils.print_stderr(
-            "Refreshing Oauth access token for {} on {}...".format(
-                agave.username, agave.tenant_id))
+            "Refreshing Oauth access token...")
+
+        agave.refresh_tokens()
         new_token = agave.token
         token_expires = agave.expires_at
 

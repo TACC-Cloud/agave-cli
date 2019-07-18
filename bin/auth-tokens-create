@@ -96,7 +96,8 @@ if __name__ == "__main__":
             except KeyError:
                 raise
 
-    utils.print_stderr("Creating Oauth access token...")
+    utils.print_stderr(
+        "Creating Oauth access token for {}...".format(agave.client_name))
     agave.get_access_token(username=username, password=password, quiet=True)
     print(agave.token)
 
