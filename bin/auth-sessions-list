@@ -2,31 +2,35 @@
 """
     auth-sessions-list [OPTION]
 
-Lists all combinations of tenant, username, and client configured on the host.
+Lists all Tapis Oauth clients on the host by tenant and username
 
  Options:
-    -c, --cachedir     Directory where session configurations are saved
+    -c, --cachedir     Session cache directory.
 """
 from __future__ import print_function
 import argparse
-import os
 import sys
 import json
+from agavepy import utils
 
 parser = argparse.ArgumentParser(
-    description="List all combinations of tenant, username, and client configured on the host.")
+    description="Lists all Tapis Oauth clients on the host by tenant and username.")
 
 parser.add_argument(
     "-c",
     "--cachedir",
-    default=os.path.expanduser("~/.agave"),
-    help="Directory to save configurations in.")
+    default=utils.credentials_cache_dir(create=False),
+    help="Session cache directory.")
 
 if __name__ == "__main__":
     args = parser.parse_args()
     cache_dir = args.cachedir
 
-    config_file = os.path.join(cache_dir, 'config.json')
+    # Pick up existing client_name in context if it is configured
+    context = utils.bootstrap_context(
+        cache_dir, tenantid=None, username=None, client_name=None)
+
+    config_file = utils.sessions_cache_path(cache_dir)
     try:
         config = json.load(open(config_file, 'rb'))
     except (FileNotFoundError, IOError, OSError):
@@ -36,6 +40,7 @@ if __name__ == "__main__":
 
     sessions = list()
     current_session = config.get('current', {})
+
     current_client_name = list(current_session.keys())[0]
     current_tenant_id = current_session[current_client_name].get('tenantid')
     current_username = current_session[current_client_name].get('username')
