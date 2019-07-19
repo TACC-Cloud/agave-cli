@@ -680,11 +680,23 @@ function json_prettyify {
 }
 
 #
+# Refresh the current user token cached in $AGAVE_CACHE_DIR. This function calls
+# the pure Python implementation of auth-tokens-refresh, which in turn ensures
+# that the contents of $AGAVE_CACHE_DIR/current and $AGAVE_CACHE_DIR/config.json
+# remain in sync.
+function auto_auth_refresh {
+	if [[ -z "$AGAVE_DISABLE_AUTO_REFRESH" ]];
+	then
+		new_token=$(${DIR}/auth-tokens-refresh)
+	fi
+}
+
+#
 # Refresh the current user token cached in $AGAVE_CACHE_DIR/current. This function can be
 # disabled at any time by setting the $AGAVE_DISABLE_AUTO_REFRESH environment variable.
 # Refresh will be skipped silently if the client key, secret, or refresh token are missing.
 #
-function auto_auth_refresh
+function _auto_auth_refresh
 {
 	# AGAVE_DISABLE_AUTO_REFRESH=1
 	if [[ -z "$AGAVE_DISABLE_AUTO_REFRESH" ]];
