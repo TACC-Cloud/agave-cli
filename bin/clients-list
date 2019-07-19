@@ -2,48 +2,51 @@
 """
 clients-list [flags] [client name]
 
-List all oauth clients registered to the user.
+Lists all Tapis Oauth clients registered to the user on a tenant.
 
 Flags:
-    -c, --cachedir    Directory where session configurations are saved
+    -u, --username      Username.
+    -p, --password      Password.
+    -t, --tenant        Tenant id where clients are registered.
+    -c, --cachedir      Session cache directory.
 """
 from __future__ import print_function
 import argparse
-import os
 import sys
 from agavepy.agave import Agave
+from agavepy import utils
 
 parser = argparse.ArgumentParser(
-    description="List Tapis Oauth clients registered to the user in the current tenant.")
+    description="Lists all Tapis Oauth clients registered to the user on a tenant.")
 
-parser.add_argument("-u", "--username", default=None, help="Tapis username.")
-parser.add_argument("-p", "--password", default=None, help="Tapis password.")
+parser.add_argument("-u", "--username", default=None, help="Username.")
+parser.add_argument("-p", "--password", default=None, help="Password.")
+parser.add_argument("-t", "--tenant", default=None,
+                    help="Tenant id where clients are registered.")
 
 parser.add_argument(
     "-c",
     "--cachedir",
-    default=os.path.expanduser("~/.agave"),
-    help="Directory where session configurations are saved.")
+    default=utils.credentials_cache_dir(),
+    help="Session cache directory.")
 
 if __name__ == "__main__":
     args = parser.parse_args()
 
-    agave = Agave()
-    cache_dir = args.cachedir
     username = args.username
     password = args.password
+    tenantid = args.tenant
+    cache_dir = args.cachedir
+    agave = Agave()
 
-    config_file = os.path.join(cache_dir, 'config.json')
-    # Check if there is a session already saved.
-    if os.path.exists(config_file):
-        agave.load_configs(cache_dir=cache_dir)
-    else:
-        print("You need to initiate a session first. Use auth-sessions-init")
-        sys.exit(1)
+    context = utils.bootstrap_context(
+        cache_dir, tenantid=tenantid, username=username)
+    agave = Agave(tenant_id=context['tenantid'], username=context['username'])
+    agave.init()
 
     # List clients.
     try:
-        agave.clients_list(username=username, password=password, quiet=False)
+        agave.clients_list(password=password, quiet=False)
     except Exception as err:
         print(err)
         sys.exit(1)

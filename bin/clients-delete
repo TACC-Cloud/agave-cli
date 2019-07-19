@@ -1,54 +1,55 @@
 #!/usr/bin/env python
 """
-    Usage: clients-delete [flags] [client name]
+    Usage: clients-delete [flags]
 
-Deletes an oauth client.
+Deletes a Tapis Oauth client.
 
 Flags:
-      -c, --cachedir    Directory where session configurations are saved
+    -u, --username      Username.
+    -p, --password      Password.
+    -t, --tenant        Tenant id where client is registered.
+    -c, --cachedir      Session cache directory.
 """
 from __future__ import print_function
 import argparse
 import os
 import sys
 from agavepy.agave import Agave
+from agavepy import utils
 
 parser = argparse.ArgumentParser(description="Delete a Tapis Oauth client.")
 
 parser.add_argument(
-    "name", action="store", help="Name of Oauth client to delete")
+    "-N", "--name", action="store", help="Name of Oauth client to delete")
 
-parser.add_argument("-u", "--username", default=None, help="Tapis username.")
-parser.add_argument("-p", "--password", default=None, help="Tapis password.")
+parser.add_argument("-u", "--username", default=None, help="Username.")
+parser.add_argument("-p", "--password", default=None, help="Password.")
+parser.add_argument("-t", "--tenant", default=None,
+                    help="Tenant id where client is registered.")
 
 parser.add_argument(
     "-c",
     "--cachedir",
-    default=os.path.expanduser("~/.agave"),
-    help="Directory where session configurations are saved.")
+    default=utils.credentials_cache_dir(),
+    help="Session cache directory.")
 
 if __name__ == "__main__":
     args = parser.parse_args()
 
     username = args.username
     password = args.password
-
-    agave = Agave()
+    tenantid = args.tenant
     cache_dir = args.cachedir
     client_name = args.name
-
-    config_file = os.path.join(cache_dir, 'config.json')
-    # Check if there is a session already saved.
-    if os.path.exists(config_file):
-        agave.load_configs(cache_dir=cache_dir)
-    else:
-        print("You need to initiate a session first. Use auth-sessions-init")
-        sys.exit(1)
+    context = utils.bootstrap_context(
+        cache_dir, tenantid=tenantid, username=username)
+    agave = Agave(tenant_id=context['tenantid'], username=context['username'])
+    agave.init()
 
     # List clients.
     try:
-        agave.clients_delete(client_name, username=username,
-                             password=password, quiet=False)
+        agave.clients_delete(client_name, password=password, quiet=False)
+        utils.print_stderr('Client was deleted.')
     except Exception as err:
         print(err)
         sys.exit(1)
