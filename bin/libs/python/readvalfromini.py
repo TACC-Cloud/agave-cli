@@ -73,7 +73,8 @@ def main():
 
     if ini_section not in config.sections():
         if args.noempty:
-            raise KeyError("Section {} not present in file".format(ini_section))
+            raise KeyError(
+                "Section {} not present in file".format(ini_section))
         else:
             ini_section = 'DEFAULT'
 

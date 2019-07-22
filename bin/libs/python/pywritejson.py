@@ -1,5 +1,5 @@
-#!/usr/bin/python
-# pywritejson
+#!/usr/bin/env python
+# # pywritejson
 #
 # A Python >=2.7 command line utility to write a field in a JSON dict
 #
