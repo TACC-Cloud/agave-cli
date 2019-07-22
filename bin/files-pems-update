@@ -1,14 +1,8 @@
 #!/usr/bin/env python
 """
-    Usage: files-pems-update [flags] agave://SYSTEM/PATH
+    Usage: files-pems-update [OPTIONS] agave://SYSTEM/PATH
 
-Edit user permissions on a file or folder. For all but iRODS systems, these
-permissions are set at the API level and do not reflect *nix or other file
-system ACL. On iRODS systems, if the system.storageConfig.mirror attribute
-is set to true then any permissions set via the API will be mirrored onto
-the remote system.
-
-Also remember that no permissions can be set on public files and folders.
+Edits user permissions on a file or directory.
 
 Flags:
   -u, --username        The user whose permissions should be listed
@@ -23,19 +17,15 @@ import argparse
 import os
 import sys
 from agavepy.agave import Agave
+from agavepy import utils
 
 parser = argparse.ArgumentParser(
-    description="Edit user permissions associated with a file or folder")
+    description="Edits user permissions on a file or directory.")
 
 parser.add_argument(
-    "-c",
-    "--cachedir",
-    default=os.path.expanduser("~/.agave"),
-    help="Directory in which confiurations are saved in.")
+    "filepath", help="Path where permissions should be edited")
 
-parser.add_argument("filepath", help="Path to list")
-
-parser.add_argument("-u", "--username", help="Edit user's permissions.")
+parser.add_argument("-u", "--username", help="Edit this user's permissions")
 
 parser.add_argument(
     "-p",
@@ -44,37 +34,46 @@ parser.add_argument(
         "READ", "WRITE", "EXECUTE", "READ_WRITE", "READ_EXECUTE",
         "WRITE_EXECUTE", "ALL", "NONE"
     ],
-    help="Permission to set.")
+    help="User permission(s) to set.")
 
 parser.add_argument(
     "-r",
     "--recursive",
     action="store_true",
-    help="Recursively apply permissions to folder contents")
+    help="Recursively apply to directory contents")
+
+parser.add_argument(
+    "-c",
+    "--cachedir",
+    default=utils.credentials_cache_dir(),
+    help="Session cache directory.")
 
 if __name__ == "__main__":
-    args = parser.parse_args()
+    try:
+        args = parser.parse_args()
 
-    agave = Agave()
-    cache_dir = args.cachedir
-    uri = args.filepath
-    username = args.username
-    permissions = args.permission
-    recursive = args.recursive
+        cache_dir = args.cachedir
+        uri = args.filepath
+        username = args.username
+        permissions = args.permission
+        recursive = args.recursive
 
-    config_file = "{}/config.json".format(cache_dir)
-    # Check if there is a session already saved.
-    if os.path.exists(config_file):
-        agave.load_configs(cache_dir=cache_dir)
-    else:
-        print("You need to initiate a session first. Use auth-sessions-init")
+        agave = Agave()
+        agave.load_client(cache_dir)
+
+        # Refresh tokens if necessary.
+        agave.refresh_tokens()
+        # Save out session cache
+        if agave.client_name is not None:
+            agave.save_configs(cache_dir)
+        # Obtain uri - remove the prefix 'agave://'.
+        uri = uri[len("agave://"):]
+
+        # Edit user permissions.
+        agave.files_pems_update(
+            uri, username, permissions, recursive=recursive)
+        sys.exit(0)
+
+    except Exception as err:
+        print(err)
         sys.exit(1)
-
-    # Refresh tokens if necessary.
-    agave.refresh_tokens()
-
-    # Obtain uri - remove the prefix 'agave://'.
-    uri = uri[len("agave://"):]
-
-    # Edit user permissions.
-    agave.files_pems_update(uri, username, permissions, recursive=recursive)

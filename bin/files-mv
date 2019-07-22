@@ -1,58 +1,58 @@
 #!/usr/bin/env python
 """
-    Usage: files-mv [flags] agave://source agave://destination
+    Usage: files-mv [OPTIONS] agave://SYSTEM/SOURCE agave://SYSTEM/DESTINATION
 
-Moves a file or folder from one location to another on a remote system. This
-is akin to the UNIX 'mv' command. The path must be specified as an agave uri - 
-must be prefixed by 'agave://'. If no system is specified, your default
-storage system will be used. By specifying a system, the path given will be
-resolved on that remote system. Note that the system id, not hostname must be
-given.
-
+Moves a file or folder from one location to another on a Tapis system. This
+is akin to the UNIX 'mv' command. The paths must be specified as Agave URI (
+    i.e. agave://tacc-data-user/path/to/source)
 
 Flags:
-    -c, --cachedir    Directory where confiurations are saved in.
+    -c, --cachedir    Session cache directory..
 """
 from __future__ import print_function
 import argparse
-import os
 import sys
 from agavepy.agave import Agave
+from agavepy import utils
 
 parser = argparse.ArgumentParser(
-    description="Move (rename) files on remote systems")
+    description="Moves (renames) a file or folder from one location to another on a Tapis system. This is akin to the UNIX `mv` command. Source and destination paths must be specififed as Agave URIs.")
 
 parser.add_argument(
     "-c",
     "--cachedir",
-    default=os.path.expanduser("~/.agave"),
-    help="Directory in which confiurations are saved in.")
+    default=utils.credentials_cache_dir(),
+    help="Session cache directory.")
 
 parser.add_argument(
-    "source", action="store", help="Source (prefix with 'agave://')")
+    "source", action="store", help="Source (Prefix with 'agave://')")
 
 parser.add_argument(
-    "destination", action="store", help="Destination (prefix with 'agave://')")
+    "destination", action="store", help="Destination (Prefix with 'agave://')")
 
 if __name__ == "__main__":
-    args = parser.parse_args()
-    cache_dir = args.cachedir
-    source = args.source
-    destination = args.destination
+    try:
+        args = parser.parse_args()
+        cache_dir = args.cachedir
+        source = args.source
+        destination = args.destination
 
-    agave = Agave()
+        agave = Agave()
+        agave.load_client(cache_dir)
 
-    config_file = "{}/config.json".format(cache_dir)
-    # Check if there is a session already saved.
-    if os.path.exists(config_file):
-        agave.load_configs(cache_dir=cache_dir)
-    else:
-        print("You need to initiate a session first. Use auth-sessions-init")
+        # Refresh tokens if necessary.
+        agave.refresh_tokens()
+        # Save out session cache
+        if agave.client_name is not None:
+            agave.save_configs(cache_dir)
+        # Refresh tokens if necessary.
+        agave.refresh_tokens()
+
+        source = source[len("agave://"):]
+        destination = destination[len("agave://"):]
+        agave.files_copy(source, destination)
+        sys.exit(0)
+
+    except Exception as err:
+        print(err)
         sys.exit(1)
-
-    # Refresh tokens if necessary.
-    agave.refresh_tokens()
-
-    source = source[len("agave://"):]
-    destination = destination[len("agave://"):]
-    agave.files_copy(source, destination)

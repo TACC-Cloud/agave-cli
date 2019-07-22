@@ -47,7 +47,7 @@ parser.add_argument("-t", "--tenant", default=None,
 parser.add_argument(
     "-c",
     "--cachedir",
-    default=os.path.expanduser("~/.agave"),
+    default=utils.credentials_cache_dir(),
     help="Session cache directory.")
 
 if __name__ == "__main__":

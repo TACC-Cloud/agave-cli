@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """
-    Usage: files-cp [Flags] agave://source agave://destination
+    Usage: files-cp [OPTIONS] SOURCE DESTINATION
 
-Copy files to a remote system, from a remote system, and in remote systems. 
-The path must be specified as an agave uri - must be prefixed by 'agave://'.
+Copy files to, from, and on Tapis storage system.
+System paths must be specified as Agave URIs (agave://).
 
     Example:
         files-cp file.ext agave://systemId/path/file.ext
@@ -13,71 +13,80 @@ The path must be specified as an agave uri - must be prefixed by 'agave://'.
         files-cp agave://systemId/file.ext agave://systemId/new.ext
 
 Flags:
-    -c, --cachedir    Directory where confiurations are saved in
+    -c, --cachedir    Session cache directory.
 """
 from __future__ import print_function
 import argparse
 import os
 import sys
+from argparse import RawTextHelpFormatter
 from agavepy.agave import Agave
+from agavepy import utils
 
-parser = argparse.ArgumentParser(
-    description="Copy files to/from/between remote systems")
+parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter,
+                                 description="Copy files to, from, and on Tapis storage system.\n\n" +
+                                 "System paths must be specified as Agave URIs (agave://).\n\nExamples:\n" +
+                                 "    files-cp file.ext agave://systemId/path/file.ext\n" +
+                                 "    files-cp agave://systemId/path/to/file.ext local.ext\n" +
+                                 "    files-cp agave://systemId/file.ext agave://systemId/new.ext")
 
 parser.add_argument(
     "-c",
     "--cachedir",
-    default=os.path.expanduser("~/.agave"),
-    help="Directory in which confiurations are saved in.")
+    default=utils.credentials_cache_dir(),
+    help="Session cache directory.")
 
 parser.add_argument(
     "source",
     action="store",
-    help="Source (for remote systems prefix with agave://)")
+    help="Source (storage systems prefix with agave://)")
 
 parser.add_argument(
     "destination",
     action="store",
-    help="Destination (for remote systems prefix with agave://)")
+    help="Destination (storage systems prefix with agave://)")
 
 if __name__ == "__main__":
-    args = parser.parse_args()
-    cache_dir = args.cachedir
-    source = args.source
-    destination = args.destination
+    try:
+        args = parser.parse_args()
+        cache_dir = args.cachedir
+        source = args.source
+        destination = args.destination
 
-    agave = Agave()
+        agave = Agave()
+        agave.load_client(cache_dir)
 
-    config_file = "{}/config.json".format(cache_dir)
-    # Check if there is a session already saved.
-    if os.path.exists(config_file):
-        agave.load_configs(cache_dir=cache_dir)
-    else:
-        print("You need to initiate a session first. Use auth-sessions-init")
+        # Refresh tokens if necessary.
+        agave.refresh_tokens()
+        # Save out session cache
+        if agave.client_name is not None:
+            agave.save_configs(cache_dir)
+
+        # Parse source and destination arguments.
+        source_remote = False
+        destination_remote = False
+        if source.startswith("agave://"):
+            source_remote = True
+            source = source[len("agave://"):]
+
+        if destination.startswith("agave://"):
+            destination_remote = True
+            destination = destination[len("agave://"):]
+
+        # Copy file from one location to another within a Tapis system.
+        if source_remote and destination_remote:
+            agave.files_copy(source, destination)
+        # Download a file from a remote system to the host.
+        elif source_remote and not destination_remote:
+            destination = os.path.abspath(destination)
+            agave.files_download(source, destination)
+        # Upload a fle from the host to a remote system.
+        elif not source_remote and destination_remote:
+            source = os.path.abspath(source)
+            agave.files_upload(source, destination)
+
+        sys.exit(0)
+
+    except Exception as err:
+        print(err)
         sys.exit(1)
-
-    # Refresh tokens if necessary.
-    agave.refresh_tokens()
-
-    # Parse source and destination arguments.
-    source_remote = False
-    destination_remote = False
-    if source.startswith("agave://"):
-        source_remote = True
-        source = source[len("agave://"):]
-
-    if destination.startswith("agave://"):
-        destination_remote = True
-        destination = destination[len("agave://"):]
-
-    # Copy file from one location to another within a remote storage system.
-    if source_remote and destination_remote:
-        agave.files_copy(source, destination)
-    # Download a file from a remote system to the host.
-    elif source_remote and not destination_remote:
-        destination = os.path.abspath(destination)
-        agave.files_download(source, destination)
-    # Upload a fle from the host to a remote system.
-    elif not source_remote and destination_remote:
-        source = os.path.abspath(source)
-        agave.files_upload(source, destination)

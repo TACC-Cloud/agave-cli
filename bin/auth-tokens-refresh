@@ -108,7 +108,7 @@ if __name__ == "__main__":
             token_expires = agave.expires_at
 
         print(new_token)
-        utils.print_stderr('Expires: {}'.format(token_expires))
+        utils.print_stderr('New token eexpires: {}'.format(token_expires))
 
         # Save session.
         if not display_only:
