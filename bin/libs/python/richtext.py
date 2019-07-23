@@ -4,13 +4,16 @@
 # A Python >=2.7 command line utility for converting json responses into a rich format
 #
 
+from __future__ import print_function
+from builtins import zip
+from builtins import range
 import sys
 debug = False
 
 
 def print_table(table):
 
-    zip_table = zip(*table)
+    zip_table = list(zip(*table))
     widths = [max(len(value) for value in row) for row in zip_table]
 
     for row in table:

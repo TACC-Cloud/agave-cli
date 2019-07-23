@@ -43,16 +43,16 @@ RUN curl -L -sk -o /usr/local/bin/jq "https://github.com/stedolan/jq/releases/do
 
 RUN apt-get -y update && \
     apt-get -y install --no-install-recommends \
-    python3 \
-    python3-pip \
-    python3-setuptools && \
+    python \
+    python-pip \
+    python-setuptools && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Make python3 the default user python
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 10
-RUN pip3 install --upgrade pip==${PYTHON_PIP_VERSION}
-RUN pip3 install --upgrade virtualenv==16.0.0
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python2 10
+RUN pip install --upgrade pip==${PYTHON_PIP_VERSION}
+RUN pip install --upgrade virtualenv==16.0.0
 
 # Make pip behave
 RUN curl -skL -o /etc/pip.conf \

@@ -5,7 +5,12 @@
 # embedcurl.io and hurl.it references you can share
 #
 
-import json, sys, argparse, re, urllib, base64
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import chr
+from builtins import hex
+import json, sys, argparse, re, urllib.request, urllib.parse, urllib.error, base64
 from operator import attrgetter
 
 debug = False
@@ -60,7 +65,7 @@ def encodeURIComponent(str):
 def unescape(str):
 
     def replace(match):
-        return unichr(int(match.group(1), 16))
+        return chr(int(match.group(1), 16))
 
     return re.sub(r'%u([a-fA-F0-9]{4}|[a-fA-F0-9]{2})', replace, str)
 
@@ -81,24 +86,24 @@ def main():
 
     if args.veryverbose:
 
-        print "Calling " + remotequery + "\n"
+        print("Calling " + remotequery + "\n")
 
-    response = urllib.urlopen(remotequery).read()
+    response = urllib.request.urlopen(remotequery).read()
 
     if args.hurlit or True:
 
-        print 'Showing hurl.it url here'
+        print('Showing hurl.it url here')
         p = re.compile('<span class="hurl"><a href="(.*)" target="_blank">')
         hurls = p.findall(response)
 
         if len(hurls) > 0:
-            print hurls[0]
+            print(hurls[0])
         else:
             raise Exception('No hurl.it url found')
 
     if args.verbose or args.veryverbose:
 
-        print response + "\n"
+        print(response + "\n")
 
 
 if __name__ == "__main__":
@@ -108,4 +113,4 @@ if __name__ == "__main__":
         if debug:
             raise
         else:
-            print e
+            print(e)

@@ -3,10 +3,12 @@ PY_SRC != ./hack/find_python_files.sh
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
 GIT_BRANCH_CLEAN := $(shell echo $(GIT_BRANCH) | sed -e "s/[^[:alnum:]]/-/g")
 DOCKER_IMAGE := agave-cli$(if $(GIT_BRANCH_CLEAN),:$(GIT_BRANCH_CLEAN))
+PUBLIC_DOCKER_IMAGE := tacc/tapis-cli:latest
 
 DOCKER_BUILD_ARGS ?= --force-rm
 DOCKERFILE ?= Dockerfile
 
+DOCKER_MOUNT_AUTHCACHE := -v $(HOME)/.agave:/home/.agave
 DOCKER_MOUNT := -v $(CURDIR):/agave-cli
 DOCKER_FLAGS := docker run --rm -it $(DOCKER_MOUNT)
 
@@ -42,4 +44,13 @@ clean:
 	make -C docs clean
 
 public-image:
-	docker build $(DOCKER_BUILD_ARGS)  -f Dockerfile.public -t tacc/tapis-cli:latest .
+	docker build $(DOCKER_BUILD_ARGS) -f Dockerfile.public -t tacc/tapis-cli:latest .
+
+public-image-py2:
+	docker build $(DOCKER_BUILD_ARGS) -f Dockerfile.public.py2 -t tacc/tapis-cli:python2 .
+
+interactive: public-image
+	docker run --rm -it $(DOCKER_MOUNT) $(DOCKER_MOUNT_AUTHCACHE) $(PUBLIC_DOCKER_IMAGE) bash
+
+interactive-py2: public-image
+	docker run --rm -it $(DOCKER_MOUNT) $(DOCKER_MOUNT_AUTHCACHE) tacc/tapis-cli:python2 bash
