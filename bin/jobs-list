@@ -4,7 +4,7 @@
 #
 # author: opensource@tacc.cloud
 #
-# This script is part of the Agave API command line interface (CLI).
+# This script is part of the Tapis command line interface (CLI).
 # It retrieves a list jobs. Optionally, one can search by name, tag,
 # ontology, or start date
 #
@@ -34,7 +34,7 @@ For more query options, see the jobs-search command.
   -o, --offset          Number of results to skip from the start
       --order           The sort order of the response. Either ASC or DESC
       --orderBy         The field by which the results should be ordered. Valid
-                        orderBy values are any search term for this resource. 
+                        orderBy values are any search term for this resource.
                         The orderBy field field is independent of the filter
                         values.
       --filter          Comma separated list of fields to return in the response

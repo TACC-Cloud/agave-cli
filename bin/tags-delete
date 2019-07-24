@@ -4,7 +4,7 @@
 #
 # author: opensource@tacc.cloud
 #
-# This script is part of the Agave API command line interface (CLI).
+# This script is part of the Tapis command line interface (CLI).
 # It deletes an existing tag. User must have ownership privileges
 # on the tag to perform this operation. Once deleted, the tag
 # cannot be recovered and tagged resources will be untagged.

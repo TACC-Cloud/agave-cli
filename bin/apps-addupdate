@@ -4,7 +4,7 @@
 #
 # author: opensource@tacc.cloud
 #
-# This script is part of the Agave API command line interface (CLI).
+# This script is part of the Tapis command line interface (CLI).
 # It registers or updates an existing registered application. If
 # registering a new application, no app_id should be provided. If
 # updating an existing application, an app_id must be provided.

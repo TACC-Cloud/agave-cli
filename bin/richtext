@@ -51,9 +51,9 @@ notifications-search:		id owner status created lastUpdated
 postits-list:		creator postit remainingUses method created expires
 
 ### profiles commands ###
-profiles-list:		firstName lastName username email institution
-profiles-search:	firstName lastName username email institution
-profiles-users-list:	firstName lastName username email institution
+profiles-list:		first_name last_name username email institution
+profiles-search:	first_name last_name username email institution
+profiles-users-list:	first_name last_name username email institution
 
 ### requestbin commands ###
 requestbin-requests-list:	method time path remote_addr

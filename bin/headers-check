@@ -4,7 +4,7 @@
 #
 # author: opensource@tacc.cloud
 #
-# This script is part of the Agave API command line interface (CLI).
+# This script is part of the Tapis command line interface (CLI).
 # Prints the JWT that would be passed to a protected API by the Agave
 # auth server when presented the current auth token.
 #
