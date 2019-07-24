@@ -12,6 +12,9 @@ DOCKER_FLAGS := docker run --rm -it $(DOCKER_MOUNT)
 
 DOCKER_RUN_AGAVECLI := $(DOCKER_FLAGS) "$(DOCKER_IMAGE)"
 
+CLI_BRANCH ?= $(GIT_BRANCH)
+CLI_VERSION ?= "3.x.y"
+AGAVEPY_BRANCH ?= master
 
 .PHONY: authors build docs format shell clean
 
@@ -43,3 +46,19 @@ clean:
 
 public-image:
 	docker build $(DOCKER_BUILD_ARGS)  -f Dockerfile.public -t tacc/tapis-cli:latest .
+
+test-images: test-image-3x-py3 test-image-3x-py2
+
+test-image-3x-py3:
+	docker build -f Dockerfile.test.py3 -t tacc/tapis-cli:test-3x-py3 \
+	--build-arg AGAVEPY_BRANCH=$(AGAVEPY_BRANCH) \
+	--build-arg CLI_VERSION=$(CLI_BRANCH) .
+
+test-image-3x-py2:
+	docker build -f Dockerfile.test.py2 -t tacc/tapis-cli:test-3x-py2 \
+	--build-arg AGAVEPY_BRANCH=$(AGAVEPY_BRANCH) \
+	--build-arg CLI_VERSION=$(CLI_BRANCH) .
+
+test-images-push: test-images
+	docker push tacc/tapis-cli:test-3x-py2 ;\
+	docker push tacc/tapis-cli:test-3x-py3

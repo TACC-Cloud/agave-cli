@@ -115,7 +115,7 @@ Manually managing Oauth clients
 
 On rare occasion, especially if you have manually specified the name of the
 Oauth client, you may find that past you has already created an instance of
-that client, preventing it from being created anew via ``auth-sessions-init``.
+that client, preventing it from being created anew via ``auth-session-init``.
 The ``clients-*`` commands allow you to list and interact with (including
 delete!) specific Oauth clients.
 
