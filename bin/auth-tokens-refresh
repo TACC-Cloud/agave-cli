@@ -14,6 +14,7 @@ Exchanges a Tapis Oauth client refresh token for a new access and refresh token.
 """
 from __future__ import print_function
 import argparse
+import json
 import os
 import sys
 from agavepy.agave import Agave
@@ -27,8 +28,13 @@ TOKEN_NOT_STORED_MSG = 'Token was not stored in session cache.'
 parser = argparse.ArgumentParser(
     description="Exchanges a Tapis Oauth client refresh token for a new access and refresh token.")
 
+parser.add_argument("-f", "--force", dest="force",
+                    action="store_true",
+                    help="Force refresh even if token has not expired.")
 parser.add_argument("-t", "--tenant", default=None,
                     help="Tenant id for session.")
+parser.add_argument("-u", "--username", default=None,
+                    help="Username.")
 parser.add_argument("-z", "--access_token", dest="access_token",
                     default=None,
                     help="Access token to be refreshed.")
@@ -62,23 +68,59 @@ if __name__ == "__main__":
     agave = Agave()
     cache_dir = args.cachedir
     tenant_id = args.tenant
+    username = args.username
     api_key = args.apikey
     api_secret = args.apisecret
     access_token = args.access_token
     refresh_token = args.refresh_token
     display_only = args.displayonly
+    force = args.force
     new_token = None
 
     try:
-        # Init an Agave client from the CLI options alone
-        if api_key is not None and api_secret is not None and \
-                refresh_token is not None and access_token is not None:
-            # utils.print_stderr('Instantiating Oauth client from options')
-            # Don't cache tokens if the client was configured purely from args
-            display_only = True
+        context = dict()
+        # try:
+        # Pick up existing client_name in context if it is configured
+        context = utils.bootstrap_context(
+            cache_dir, tenantid=tenant_id,
+            username=username,
+            client_name=None,
+            apikey=api_key,
+            apisecret=api_secret,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_at=None,
+            expires_in=None,
+            created_at=None)
+        config_file = utils.sessions_cache_path(cache_dir)
+        # config = json.load(open(config_file, 'rb'))
+        # except (FileNotFoundError):
+        #     print('A session cache file was not found in {}. You may be running in an environment that does not support multiple sessions, or you may simply need to run "auth-session-init" to create additional sessions.'.format(utils.credentials_cache_dir(cache_dir)))
+        #     sys.exit(1)
+        # except (IOError, OSError):
+        #     print('It was not possible to read the session cache file.')
+        #     sys.exit(1)
+        # except json.decoder.JSONDecodeError:
+        #     print('The session cache was corrupted or misformatted.')
+        #     sys.exit(1)
 
-            if tenant_id is not None:
-                agave.tenant_id = tenant_id
+        # Init an Agave client from the CLI options alone
+        if context['apikey'] is not None \
+                and context['apisecret'] is not None and context['refresh_token'] is not None and context['tenantid'] is not None:
+            # utils.print_stderr('Instantiating Oauth client from options')
+            agave.username = utils.prompt_username(context['username'])
+
+            agave.api_key = context['apikey']
+            agave.client_name = context['client_name']
+            agave.api_secret = context['apisecret']
+            agave.token = context['access_token']
+            agave.refresh_token = context['refresh_token']
+            agave.created_at = context['created_at']
+            agave.expires_in = context['expires_in']
+            agave.expires_at = context['expires_at']
+
+            if context['tenantid'] is not None:
+                agave.tenant_id = context['tenantid']
             try:
                 agave.init(args.tenants)
             except KeyError:
@@ -86,13 +128,27 @@ if __name__ == "__main__":
                 agave.list_tenants()
                 sys.exit(1)
 
+            # Don't cache tokens if the client was configured purely from args
+            if access_token is not None and tenant_id is not None \
+                    and api_key is not None and api_secret is not None and refresh_token is not None:
+                display_only = True
+
             utils.print_stderr(REFRESHING_TOKEN_MSG)
-            tok = tokens.refresh_token(
-                api_key, api_secret, refresh_token, agave.api_server)
-            new_token = tok.get('access_token')
-            token_expires = tok.get('expires_at')
+            agave.refresh_tokens(force=force)
+
+            # tok = tokens.refresh_token(
+            #     context['apikey'], context['apisecret'],
+            #     context['refresh_token'], agave.api_server)
+
+            # agave.token = tok['access_token']
+            # agave.expires_at = tok['expires_at']
+            # agave.refresh_token = tok['refresh_token']
+
+            new_token = agave.token
+            token_expires = agave.expires_at
+
         else:
-            # utils.print_stderr('Loading Oauth client configuration')
+            # utils.print_stderr('Loading current Oauth client configuration')
             config_file = utils.sessions_cache_path(cache_dir)
             # Check if there may be a session already saved.
             if os.path.exists(config_file):
@@ -101,9 +157,10 @@ if __name__ == "__main__":
                         cache_dir=cache_dir)
                 except KeyError:
                     raise
+
             utils.print_stderr(REFRESHING_TOKEN_MSG)
 
-            agave.refresh_tokens()
+            agave.refresh_tokens(force=force)
             new_token = agave.token
             token_expires = agave.expires_at
 

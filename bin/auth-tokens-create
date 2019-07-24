@@ -15,6 +15,7 @@ Create an access token for a Tapis Oauth client.
 """
 from __future__ import print_function
 import argparse
+import json
 import os
 import sys
 from agavepy.agave import Agave
@@ -74,18 +75,38 @@ if __name__ == "__main__":
         display_only = True
 
     try:
+        context = dict()
+        # try:
+        # Pick up existing client_name in context if it is configured
+        context = utils.bootstrap_context(
+            cache_dir, tenantid=tenant_id,
+            username=username, client_name=None,
+            apikey=None, apisecret=None,
+            access_token=None, refresh_token=None)
+        config_file = utils.sessions_cache_path(cache_dir)
+        # config = json.load(open(config_file, 'rb'))
+        # except (FileNotFoundError):
+        #     print('A session cache file was not found in {}. You may be running in an environment that does not support multiple sessions, or you may simply need to run "auth-session-init" to create additional sessions.'.format(utils.credentials_cache_dir(cache_dir)))
+        #     sys.exit(1)
+        # except (IOError, OSError):
+        #     print('It was not possible to read the session cache file.')
+        #     sys.exit(1)
+        # except json.decoder.JSONDecodeError:
+        #     print('The session cache was corrupted or misformatted.')
+        #     sys.exit(1)
+
         # Init an Agave client from the CLI options alone
-        if api_key is not None and api_secret is not None and \
-                username is not None and tenant_id is not None:
+        if context['apikey'] is not None \
+                and context['apisecret'] is not None and context['username'] is not None and context['tenantid'] is not None:
             # utils.print_stderr('Instantiating Oauth client from options')
-            agave.username = username
-            agave.api_key = api_key
-            agave.api_secret = api_secret
-            agave.password = utils.get_password(
-                password, username=username, quiet=False)
+            agave.username = context['username']
+            agave.api_key = context['apikey']
+            agave.api_secret = context['apisecret']
+            agave.password = utils.prompt_password(
+                password, username=agave.username, quiet=False)
             password = agave.password
-            if tenant_id is not None:
-                agave.tenant_id = tenant_id
+            if context['tenantid'] is not None:
+                agave.tenant_id = context['tenantid']
             try:
                 agave.init(args.tenants)
             except KeyError:
@@ -93,7 +114,9 @@ if __name__ == "__main__":
                 agave.list_tenants()
                 sys.exit(1)
             # Don't cache tokens if the client was configured purely from args
-            display_only = True
+            if username is not None and tenant_id is not None \
+                    and api_key is not None and api_secret is not None:
+                display_only = True
         else:
             # utils.print_stderr('Loading current Oauth client configuration')
             config_file = utils.sessions_cache_path(cache_dir)
@@ -107,12 +130,13 @@ if __name__ == "__main__":
 
         utils.print_stderr(CREATING_TOKEN_MSG)
         agave.get_access_token(
-            username=username, password=password, quiet=True)
+            username=context['username'], password=password, quiet=True)
         print(agave.token)
 
         # Save session.
         if not display_only:
-            agave.save_configs(cache_dir)
+            agave.save_configs(
+                cache_dir)
         else:
             utils.print_stderr(TOKEN_NOT_STORED_MSG)
 
