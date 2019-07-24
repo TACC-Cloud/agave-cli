@@ -4,7 +4,7 @@
 #
 # author: opensource@tacc.cloud
 #
-# This script is part of the Agave API command line interface (CLI).
+# This script is part of the Tapis command line interface (CLI).
 # It resubmits a job for execution by the API. All the original
 # inputs and parameters are recycled.
 #
@@ -21,7 +21,7 @@ interactive_opts=(apisecret apikey)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]... [JOB_ID]
+    echo -n "$(basename $0) [OPTION]... [JOB_ID]
 
 Resubmit a job. All the original inputs and parameters are recycled and
 a new job id is assigned.
@@ -46,7 +46,7 @@ a new job id is assigned.
   -V, --veryverbose     Very verbose output
   -h, --help            Display this help and exit
       --version         Output version information and exit
-"
+    "
 }
 
 ##################################################################
@@ -58,77 +58,77 @@ a new job id is assigned.
 source "$DIR/jobs-common.sh"
 
 main() {
-	#echo -n
-	#set -x
-
-	if [[ -z "$args" ]]; then
-		err "Please specify a job id to resubmit"
-	else
-
+    #echo -n
+    #set -x
+    
+    if [[ -z "$args" ]]; then
+        err "Please specify a job id to resubmit"
+    else
+        
         if ((strictinputs)); then
             strictinputs='true'
         else
             strictinputs='false'
         fi
-
+        
         if ((strictparams)); then
             strictparams='true'
         else
             strictparams='false'
         fi
-
-		cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST '$hosturl$args/resubmit?pretty=true'"
-
-		if ((veryverbose)); then
-			[ "$piped" -eq 0 ] && log "Calling $cmd"
-		fi
-
-		response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST "$hosturl$args/resubmit?pretty=true"`
-
-		if [[ $(jsonquery "$response" "status") = 'success' ]]; then
-
-      if ((watch)); then
-        jobwatchid=$(jsonquery "$response" "result.id")
-
-        result=$(format_api_json "$response")
-        success "$result"
-
-        if ((development)); then
-          jhparams=" -d "
-        fi
-
+        
+        cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST '$hosturl$args/resubmit?pretty=true'"
+        
         if ((veryverbose)); then
-
-          jhparams="$jhparams -V "
-
-        elif ((verbose)); then
-
-          jhparams="$jhparams -v "
+            [ "$piped" -eq 0 ] && log "Calling $cmd"
         fi
-
-        jobs-history $jhparams -W $jobwatchid
-      else
-        result=$(format_api_json "$response")
-			  success "$result"
-      fi
-		else
-			errorresponse=$(jsonquery "$response" "message")
-			err "$errorresponse"
-		fi
-	fi
+        
+        response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST "$hosturl$args/resubmit?pretty=true"`
+        
+        if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+            
+            if ((watch)); then
+                jobwatchid=$(jsonquery "$response" "result.id")
+                
+                result=$(format_api_json "$response")
+                success "$result"
+                
+                if ((development)); then
+                    jhparams=" -d "
+                fi
+                
+                if ((veryverbose)); then
+                    
+                    jhparams="$jhparams -V "
+                    
+                    elif ((verbose)); then
+                    
+                    jhparams="$jhparams -v "
+                fi
+                
+                jobs-history $jhparams -W $jobwatchid
+            else
+                result=$(format_api_json "$response")
+                success "$result"
+            fi
+        else
+            errorresponse=$(jsonquery "$response" "message")
+            err "$errorresponse"
+        fi
+    fi
 }
 
 format_api_json() {
-
-	if ((veryverbose)); then
-		json_prettyify "${1}"
-	elif [[ $verbose -eq 1 ]]; then
-		result=$(jsonquery "$1" "result" 1)
-		json_prettyify "${result}"
-	else
-		jobid=$(jsonquery "$1" "result.id")
-		echo "Successfully resubmitted job $args as $jobid"
-	fi
+    
+    if ((veryverbose)); then
+        json_prettyify "${1}"
+        elif [[ $verbose -eq 1 ]]; then
+        result=$(jsonquery "$1" "result" 1)
+        json_prettyify "${result}"
+    else
+        jobid=$(jsonquery "$1" "result.id")
+        echo "Successfully resubmitted job $args as $jobid"
+    fi
 }
 
 ##################################################################
@@ -150,25 +150,25 @@ source "$DIR/options.sh"
 
 # Read the options and set stuff
 while [[ $1 = -?* ]]; do
-  case $1 in
-    -h|--help) usage >&2; safe_exit ;;
-    --version) version; copyright; disclaimer; safe_exit ;;
-    -z|--access_token) shift; access_token=$1 ;;
-    -I|--strictinputs) strictinputs=1 ;;
-    -P|--strictparams) strictparams=1 ;;
-    -W| --watch) watch=1;;
-    --filter) shift; responsefilter=$1 ;;
-    -H|--hosturl) shift; hosturl=$1;;
-  	-d|--development) development=1 ;;
-    -v|--verbose) verbose=1 ;;
-    -V|--veryverbose) veryverbose=1; verbose=1 ;;
-    -q|--quiet) quiet=1 ;;
-    -i|--interactive) interactive=1 ;;
-    -f|--force) force=1 ;;
-    --endopts) shift; break ;;
-    *) die "invalid option: $1" ;;
-  esac
-  shift
+    case $1 in
+        -h|--help) usage >&2; safe_exit ;;
+        --version) version; copyright; disclaimer; safe_exit ;;
+        -z|--access_token) shift; access_token=$1 ;;
+        -I|--strictinputs) strictinputs=1 ;;
+        -P|--strictparams) strictparams=1 ;;
+        -W| --watch) watch=1;;
+        --filter) shift; responsefilter=$1 ;;
+        -H|--hosturl) shift; hosturl=$1;;
+        -d|--development) development=1 ;;
+        -v|--verbose) verbose=1 ;;
+        -V|--veryverbose) veryverbose=1; verbose=1 ;;
+        -q|--quiet) quiet=1 ;;
+        -i|--interactive) interactive=1 ;;
+        -f|--force) force=1 ;;
+        --endopts) shift; break ;;
+        *) die "invalid option: $1" ;;
+    esac
+    shift
 done
 
 # Store the remaining part as arguments.

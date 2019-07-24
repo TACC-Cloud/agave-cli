@@ -4,7 +4,7 @@
 #
 # author: opensource@tacc.cloud
 #
-# This script is part of the Agave API command line interface (CLI).
+# This script is part of the Tapis command line interface (CLI).
 # It retrieves a listing of the job output. If the job completed
 # normally and archived, the listing will be on the archive directory.
 # Otherwise, it will be on the work folder if it still exists.

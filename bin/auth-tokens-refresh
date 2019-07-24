@@ -1,162 +1,180 @@
-#!/bin/bash
-#
-# auth-tokens-refresh
-#
-# author: opensource@tacc.cloud
-#
-# This script is part of the Agave API command line interface (CLI).
-# It retrieves a new bearer token using the refresh token obtained
-# from a previous auth-tokens-create call.
-#
+#!/usr/bin/env python
+"""
+    auth-tokens-refresh [OPTION]
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-source "$DIR/common.sh"
-
-# set to 1 to prevent using cache. token creation requires a valid key
-disable_cache=1
-storetoken=1
-
-# Script logic -- TOUCH THIS {{{
-
-# A list of all variables to prompt in interactive mode. These variables HAVE
-# to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey refresh_token)
-
-# Print usage
-usage() {
-  echo -n "$(basename $0) [OPTION]...
-
-Retrieves a new bearer token using the refresh token obtained from a previous
-auth-tokens-create call.
+Exchanges a Tapis Oauth client refresh token for a new access and refresh token.
 
  Options:
-  -r, --refresh_token    Access token
-  -s, --apisecret        Consumer secret
-  -k, --apikey           Consumer Key
-  -S, --storetoken       Store the token for later use so you can work without reauthenticating on
-                         every command. This is the default behavior
-  -D, --displayonly      Display the fetched auth credentials, but do not save. The local auth cache
-                         will not be updated
-  -H, --hosturl          URL of the service
-  -d, --development      Run in dev mode using default dev server
-  -f, --force            Skip all user interaction
-  -i, --interactive      Prompt for values
-  -q, --quiet            Quiet (no output)
-  -v, --verbose          Verbose output
-  -V, --veryverbose      Very verbose output
-  -h, --help             Display this help and exit
-      --version          Output version information and exit
-"
-}
+    -z, --access_token   Access token to be refreshed.
+    -r, --refresh_token  Current refresh token.
+    -k, --apikey         Oauth client key.
+    -s, --apisecret      Oauth client secret.
+    -D, --displayonly    Display but do not store the access token.
+    -c, --cachedir       Session cache directory.
+"""
+from __future__ import print_function
+import argparse
+import json
+import os
+import sys
+from agavepy.agave import Agave
+from agavepy import tokens, utils
 
-##################################################################
-##################################################################
-#						Begin Script Logic						 #
-##################################################################
-##################################################################
+REFRESHING_TOKEN_MSG = 'Refreshing access token...'
+SELECT_TENANT_ID_MSG = 'Select a valid tenant id.'
+TOKEN_OPERATION_FAILED = 'Token issuance failed: {0}'
+TOKEN_NOT_STORED_MSG = 'Token was not stored in session cache.'
 
-source "$DIR/auth-common.sh"
+parser = argparse.ArgumentParser(
+    description="Exchanges a Tapis Oauth client refresh token for a new access and refresh token.")
 
-main() {
-	#echo -n
-	#set -x
-	hosturl=${hosturl}/token
-	local post_options="grant_type=refresh_token&refresh_token=${refresh_token}&scope=PRODUCTION"
-
-	cmd="curl -sku \"$apikey:XXXXXX\" -X POST -d \"${post_options}\" -H \"Content-Type:application/x-www-form-urlencoded\" '$hosturl'"
-
-	if ((veryverbose)); then
-		[ "$piped" -eq 0 ] && log "Calling $cmd"
-	fi
-
-	response=`curl -sku "$apikey:$apisecret" -X POST -d "${post_options}" -H "Content-Type:application/x-www-form-urlencoded" "$hosturl"`
-
-    if [[ $(jsonquery "$response" "token_type") = 'bearer' ]]; then
-		result=$(format_api_json "$response")
-        #format_api_json "$response"
-		success "$result"
-	else
-		err "$response"
-	fi
-}
-
-format_api_json() {
-
-	if ((storetoken)); then
-
-        jsonval username "$(kvget current)" "username"
-		jsonval access_token "$1" "access_token"
-		jsonval refresh_token "$1" "refresh_token"
-        jsonval expires_in "$1" "expires_in"
-        created_at=$(date +%s)
-        if date --version >/dev/null 2>&1 ; then
-          expires_at=`date -d @$(expr $created_at + $expires_in)`
-        else
-          expires_at=`date -r $(expr $created_at + $expires_in)`
-        fi
-
-        kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
-
-		echo "Token for ${tenantid}:${username} successfully refreshed and cached for ${expires_in} seconds";
-
-	fi
-
-	if ((veryverbose)); then
-		json_prettyify "${1}"
-	elif [[ $verbose -eq 1 ]]; then
-		json_prettyify "${1}"
-	else
-        jsonval result "$1" "access_token"
-		echo "${result}"
-	fi
-}
-
-##################################################################
-##################################################################
-#						End Script Logic						 #
-##################################################################
-##################################################################
-
-# }}}
-
-# Parse command line options
-source "$DIR/options.sh"
+parser.add_argument("-f", "--force", dest="force",
+                    action="store_true",
+                    help="Force refresh even if token has not expired.")
+parser.add_argument("-t", "--tenant", default=None,
+                    help="Tenant id for session.")
+parser.add_argument("-u", "--username", default=None,
+                    help="Username.")
+parser.add_argument("-z", "--access_token", dest="access_token",
+                    default=None,
+                    help="Access token to be refreshed.")
+parser.add_argument("-r", "--refresh_token", dest="refresh_token",
+                    default=None,
+                    help="Current refresh token.")
+parser.add_argument("-k", "--apikey", default=None,
+                    help="Oauth client key.")
+parser.add_argument("-s", "--apisecret", default=None,
+                    help="Oauth client secret.")
+parser.add_argument("-D", "--displayonly", dest="displayonly",
+                    action="store_true",
+                    help="Display but do not store the access token.")
+parser.add_argument("-S", "--storetoken", dest="storetoken",
+                    action="store_true",
+                    help="Store tokens for later use (default).")
+parser.add_argument(
+    "-c",
+    "--cachedir",
+    default=utils.credentials_cache_dir(),
+    help="Session cache directory.")
+parser.add_argument(
+    "--tenants",
+    default=utils.tenants_url(),
+    help="URL with tenant listing.")
 
 
-# Main loop {{{
+if __name__ == "__main__":
+    args = parser.parse_args()
 
-# Print help if no arguments were passed.
-[[ $# -eq 0 ]] && set -- "-i"
+    agave = Agave()
+    cache_dir = args.cachedir
+    tenant_id = args.tenant
+    username = args.username
+    api_key = args.apikey
+    api_secret = args.apisecret
+    access_token = args.access_token
+    refresh_token = args.refresh_token
+    display_only = args.displayonly
+    force = args.force
+    new_token = None
 
-# Read the options and set stuff
-while [[ $1 = -?* ]]; do
-  case $1 in
-    -h|--help) usage >&2; safe_exit ;;
-    --version) version; copyright; disclaimer; safe_exit ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
-    -r|--refresh_token) shift; refresh_token=$1 ;;
-    -x|--proxyuser) shift; proxyuser=$1;;
-	-S|--storetoken) storetoken=1 ;;
-    -D|--displayonly) storetoken=0 ;;
-	-H|--hosturl) shift; hosturl=$1;;
-  	-d|--development) development=1 ;;
-    -v|--verbose) verbose=1 ;;
-    -V|--veryverbose) veryverbose=1; verbose=1 ;;
-    -q|--quiet) quiet=1 ;;
-    -i|--interactive) interactive=1 ;;
-    -f|--force) force=1 ;;
-    --endopts) shift; break ;;
-    *) die "invalid option: $1" ;;
-  esac
-  shift
-done
+    try:
+        context = dict()
+        # try:
+        # Pick up existing client_name in context if it is configured
+        context = utils.bootstrap_context(
+            cache_dir, tenantid=tenant_id,
+            username=username,
+            client_name=None,
+            apikey=api_key,
+            apisecret=api_secret,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_at=None,
+            expires_in=None,
+            created_at=None)
+        config_file = utils.sessions_cache_path(cache_dir)
+        # config = json.load(open(config_file, 'rb'))
+        # except (FileNotFoundError):
+        #     print('A session cache file was not found in {}. You may be running in an environment that does not support multiple sessions, or you may simply need to run "auth-session-init" to create additional sessions.'.format(utils.credentials_cache_dir(cache_dir)))
+        #     sys.exit(1)
+        # except (IOError, OSError):
+        #     print('It was not possible to read the session cache file.')
+        #     sys.exit(1)
+        # except json.decoder.JSONDecodeError:
+        #     print('The session cache was corrupted or misformatted.')
+        #     sys.exit(1)
 
-# Store the remaining part as arguments.
-args+=("$@")
+        # Init an Agave client from the CLI options alone
+        if context['apikey'] is not None \
+                and context['apisecret'] is not None and context['refresh_token'] is not None and context['tenantid'] is not None:
+            # utils.print_stderr('Instantiating Oauth client from options')
+            agave.username = utils.prompt_username(context['username'])
 
-# }}}
+            agave.api_key = context['apikey']
+            agave.client_name = context['client_name']
+            agave.api_secret = context['apisecret']
+            agave.token = context['access_token']
+            agave.refresh_token = context['refresh_token']
+            agave.created_at = context['created_at']
+            agave.expires_in = context['expires_in']
+            agave.expires_at = context['expires_at']
 
-# Run the script logic
-source "$DIR/runner.sh"
+            if context['tenantid'] is not None:
+                agave.tenant_id = context['tenantid']
+            try:
+                agave.init(args.tenants)
+            except KeyError:
+                utils.print_stderr(SELECT_TENANT_ID_MSG)
+                agave.list_tenants()
+                sys.exit(1)
+
+            # Don't cache tokens if the client was configured purely from args
+            if access_token is not None and tenant_id is not None \
+                    and api_key is not None and api_secret is not None and refresh_token is not None:
+                display_only = True
+
+            utils.print_stderr(REFRESHING_TOKEN_MSG)
+            agave.refresh_tokens(force=force)
+
+            # tok = tokens.refresh_token(
+            #     context['apikey'], context['apisecret'],
+            #     context['refresh_token'], agave.api_server)
+
+            # agave.token = tok['access_token']
+            # agave.expires_at = tok['expires_at']
+            # agave.refresh_token = tok['refresh_token']
+
+            new_token = agave.token
+            token_expires = agave.expires_at
+
+        else:
+            # utils.print_stderr('Loading current Oauth client configuration')
+            config_file = utils.sessions_cache_path(cache_dir)
+            # Check if there may be a session already saved.
+            if os.path.exists(config_file):
+                try:
+                    agave.load_configs(
+                        cache_dir=cache_dir)
+                except KeyError:
+                    raise
+
+            utils.print_stderr(REFRESHING_TOKEN_MSG)
+
+            agave.refresh_tokens(force=force)
+            new_token = agave.token
+            token_expires = agave.expires_at
+
+        print(new_token)
+        utils.print_stderr('New token expires: {}'.format(token_expires))
+
+        # Save session.
+        if not display_only:
+            agave.save_configs(cache_dir)
+        else:
+            utils.print_stderr(TOKEN_NOT_STORED_MSG)
+
+        sys.exit(0)
+
+    except Exception as err:
+        utils.print_stderr(TOKEN_OPERATION_FAILED.format(err))
+        sys.exit(1)

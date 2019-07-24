@@ -1,60 +1,66 @@
 #!/usr/bin/env python
 """
-    Usage: files-cp [Flags] agave://source agave://destination
+    Usage: files-import [OPTIONS] SOURCE_URL agave://SYSTEM/PATH
 
-Imports a remote URI to a remote storage system. The subsequent staging will be
-done via a proxy between the native data protocol of the remote system and the URL.
-When possible, 3rd party transfer will take place. If the given file type requires
-import filtering, it will be applied prior to the callback being sent. If no
-system id is specified, the user's default storage system will be used. This action
-is non-blocking.
+Imports contents of a URL to a Tapis storage system. The subsequent staging will be
+done via a proxy between the native data protocol of the remote system and
+the URL. When possible, 3rd party transfer will take place. If no
+system id is specified, the user's default storage system will be used.
+This action is non-blocking.
 
 Flags:
   -h, --help            Display this help and exit
 """
 from __future__ import print_function
 import argparse
-import os
 import sys
+from argparse import RawTextHelpFormatter
 from agavepy.agave import Agave
+from agavepy import utils
 
-parser = argparse.ArgumentParser(description="Import a file")
+parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter,
+                                 description="Imports contents of a URI to a Tapis storage system.\n" +
+                                 "Source URL must be publicly accessible or include HTTP \n" +
+                                 "Basic Authentication credentials. The destination must be\n" +
+                                 " an Agave-formatted URI to which the user has write access. ")
 
 parser.add_argument(
     "-c",
     "--cachedir",
-    default=os.path.expanduser("~/.agave"),
-    help="Directory in which confiurations are saved in.")
+    default=utils.credentials_cache_dir(),
+    help="Session cache directory.")
 
 parser.add_argument(
     "source",
     action="store",
-    help="Source (for remote systems prefix with agave://)")
+    help="Source URL")
 
 parser.add_argument(
     "destination",
     action="store",
-    help="Destination (for remote systems prefix with agave://)")
+    help="Destination (prefix with agave://)")
 
 if __name__ == "__main__":
-    args = parser.parse_args()
-    cache_dir = args.cachedir
-    source = args.source
-    destination = args.destination
+    try:
+        args = parser.parse_args()
+        cache_dir = args.cachedir
+        source = args.source
+        destination = args.destination
 
-    agave = Agave()
+        agave = Agave()
+        agave.load_client(cache_dir)
 
-    config_file = "{}/config.json".format(cache_dir)
-    # Check if there is a session already saved.
-    if os.path.exists(config_file):
-        agave.load_configs(cache_dir=cache_dir)
-    else:
-        print("You need to initiate a session first. Use auth-sessions-init")
+        # Refresh tokens if necessary.
+        agave.refresh_tokens()
+        # Save out session cache
+        if agave.client_name is not None:
+            agave.save_configs(cache_dir)
+
+        # Import file.
+        destination = destination[len("agave://"):]
+        agave.files_import(source, destination)
+        sys.exit(0)
+
+    except Exception as err:
+        print(err)
         sys.exit(1)
-
-    # Refresh tokens if necessary.
-    agave.refresh_tokens()
-
-    # Import file.
-    destination = destination[len("agave://"):]
-    agave.files_import(source, destination)

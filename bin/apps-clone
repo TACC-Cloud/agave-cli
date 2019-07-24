@@ -4,7 +4,7 @@
 #
 # author: opensource@tacc.cloud
 #
-# This script is part of the Agave API command line interface (CLI).
+# This script is part of the Tapis command line interface (CLI).
 # It creates a private copy of a publicly published app. Only public
 # apps may be cloned. The cloning process will create a copy of the
 # application assets in the cloning user's default storage system.

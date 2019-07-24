@@ -211,15 +211,15 @@ function notify() { [[ $? == 0 ]] && success "$@" || err "$@"; }
 
 function copyright() {
     out "LICENSE\n"
-  cat $DIR/../docs/LICENSE
+  cat $DIR/../LICENSE
 }
 
 function disclaimer() {
-  cat $DIR/../docs/DISCLAIMER
+  cat $DIR/../DISCLAIMER
 }
 
 function docs() {
-    cat $DIR/../docs/DOCUMENTATION
+    cat $DIR/../DOCUMENTATION
 }
 
 function terms() {

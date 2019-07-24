@@ -6,9 +6,9 @@ Before you begin contributing you must have:
 * `make`
 * `docker`
 
-You'll notice that `python`, the language that agave-cli is written on, is not
+You'll notice that `python`, the language that Tapis-CLI is written on, is not
 listed.
-That's because you don't need it installed; Agave-CLI's development environment
+That's because you don't need it installed; Tapis-CLI's development environment
 provides it for you.
 You'll learn more about the development environment later.
 
@@ -54,8 +54,8 @@ $ getent group docker
 docker:x:999:<username>
 ```
 
-If the command returns no matches, you have two choices. 
-You can preface this guide's docker commands with sudo as you work. 
+If the command returns no matches, you have two choices.
+You can preface this guide's docker commands with sudo as you work.
 Alternatively, you can add your user to the docker group as follows:
 ```
 $ sudo usermod -aG docker <username>
@@ -65,4 +65,4 @@ You must log out and log back in for this modification to take effect.
 
 ## Where to go next
 In the next section, yu'll [learn how to set up and configure Git for
-contributing to agave-cli](set-up-git.md)
+contributing to Tapis-CLI](set-up-git.md)

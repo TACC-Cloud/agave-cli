@@ -36,18 +36,18 @@ To use `TACC/agave-cli` you'll need the following dependencies.
 	* curl 7.2+ with TLS support
 	* jq 1.5+
     * Python 3+
-    * TACC/agavepy
+    * TACC/agavepy 0.9.4
 
 `Agave-CLI` relies on [TACC/agavepy](https://github.com/TACC/agavepy) version
 v0.8+.
 To install [TACC/agavepy](https://github.com/TACC/agavepy) from source you'll
 need to clone the repo and and install it as such:
 ```shell
-$ git clone https://github.com/TACC/agavepy
-
-$ cd agavepy
-
-$ make install
+git clone https://github.com/TACC/agavepy
+cd agavepy
+make install
+# or
+pip install --user -e .
 ```
 
 Once you have these requirements installed, you'll need to clone this

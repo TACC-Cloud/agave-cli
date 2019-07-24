@@ -148,11 +148,11 @@ TACC Cloud CLI (revision ${revision})
 
 function copyright() {
     out "LICENSE\n"
-	cat $DIR/../docs/LICENSE
+	cat $DIR/../LICENSE
 }
 
 function disclaimer() {
-	cat $DIR/../docs/DISCLAIMER
+	cat $DIR/../DISCLAIMER
 }
 
 # Warning
@@ -613,15 +613,17 @@ function to_number() {
 calling_cli_command=`caller |  awk '{print $2}' | xargs -n 1 sh -c 'basename $0'`
 currentconfig=$(kvget current)
 
+NO_INIT_MESSAGE="Please run ${DIR}/auth-session-init to set up a session before interacting with Tapis APIs"
+
 if [[ "auth-switch" != "$calling_cli_command" ]] && [[ "tenants-init" != "$calling_cli_command" ]] && [[ "tenants-list" != "$calling_cli_command" ]]; then
   if [[ -z $currentconfig ]]; then
-    err "Please run $DIR/tenants-init to initialize your client before attempting to interact with the APIs."
+    err "${NO_INIT_MESSAGE}"
     exit
   fi
 
   baseurl=$(jsonquery "$currentconfig" "baseurl")
   if  [[ -z $baseurl ]]; then
-    err "Please run $DIR/tenants-init to configure your client endpoints before attempting to interact with the APIs."
+    err "${NO_INIT_MESSAGE}"
     exit
   else
     baseurl="${baseurl%/}"
@@ -637,7 +639,7 @@ if [[ "auth-switch" != "$calling_cli_command" ]] && [[ "tenants-init" != "$calli
 
   tenantid=$(jsonquery "$currentconfig" "tenantid")
   if [[ -z "$tenantid" ]]; then
-    err "Please run $DIR/tenants-init to configure your client id before attempting to interact with the APIs."
+    err "${NO_INIT_MESSAGE}"
     exit
   fi
 fi
@@ -680,11 +682,23 @@ function json_prettyify {
 }
 
 #
+# Refresh the current user token cached in $AGAVE_CACHE_DIR. This function calls
+# the pure Python implementation of auth-tokens-refresh, which in turn ensures
+# that the contents of $AGAVE_CACHE_DIR/current and $AGAVE_CACHE_DIR/config.json
+# remain in sync.
+function auto_auth_refresh {
+	if [[ -z "$AGAVE_DISABLE_AUTO_REFRESH" ]];
+	then
+		new_token=$(${DIR}/auth-tokens-refresh)
+	fi
+}
+
+#
 # Refresh the current user token cached in $AGAVE_CACHE_DIR/current. This function can be
 # disabled at any time by setting the $AGAVE_DISABLE_AUTO_REFRESH environment variable.
 # Refresh will be skipped silently if the client key, secret, or refresh token are missing.
 #
-function auto_auth_refresh
+function _auto_auth_refresh
 {
 	# AGAVE_DISABLE_AUTO_REFRESH=1
 	if [[ -z "$AGAVE_DISABLE_AUTO_REFRESH" ]];

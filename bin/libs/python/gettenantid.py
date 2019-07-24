@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 Retrieve the tenant ID for a given credential store
 
@@ -7,15 +8,14 @@ AgavePy and Tacc Cloud CLI are using identical data models.
 '''
 from __future__ import absolute_import
 from __future__ import print_function
+from urllib.parse import urlparse
+import sys
+import requests
+import os
+import json
 from future import standard_library
 standard_library.install_aliases()
 
-import json
-import os
-import requests
-import sys
-
-from urllib.parse import urlparse
 
 TENANTS_URI = 'https://api.tacc.utexas.edu/tenants/'
 AGAVE_CACHE_DIR = os.environ.get('AGAVE_CACHE_DIR',

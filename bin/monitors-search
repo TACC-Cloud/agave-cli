@@ -4,7 +4,7 @@
 #
 # author: opensource@tacc.cloud
 #
-# This script is part of the Agave API command line interface (CLI).
+# This script is part of the Tapis command line interface (CLI).
 # It retrieves a list of monitors based on the search options provided.
 #
 
@@ -123,7 +123,7 @@ format_api_json() {
         json_prettyify "${result}"
     elif [[ $rich -eq 1 ]]; then
         result=$(richify "$1")
-        columnize "${result}"      
+        columnize "${result}"
     else
         if [[ -z "$args" ]]; then
             results=$(jsonquery "$1" "result.[].id")

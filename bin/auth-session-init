@@ -2,98 +2,162 @@
 """
     auth-session-init [OPTION]
 
-Creates a new API client application and generates a set of API keys.
+Creates a new Tapis Oauth client and generates an access token.
 
  Options:
-    -c, --cachedir     Directory to save confiurations in.
     -t, --tenant       Tenant id for session.
-    -u, --username     Session username.
-    -N, --client_name  Name of client.
+    -u, --username     Username.
+    -p, --password     Password.
+    -N, --client_name  Name of the client.
     -D, --description  Description of the client.
+    -c, --cachedir     Session cache directory.
 """
 from __future__ import print_function
 import argparse
-import os
-import socket
+import datetime
 import sys
-from agavepy.agave import Agave
+from agavepy.agave import Agave, AgaveError
+from agavepy import utils
+from agavepy.clients import random_client_name
 
-parser = argparse.ArgumentParser(description="Create a new Agave oauth client")
+parser = argparse.ArgumentParser(
+    description="Creates a new Tapis Oauth client and generates an access token.")
+
+parser.add_argument("-t", "--tenant", default=None,
+                    help="Tenant id for session.")
+parser.add_argument("-u", "--username", default=None, help="Username.")
+parser.add_argument("-p", "--password", default=None,
+                    help="Password.")
+parser.add_argument("-N", "--name", dest="clientname",
+                    help="Name of the client.")
+parser.add_argument("-D", "--description", help="Description of client.")
+parser.add_argument("-f", "--force", dest="force",
+                    action="store_true",
+                    help="Force creation of a new session.")
 
 parser.add_argument(
     "-c",
     "--cachedir",
-    default=os.path.expanduser("~/.agave"),
-    help="Directory to save confiurations in.")
+    default=utils.credentials_cache_dir(),
+    help="Session cache directory.")
 
 parser.add_argument(
     "--tenants",
-    default="https://api.tacc.utexas.edu/tenants",
-    help="URL with tenants listings.")
-
-parser.add_argument("-t", "--tenant", help="Tenant id for session.")
-
-parser.add_argument("-u", "--username", help="Session username.")
-
-parser.add_argument("-N", "--name", dest="client_name", help="Name of client.")
-
-parser.add_argument("-D", "--description", help="Description of client.")
+    default=utils.tenants_url(),
+    help="URL with tenant listing.")
 
 if __name__ == "__main__":
     args = parser.parse_args()
 
     agave = Agave()
     cache_dir = args.cachedir
-    tenant_id = args.tenant
+    tenantid = args.tenant
     username = args.username
-    client_name = args.client_name
+    password = args.password
+    client_name = args.clientname
     client_description = args.description
+    do_force = args.force
 
-    config_file = "{}/config.json".format(cache_dir)
-    # Check if there is a session already saved.
-    if os.path.exists(config_file):
-        agave.load_configs(
-            cache_dir=cache_dir,
-            tenant_id=tenant_id,
-            username=username,
-            client_name=client_name)
+    # Pick up existing client_name in context if it is configured
+    context = utils.bootstrap_context(
+        cache_dir, tenantid=tenantid, username=username, client_name=None,
+        access_token=None, refresh_token=None)
 
-    # Set tenant info.
-    if agave.tenant_id is None:
-        if tenant_id is not None:
-            agave.tenant_id = tenant_id
+    if client_name == '':
+        client_name = None
+
+    # Did we find an active client on disk?
+    # If so, load it up.
+    agave_inited = False
+    if context['client_name'] is not None or client_name is not None:
+        agave = Agave()
         try:
-            agave.init(args.tenants)
-        except KeyError:
-            print("Select a valid tenant id...")
-            agave.list_tenants()
+            if client_name == context['client_name']:
+                agave.load_configs(
+                    cache_dir, tenant_id=context['tenantid'],
+                    username=context['username'],
+                    client_name=context['client_name'])
+                agave_inited = True
+            else:
+                utils.print_stderr('Loading {} for {} from {}'.format(
+                    client_name, context['username'], context['tenantid']))
+                agave.load_configs(
+                    cache_dir, tenant_id=context['tenantid'],
+                    username=context['username'], client_name=client_name)
+                agave_inited = True
+        except Exception:
+            utils.print_stderr('Unable to load client from session cache')
+
+    # Load failed - prepare to create a new client
+    if not agave_inited:
+        utils.print_stderr('Client does not exist. Creating one...')
+
+        if client_name is None:
+            client_name = random_client_name()
+            utils.print_stderr(
+                'Name was not specified. Using *{}*'.format(client_name))
+        if client_description is None or client_description == '':
+            client_description = "Autogenerated {}".format(
+                datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"))
+
+        # Grab and username (and password for username)
+        # If username was discoverable or provided, it will not
+        # be re-requested but otherwise we do need to learn it!
+        username = utils.prompt_username(context.get('username', None))
+
+        agave = Agave(tenant_id=context['tenantid'],
+                      username=context['username'])
+        agave.init(args.tenants)
+
+        password = utils.prompt_password(
+            password, username=agave.username, quiet=True)
+
+        try:
+            agave.clients_create(
+                client_name, client_description,
+                username=username, password=password, quiet=True)
+            utils.print_stderr('Client *{}* created'.format(client_name))
+            # Zero out just in case
+            agave.token = None
+            agave.refresh_token = None
+            agave_inited = True
+        except Exception as err:
+            print('Client creation failed:')
+            print(err)
             sys.exit(1)
 
-    # Create client if necessary.
-    if agave.client_name is None or agave.client_name != client_name:
-        if client_name is None:
-            client_name = socket.gethostname()
-        else:
-            print("Client '{}' is not saved in {}, so we will create it...".
-                  format(client_name, cache_dir))
-        if client_description is None:
-            client_description = "Autogenerated client"
-
-        print("Creating a client...")
-        agave.clients_create(client_name, client_description)
-        print("Created client {} - {}".format(client_name, client_description))
-
-        # Zero out token and refresh token.
-        agave.token = None
-        agave.refresh_token = None
-
-    # Get access token or refresh if necessary.
-    if isinstance(agave.token, str) and isinstance(agave.refresh_token, str):
-        if agave.token != "" and agave.refresh_token != "":
+    # Now, try to run a refresh token
+    try:
+        if (agave.token is not None and agave.token != '' and
+            agave.refresh_token is not None
+                and agave.refresh_token != ''):
+            utils.print_stderr(
+                'Refreshing access token for {}...'.format(agave.client_name))
             agave.refresh_tokens()
-    else:
-        print("Getting oauth bearer tokens...")
-        agave.get_access_token()
+            if agave.token != '':
+                print(agave.token)
+                # Save session.
+                agave.save_configs(cache_dir)
+                sys.exit(0)
+            else:
+                raise AgaveError('Refresh failed')
+    except Exception:
+        pass
 
-    # Save session.
-    agave.save_configs(cache_dir)
+    # Still going. Try to create an access token
+    try:
+        utils.print_stderr(
+            'Creating an access token for {}...'.format(agave.client_name))
+        agave.get_access_token(
+            password=utils.prompt_password(password, quiet=True), quiet=True)
+        # Save session.
+        if agave.token != '':
+            print(agave.token)
+            agave.save_configs(cache_dir)
+            sys.exit(0)
+        else:
+            raise AgaveError('Create failed')
+    except Exception as err:
+        print('Token generation failed:')
+        print(err)
+        sys.exit(1)

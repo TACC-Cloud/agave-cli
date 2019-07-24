@@ -11,17 +11,17 @@ Installation Guide
 What will be installed
 ``````````````````````
 
-In this guide we will cover how to get ``Agave-CLI`` into your machine.
+In this guide we will cover how to get ``Tapis-CLI`` into your machine.
 We will cover how to install the latest official release.
-Also, we will cover how to install the latest from the development branch in 
-case you want to get the latest features and help the TACC team build the most 
+Also, we will cover how to install the latest from the development branch in
+case you want to get the latest features and help the TACC team build the most
 useful and performant software that meets your needs.
 
 .. _what_version:
 
 What version to install
 ```````````````````````
-``Agave-CLI`` is under constant development. 
+``Tapis-CLI`` is under constant development.
 Some features may be missing from oficial releases but in general oficial
 releases are pushed when the project has reached a stable state.
 
@@ -31,9 +31,9 @@ releases are pushed when the project has reached a stable state.
 
 Install dependencies
 ++++++++++++++++++++
-To work with ``Agave-CLI`` you'll need to have 
+To work with ``Tapis-CLI`` you'll need to have
 `AgavePy <https://github.com/TACC/agavepy>`_ installed in your machine.
-To do this, 
+To do this,
 
 .. code-block:: console
 
@@ -65,20 +65,20 @@ To install ``AgavePy`` without ``make``:
 
 .. _install_cli:
 
-Install Agave-CLI
+Install Tapis-CLI
 +++++++++++++++++
 
 Once you have ``AgavePy`` installed you'll need to get the source code for
-``Agave-CLI``:
+``Tapis-CLI``:
 
 .. code-block:: console
 
-    git clone https://github.com/TACC-Cloud/agave-cli
-    cd agave-cli
+    git clone https://github.com/TACC-Cloud/Tapis-CLI
+    cd Tapis-CLI
 
 Once you are inside the repository, you can permanently place the cli in your
 ``$PATH`` by putting the following in your ``~/.bashrc`` or ``~/.bash_profile``:
 
 .. code-block:: console
 
-    export PATH=$PATH/<path to agave-cli repository>/bin
+    export PATH=$PATH/<path to Tapis-CLI repository>/bin

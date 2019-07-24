@@ -4,7 +4,7 @@
 #
 # author: opensource@tacc.cloud
 #
-# This script is part of the Agave API command line interface (CLI).
+# This script is part of the Tapis command line interface (CLI).
 # It deletes a user account. Calling user must have user-account-manager
 # role. The account cannot be recovered. Science API data is not deleted.
 #

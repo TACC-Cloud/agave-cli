@@ -4,7 +4,7 @@
 #
 # author: opensource@tacc.cloud
 #
-# This script is part of the Agave API command line interface (CLI).
+# This script is part of the Tapis command line interface (CLI).
 # It registers or updates internal users for a given acccount. If
 # registering a new internal user, no internal username should be provided. If
 # updating an existing internal user, an internal username must be provided.

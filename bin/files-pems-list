@@ -1,50 +1,55 @@
 #!/usr/bin/env python
 """
-    Usage: [Flags] agave://PATH
+    Usage: files-pems-list [OPTIONS] agave://SYSTEM/PATH
 
-List the user permissions associated with a file or folder. These permissions
-are set at the API level and do not reflect *nix or other file system ACL.
+Lists all user permissions attached to a file or directory.
 
 Flags:
     -h, --help            Display this help and exit
 """
 from __future__ import print_function
 import argparse
-import os
 import sys
 from agavepy.agave import Agave
+from agavepy import utils
 
 parser = argparse.ArgumentParser(
-    description="List user permissions associated with a file or folder")
+    description="Lists all user permissions attached to a file or directory.")
 
 parser.add_argument(
     "-c",
     "--cachedir",
-    default=os.path.expanduser("~/.agave"),
-    help="Directory in which confiurations are saved in.")
+    default=utils.credentials_cache_dir(),
+    help="Session cache directory.")
 
-parser.add_argument("filepath", help="Path to list")
+parser.add_argument("filepath", help="Path where permissions should be listed")
 
 if __name__ == "__main__":
-    args = parser.parse_args()
+    try:
+        args = parser.parse_args()
 
-    agave = Agave()
-    cache_dir = args.cachedir
-    uri = args.filepath
+        cache_dir = args.cachedir
+        uri = args.filepath
 
-    config_file = "{}/config.json".format(cache_dir)
-    # Check if there is a session already saved.
-    if os.path.exists(config_file):
-        agave.load_configs(cache_dir=cache_dir)
-    else:
-        print("You need to initiate a session first. Use auth-sessions-init")
+        agave = Agave()
+        agave.load_client(cache_dir)
+
+        # Refresh tokens if necessary.
+        agave.refresh_tokens()
+        # Save out session cache
+        if agave.client_name is not None:
+            agave.save_configs(cache_dir)
+
+        # Refresh tokens if necessary.
+        agave.refresh_tokens()
+
+        # Obtain uri - remove the prefix 'agave://'.
+        uri = uri[len("agave://"):]
+
+        # List permissions.
+        agave.files_pems_list(uri)
+        sys.exit(0)
+
+    except Exception as err:
+        print(err)
         sys.exit(1)
-
-    # Refresh tokens if necessary.
-    agave.refresh_tokens()
-
-    # Obtain uri - remove the prefix 'agave://'.
-    uri = uri[len("agave://"):]
-
-    # List permissions.
-    agave.files_pems_list(uri)

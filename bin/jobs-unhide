@@ -4,7 +4,7 @@
 #
 # author: opensource@tacc.cloud
 #
-# This script is part of the Agave API command line interface (CLI).
+# This script is part of the Tapis command line interface (CLI).
 # It restores a job from a hidden status
 #
 
@@ -36,7 +36,7 @@ Restores a job from a hidden state to visible and available for interaction.
   -V, --veryverbose     Very verbose output
   -h, --help            Display this help and exit
       --version         Output version information and exit
-"
+    "
 }
 
 ##################################################################
@@ -50,22 +50,22 @@ source "$DIR/jobs-common.sh"
 main() {
     #echo -n
     #set -x
-
+    
     hosturl=${hosturl%/}
     if [ -z "$args" ]; then
         err "Please specify one or more valid job ids to unhide"
     else
-
+        
         for jobid in "${args[@]}"
         do
             cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST '$hosturl/$jobid/unhide?pretty=true'"
-
+            
             if ((veryverbose)); then
                 [ "$piped" -eq 0 ] && log "Calling $cmd"
             fi
-
+            
             response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST "$hosturl/$jobid/unhide?pretty=true"`
-
+            
             if [[ $(jsonquery "$response" "status") = 'success' ]]; then
                 result=$(format_api_json "$response")
                 success "$result"
@@ -78,10 +78,10 @@ main() {
 }
 
 format_api_json() {
-
+    
     if ((veryverbose)); then
         echo "$1"
-    elif [[ $verbose -eq 1 ]]; then
+        elif [[ $verbose -eq 1 ]]; then
         result=$(jsonquery "$1" "result" 1)
         json_prettyify "${result}"
     else

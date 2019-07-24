@@ -1,0 +1,72 @@
+#!/usr/bin/env python
+"""
+    auth-sessions-list [OPTION]
+
+Lists all Tapis Oauth clients on the host by tenant and username
+
+ Options:
+    -c, --cachedir     Session cache directory.
+"""
+from __future__ import print_function
+import argparse
+import sys
+import json
+from agavepy import utils
+
+parser = argparse.ArgumentParser(
+    description="Lists all Tapis Oauth clients on the host by tenant and username.")
+
+parser.add_argument(
+    "-c",
+    "--cachedir",
+    default=utils.credentials_cache_dir(create=False),
+    help="Session cache directory.")
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    cache_dir = args.cachedir
+
+    try:
+        # Pick up existing client_name in context if it is configured
+        context = utils.bootstrap_context(
+            cache_dir, tenantid=None, username=None, client_name=None)
+        config_file = utils.sessions_cache_path(cache_dir)
+        config = json.load(open(config_file, 'rb'))
+    except (FileNotFoundError):
+        print('A session cache file was not found in {}. You may be running in an environment that does not support multiple sessions, or you may simply need to run "auth-session-init" to create additional sessions.'.format(utils.credentials_cache_dir(cache_dir)))
+        sys.exit(1)
+    except (IOError, OSError):
+        print('It was not possible to read the session cache file.')
+        sys.exit(1)
+    except json.decoder.JSONDecodeError:
+        print('The session cache was corrupted or misformatted.')
+        sys.exit(1)
+
+    sessions = list()
+    current_session = config.get('current', {})
+
+    current_client_name = list(current_session.keys())[0]
+    current_tenant_id = current_session[current_client_name].get('tenantid')
+    current_username = current_session[current_client_name].get('username')
+    sessions.append((current_tenant_id, current_username,
+                     current_client_name, True))
+
+    for tenant_id in config.get('sessions', {}):
+        for username in config['sessions'][tenant_id]:
+            for client_name in config['sessions'][tenant_id][username]:
+                if tenant_id == current_tenant_id and \
+                    username == current_username and \
+                        client_name == current_client_name:
+                    is_current = True
+                else:
+                    is_current = False
+                session_summary = (tenant_id, username,
+                                   client_name, is_current)
+                if session_summary not in sessions:
+                    sessions.append(session_summary)
+
+    print("{0:<16} {1:<12} {2:<40} {3:<7}".format(
+        "TENANT", "USERNAME", "CLIENT", "ACTIVE"))
+    for s in sessions:
+        print("{0:<16} {1:<12} {2:<40} {3:<7}".format(
+            s[0], s[1], s[2], s[3]))

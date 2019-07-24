@@ -4,7 +4,11 @@
 #
 # author: opensource@tacc.cloud
 #
+<<<<<<< HEAD:bin/jobs-hide
 # This script is part of the Agave API command line interface (CLI).
+=======
+# This script is part of the Tapis command line interface (CLI).
+>>>>>>> 04e5a1155a350db0f1f7f3bd1db2081af471888c:bin/jobs-hide
 # It marks a job as invisible to most APIs like job listing or history calls.
 # This can only be done for jobs in a terminal state.
 

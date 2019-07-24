@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=Agave-CLI
+set SPHINXPROJ=Tapis-CLI
 
 if "%1" == "" goto help
 

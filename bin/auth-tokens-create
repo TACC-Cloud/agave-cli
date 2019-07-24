@@ -1,198 +1,145 @@
-#!/bin/bash
-#
-# auth-tokens-create
-#
-# author: opensource@tacc.cloud
-#
-# This script is part of the Agave API command line interface (CLI).
-# It retrieves an authentication token from the auth service that
-# can be used to authenticate to the rest of the api. A valid API
-# secret and key must be used to obtain a token.
-#
+#!/usr/bin/env python
+"""
+    auth-tokens-create [OPTION]
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-source "$DIR/common.sh"
-
-# set to 1 to prevent using cache. token creation requires a valid key
-disable_cache=1
-storetoken=1
-
-# Script logic -- TOUCH THIS {{{
-
-# A list of all variables to prompt in interactive mode. These variables HAVE
-# to be named exactly as the longname option definition in usage().
-interactive_opts=(apisecret apikey username password)
-
-# Print usage
-usage() {
-  echo -n "$(basename $0) [OPTION]...
-
-Obtain a new Oauth bearer token. Tokens can be used repeatedly until they
-expire, at which point you can simply do an auth-tokens-refresh with your API
-username and password to refresh your token. This step is required to
-interact with any Agave services.
-
-For ease of use, the -S option can be specified to store the new
-credential for reuse in subsequent calls to the API.
+Create an access token for a Tapis Oauth client.
 
  Options:
-  -u, --username       Agave tenant username
-  -p, --password       Agave tenant password
-  -s, --apisecret      Consumer secret
-  -k, --apikey         Consumer Key
-  -x, --tokenuser      API username for whom the returned token should apply, requires admin permissions
-  -S, --storetoken     Store the token for later use so you can work without reauthenticating on
-                       every command. This is the default behavior
-  -D, --displayonly    Display the fetched auth credentials, but do not save. The local auth cache
-                       will not be updated
-  -H, --hosturl        URL of the service
-  -d, --development    Run in dev mode using default dev server
-  -f, --force          Skip all user interaction
-  -i, --interactive    Prompt for values
-  -q, --quiet          Quiet (no output)
-  -v, --verbose        Verbose output
-  -V, --veryverbose    Very verbose output
-  -h, --help           Display this help and exit
-      --version        Output version information and exit
-"
-}
+    -u, --username     Username.
+    -p, --password     Password.
+    -k, --apikey       Oauth client key.
+    -s, --apisecret    Oauth client secret.
+    -D, --displayonly  Display but do not store the access token.
+    -x, --tokenuser    Username to impersonate (requires special privileges).
+    -c, --cachedir     Session cache directory.
+"""
+from __future__ import print_function
+import argparse
+import json
+import os
+import sys
+from agavepy.agave import Agave
+from agavepy import utils
 
-##################################################################
-##################################################################
-#						Begin Script Logic						 #
-##################################################################
-##################################################################
-
-source "$DIR/auth-common.sh"
-
-main() {
-	#echo -n
-	#set -x
-	hosturl=${hosturl%/}/token
-
-	if [ -n "$tokenuser" ]; then
-		authUsername=$username
-		username=$tokenuser
-
-		cmd="curl -sku \"$apikey:$apisecret\" -X POST --data-urlencode \"token_username=${tokenuser}\" --data-urlencode \"username=${authUsername}\" --data-urlencode \"password=${password}\" --data-urlencode \"grant_type=admin_password\" --data-urlencode \"scope=PRODUCTION\" '${hosturl}'"
-
-		if ((veryverbose)); then
-			[ "$piped" -eq 0 ] && log "Calling $cmd"
-		fi
-
-		response=`json_prettyify $(curl -sku "$apikey:$apisecret" -X POST --data-urlencode "token_username=${tokenuser}" --data-urlencode "username=${authUsername}" --data-urlencode "password=${password}" --data-urlencode "grant_type=admin_password" --data-urlencode "scope=PRODUCTION" "$hosturl")`
-
-	else
-		authUsername=$username
-
-		cmd="curl -sku \"$apikey:$apisecret\" -X POST --data-urlencode \"username=${authUsername}\" --data-urlencode \"password=${password}\" --data-urlencode \"grant_type=password\" --data-urlencode \"scope=PRODUCTION\" '${hosturl}'"
-
-		if ((veryverbose)); then
-			[ "$piped" -eq 0 ] && log "Calling $cmd"
-		fi
-
-		response=`json_prettyify $(curl -sku "$apikey:$apisecret" -X POST --data-urlencode "username=${authUsername}" --data-urlencode "password=${password}" --data-urlencode "grant_type=password" --data-urlencode "scope=PRODUCTION" "$hosturl")`
-
-	fi
-
-	if [[ $(jsonquery "$response" "token_type") = 'bearer' ]]; then
-		result=$(format_api_json "$response")
-		success "$result"
-	else
-		err "$response"
-	fi
-}
-
-format_api_json() {
-
-	if ((storetoken)); then
-
-		jsonval access_token "$1" "access_token"
-		jsonval refresh_token "$1" "refresh_token"
-		jsonval expires_in "$1" "expires_in"
-
-		created_at=$(date +%s)
-
-		if date --version >/dev/null 2>&1 ; then
-		  expires_at=`date -d @$(expr $created_at + $expires_in)`
-		else
-		  expires_at=`date -r $(expr $created_at + $expires_in)`
-		fi
-
-		kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
-
-		echo "Token for ${tenantid}:${username} successfully refreshed and cached for ${expires_in} seconds";
-	fi
-
-	if ((veryverbose)); then
-		echo "${1}"
-	elif [[ $verbose -eq 1 ]]; then
-		json_prettyify "${1}"
-	else
-		result=$(jsonquery "$1" "access_token")
-		echo "${result}"
-	fi
-}
-
-##################################################################
-##################################################################
-#						End Script Logic						 #
-##################################################################
-##################################################################
-
-# }}}
-
-# Parse command line options
-source "$DIR/options.sh"
+SELECT_TENANT_ID_MSG = 'Select a valid tenant id.'
+TOKEN_NOT_STORED_MSG = 'Token was not stored in session cache.'
+TOKEN_OPERATION_FAILED = 'Token issuance failed: {0}'
+CREATING_TOKEN_MSG = 'Creating access token...'
 
 
-# Main loop {{{
+parser = argparse.ArgumentParser(
+    description="Creates an access token for a Tapis Oauth client.")
 
-# Print help if no arguments were passed.
-[[ $# -eq 0 ]] && set -- "-i"
+parser.add_argument("-u", "--username", default=None,
+                    help="Username.")
+parser.add_argument("-p", "--password", default=None,
+                    help="Password.")
+parser.add_argument("-t", "--tenant", default=None,
+                    help="Tenant id for session.")
+parser.add_argument("-k", "--apikey", default=None,
+                    help="Oauth client key.")
+parser.add_argument("-s", "--apisecret", default=None,
+                    help="Oauth client secret.")
+parser.add_argument("-D", "--displayonly", dest="displayonly",
+                    action="store_true",
+                    help="Display but do not store the access token.")
+parser.add_argument("-x", "--tokenuser",
+                    help="Username to impersonate (requires special privileges).")
+parser.add_argument("-S", "--storetoken", dest="storetoken",
+                    action="store_true",
+                    help="Store token for later use (default).")
+parser.add_argument(
+    "-c",
+    "--cachedir",
+    default=utils.credentials_cache_dir(),
+    help="Session cache directory.")
+parser.add_argument(
+    "--tenants",
+    default=utils.tenants_url(),
+    help="URL with tenant listing.")
 
-# Read the options and set stuff
-while [[ $1 = -?* ]]; do
-  case $1 in
-    -h|--help) usage >&2; safe_exit ;;
-    --version) version; copyright; disclaimer; safe_exit ;;
-    -u|--username) shift; username=$1 ;;
-  	-p|--password) shift; password=$1 ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
-    -x|--tokenuser) shift; tokenuser=$1;;
-    -S|--storetoken) storetoken=1 ;;
-    -D|--displayonly) storetoken=0 ;;
-    -H|--hosturl) shift; hosturl=$1;;
-  	-d|--development) development=1 ;;
-    -v|--verbose) verbose=1 ;;
-    -V|--veryverbose) veryverbose=1; verbose=1 ;;
-    -q|--quiet) quiet=1 ;;
-    -i|--interactive) interactive=1 ;;
-    -f|--force) force=1 ;;
-    --endopts) shift; break ;;
-    *) die "invalid option: $1" ;;
-  esac
-  shift
-done
+if __name__ == "__main__":
+    args = parser.parse_args()
 
-# Store the remaining part as arguments.
-args+=("$@")
+    agave = Agave()
+    cache_dir = args.cachedir
+    tenant_id = args.tenant
+    username = args.username
+    password = args.password
+    api_key = args.apikey
+    api_secret = args.apisecret
+    impersonate = args.tokenuser
+    display_only = args.displayonly
+    # Don't cache tokens if generated for the purposes of impersonation
+    if impersonate is not None and impersonate != '':
+        display_only = True
 
-# }}}
+    try:
+        context = dict()
+        # try:
+        # Pick up existing client_name in context if it is configured
+        context = utils.bootstrap_context(
+            cache_dir, tenantid=tenant_id,
+            username=username, client_name=None,
+            apikey=None, apisecret=None,
+            access_token=None, refresh_token=None)
+        config_file = utils.sessions_cache_path(cache_dir)
+        # config = json.load(open(config_file, 'rb'))
+        # except (FileNotFoundError):
+        #     print('A session cache file was not found in {}. You may be running in an environment that does not support multiple sessions, or you may simply need to run "auth-session-init" to create additional sessions.'.format(utils.credentials_cache_dir(cache_dir)))
+        #     sys.exit(1)
+        # except (IOError, OSError):
+        #     print('It was not possible to read the session cache file.')
+        #     sys.exit(1)
+        # except json.decoder.JSONDecodeError:
+        #     print('The session cache was corrupted or misformatted.')
+        #     sys.exit(1)
 
-# Run the script logic
-source "$DIR/runner.sh"
+        # Init an Agave client from the CLI options alone
+        if context['apikey'] is not None \
+                and context['apisecret'] is not None and context['username'] is not None and context['tenantid'] is not None:
+            # utils.print_stderr('Instantiating Oauth client from options')
+            agave.username = context['username']
+            agave.api_key = context['apikey']
+            agave.api_secret = context['apisecret']
+            agave.password = utils.prompt_password(
+                password, username=agave.username, quiet=False)
+            password = agave.password
+            if context['tenantid'] is not None:
+                agave.tenant_id = context['tenantid']
+            try:
+                agave.init(args.tenants)
+            except KeyError:
+                utils.print_stderr(SELECT_TENANT_ID_MSG)
+                agave.list_tenants()
+                sys.exit(1)
+            # Don't cache tokens if the client was configured purely from args
+            if username is not None and tenant_id is not None \
+                    and api_key is not None and api_secret is not None:
+                display_only = True
+        else:
+            # utils.print_stderr('Loading current Oauth client configuration')
+            config_file = utils.sessions_cache_path(cache_dir)
+            # Check if there may be a session already saved.
+            if os.path.exists(config_file):
+                try:
+                    agave.load_configs(
+                        cache_dir=cache_dir)
+                except KeyError:
+                    raise
 
+        utils.print_stderr(CREATING_TOKEN_MSG)
+        agave.get_access_token(
+            username=context['username'], password=password, quiet=True)
+        print(agave.token)
 
-#		print_options='-d "grant_type=admin_password" -d "username='$proxyuser'" -d "scope=PRODUCTION" -d "adminPassword=XXXXX"'
-#		post_options='--data-urlencode  "grant_type=admin_password" --data-urlencode  "username='$proxyuser'" --data-urlencode  "scope=PRODUCTION" --data-urlencode  "adminPassword='$password'"'
-#		cmd="curl -sku \"$apikey:XXXXX\" -X POST --data-binary '$print_options' '$hosturl'"
-#	else
-#		print_options='{ "password": "admin_password", "username": "'$username'", "scope": "PRODUCTION", "password": "XXXXX"}'
-#		post_options='{ "password": "admin_password", "username": "'$username'", "scope": "PRODUCTION", "password": "'$password'"}'
-#		cmd="curl -sku \"$apikey:XXXXX\" -X POST --data-binary '$print_options' '$hosturl'"
-#	fi
+        # Save session.
+        if not display_only:
+            agave.save_configs(
+                cache_dir)
+        else:
+            utils.print_stderr(TOKEN_NOT_STORED_MSG)
 
-#	cmd="curl -sku \"$apikey:XXXXX\" -X POST --data-binary '$print_options' '$hosturl'"
+    except Exception as err:
+        utils.print_stderr(TOKEN_OPERATION_FAILED + ':' + str(err))
+        sys.exit(1)

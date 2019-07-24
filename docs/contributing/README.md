@@ -1,4 +1,4 @@
-### Get set up for Agave-CLI development
+### Get set up for Tapis-CLI development
 
 * [Get the required software](software-required.md)
 * [Configure Git for contributing](set-up-git.md)

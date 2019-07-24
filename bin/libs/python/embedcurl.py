@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+
 # embedcurl.py
 #
 # A Python 2.7 command line utility for exporting curl commands to
@@ -6,12 +7,18 @@
 #
 
 from __future__ import print_function
+import base64
+import urllib.error
+import urllib.parse
+import urllib.request
+import re
+import argparse
+import sys
+import json
+from operator import attrgetter
+from builtins import (chr, hex)
 from future import standard_library
 standard_library.install_aliases()
-from builtins import chr
-from builtins import hex
-import json, sys, argparse, re, urllib.request, urllib.parse, urllib.error, base64
-from operator import attrgetter
 
 debug = False
 
@@ -19,8 +26,7 @@ debug = False
 def parse_args():
     parser = argparse.ArgumentParser(
         prog="embedcurl.py",
-        description=
-        "A command line utility for exporting curl commands to embedcurl.io and hurl.it references you can share ."
+        description="A command line utility for exporting curl commands to embedcurl.io and hurl.it references you can share ."
     )
 
     parser.add_argument(
@@ -46,8 +52,7 @@ def parse_args():
         nargs='?',
         type=argparse.FileType('r'),
         default=sys.stdin,
-        help=
-        "The file containing the curl command to import or stdin if provided.")
+        help="The file containing the curl command to import or stdin if provided.")
 
     args = parser.parse_args()
 

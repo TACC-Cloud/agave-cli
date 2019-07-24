@@ -1,6 +1,6 @@
 # agave-common.sh
 #
-# Utility functions (with cacheing) for working with the Agave API
+# Utility functions (with cacheing) for working with the Tapis
 
 if [[ -z "$DIR" ]]; then
     DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -8,11 +8,11 @@ fi
 
 AGAVE_USERNAME=${AGAVE_USERNAME}
 function get_agave_username(){
-
+    
     if [ ! -z "$AGAVE_USERNAME" ]; then
         printf "$AGAVE_USERNAME"
     else
-        AGAVE_USERNAME=$(${DIR}/auth-check -v -v me | jq -r .username)
+        AGAVE_USERNAME=$(${DIR}/auth-check -v | jq -r .username)
         printf "$AGAVE_USERNAME"
         export AGAVE_USERNAME
     fi
@@ -22,7 +22,7 @@ function get_agave_username(){
 
 AGAVE_HUMAN_NAME=${AGAVE_HUMAN_NAME}
 function get_agave_human_name() {
-
+    
     if [ ! -z "$AGAVE_HUMAN_NAME" ]; then
         printf "$AGAVE_HUMAN_NAME"
     else
@@ -34,7 +34,7 @@ function get_agave_human_name() {
 
 AGAVE_EMAIL=${AGAVE_EMAIL}
 function get_agave_email() {
-
+    
     if [ ! -z "$AGAVE_EMAIL" ]; then
         printf "$AGAVE_EMAIL"
     else

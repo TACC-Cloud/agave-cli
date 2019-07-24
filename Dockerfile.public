@@ -4,7 +4,7 @@ LABEL org.label-schema.vendor = "Texas Advanced Computing Center"
 LABEL org.label-schema.name = "TACC Tapis API CLI"
 LABEL org.label-schema.vcs-url = "https://github.com/TACC-Cloud/home"
 LABEL org.label-schema.vcs-ref = "master"
-LABEL org.label-schema.version = "3.0.1"
+LABEL org.label-schema.version = "3.0.x"
 LABEL org.label-schema.organization=tacc.cloud
 LABEL cloud.tacc.project="Tapis API CLI"
 
@@ -14,7 +14,9 @@ ARG PYTHON_PIP_VERSION=19.1.1
 # Force locale to UTF-8
 RUN apt-get update && \
     apt-get install -y locales locales-all && \
-    apt-get clean
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
@@ -28,7 +30,7 @@ ENV LANGUAGE en_US.UTF-8
 # In-container volume mounts
 # (For containers launched using TACC.cloud SSO identity)
 ARG CORRAL=/corral
-ARG STOCKYARD=/work/projects
+ARG STOCKYARD=/work
 
 # Basics
 RUN apt-get -y update && \
@@ -74,6 +76,7 @@ COPY completion/agave-cli /etc/bash_completion.d/agave-cli
 COPY etc /home/etc
 ENV PATH $PATH:/home/bin
 ENV HOME /home
+ENV TAPIS_CACHE_DIR=/home/.agave
 ENV AGAVE_CACHE_DIR=/home/.agave
 
 # Set command prompt
