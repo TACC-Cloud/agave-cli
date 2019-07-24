@@ -4,7 +4,7 @@
 #
 # author: opensource@tacc.cloud
 #
-# This script is part of the Agave API command line interface (CLI).
+# This script is part of the Tapis command line interface (CLI).
 # It retrieves an authentication token from the auth service that
 # can be used to authenticate to the rest of the api. A valid API
 # secret and key must be used to obtain a token.
@@ -26,7 +26,7 @@ interactive_opts=(apisecret apikey username password)
 
 # Print usage
 usage() {
-  echo -n "$(basename $0) [OPTION]...
+    echo -n "$(basename $0) [OPTION]...
 
 Obtain a new Oauth bearer token. Tokens can be used repeatedly until they
 expire, at which point you can simply do an auth-tokens-refresh with your API
@@ -55,7 +55,7 @@ credential for reuse in subsequent calls to the API.
   -V, --veryverbose    Very verbose output
   -h, --help           Display this help and exit
       --version        Output version information and exit
-"
+    "
 }
 
 ##################################################################
@@ -67,72 +67,72 @@ credential for reuse in subsequent calls to the API.
 source "$DIR/auth-common.sh"
 
 main() {
-	#echo -n
-	#set -x
-	hosturl=${hosturl%/}/token
+    #echo -n
+    #set -x
+    hosturl=${hosturl%/}/token
 
-	if [ -n "$tokenuser" ]; then
-		authUsername=$username
-		username=$tokenuser
+    if [ -n "$tokenuser" ]; then
+        authUsername=$username
+        username=$tokenuser
 
-		cmd="curl -sku \"$apikey:$apisecret\" -X POST --data-urlencode \"token_username=${tokenuser}\" --data-urlencode \"username=${authUsername}\" --data-urlencode \"password=${password}\" --data-urlencode \"grant_type=admin_password\" --data-urlencode \"scope=PRODUCTION\" '${hosturl}'"
+        cmd="curl -sku \"$apikey:$apisecret\" -X POST --data-urlencode \"token_username=${tokenuser}\" --data-urlencode \"username=${authUsername}\" --data-urlencode \"password=${password}\" --data-urlencode \"grant_type=admin_password\" --data-urlencode \"scope=PRODUCTION\" '${hosturl}'"
 
-		if ((veryverbose)); then
-			[ "$piped" -eq 0 ] && log "Calling $cmd"
-		fi
+        if ((veryverbose)); then
+            [ "$piped" -eq 0 ] && log "Calling $cmd"
+        fi
 
-		response=`json_prettyify $(curl -sku "$apikey:$apisecret" -X POST --data-urlencode "token_username=${tokenuser}" --data-urlencode "username=${authUsername}" --data-urlencode "password=${password}" --data-urlencode "grant_type=admin_password" --data-urlencode "scope=PRODUCTION" "$hosturl")`
+        response=`json_prettyify $(curl -sku "$apikey:$apisecret" -X POST --data-urlencode "token_username=${tokenuser}" --data-urlencode "username=${authUsername}" --data-urlencode "password=${password}" --data-urlencode "grant_type=admin_password" --data-urlencode "scope=PRODUCTION" "$hosturl")`
 
-	else
-		authUsername=$username
+    else
+        authUsername=$username
 
-		cmd="curl -sku \"$apikey:$apisecret\" -X POST --data-urlencode \"username=${authUsername}\" --data-urlencode \"password=${password}\" --data-urlencode \"grant_type=password\" --data-urlencode \"scope=PRODUCTION\" '${hosturl}'"
+        cmd="curl -sku \"$apikey:$apisecret\" -X POST --data-urlencode \"username=${authUsername}\" --data-urlencode \"password=${password}\" --data-urlencode \"grant_type=password\" --data-urlencode \"scope=PRODUCTION\" '${hosturl}'"
 
-		if ((veryverbose)); then
-			[ "$piped" -eq 0 ] && log "Calling $cmd"
-		fi
+        if ((veryverbose)); then
+            [ "$piped" -eq 0 ] && log "Calling $cmd"
+        fi
 
-		response=`json_prettyify $(curl -sku "$apikey:$apisecret" -X POST --data-urlencode "username=${authUsername}" --data-urlencode "password=${password}" --data-urlencode "grant_type=password" --data-urlencode "scope=PRODUCTION" "$hosturl")`
+        response=`json_prettyify $(curl -sku "$apikey:$apisecret" -X POST --data-urlencode "username=${authUsername}" --data-urlencode "password=${password}" --data-urlencode "grant_type=password" --data-urlencode "scope=PRODUCTION" "$hosturl")`
 
-	fi
+    fi
 
-	if [[ $(jsonquery "$response" "token_type") = 'bearer' ]]; then
-		result=$(format_api_json "$response")
-		success "$result"
-	else
-		err "$response"
-	fi
+    if [[ $(jsonquery "$response" "token_type") = 'bearer' ]]; then
+        result=$(format_api_json "$response")
+        success "$result"
+    else
+        err "$response"
+    fi
 }
 
 format_api_json() {
 
-	if ((storetoken)); then
+    if ((storetoken)); then
 
-		jsonval access_token "$1" "access_token"
-		jsonval refresh_token "$1" "refresh_token"
-		jsonval expires_in "$1" "expires_in"
+        jsonval access_token "$1" "access_token"
+        jsonval refresh_token "$1" "refresh_token"
+        jsonval expires_in "$1" "expires_in"
 
-		created_at=$(date +%s)
+        created_at=$(date +%s)
 
-		if date --version >/dev/null 2>&1 ; then
-		  expires_at=`date -d @$(expr $created_at + $expires_in)`
-		else
-		  expires_at=`date -r $(expr $created_at + $expires_in)`
-		fi
+        if date --version >/dev/null 2>&1 ; then
+            expires_at=`date -d @$(expr $created_at + $expires_in)`
+        else
+            expires_at=`date -r $(expr $created_at + $expires_in)`
+        fi
 
-		kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
+        kvset current "{\"tenantid\":\"$tenantid\",\"baseurl\":\"$baseurl\",\"devurl\":\"$devurl\",\"apisecret\":\"$apisecret\",\"apikey\":\"$apikey\",\"username\":\"$username\",\"access_token\":\"$access_token\",\"refresh_token\":\"$refresh_token\",\"created_at\":\"$created_at\",\"expires_in\":\"$expires_in\",\"expires_at\":\"$expires_at\"}"
 
-		echo "Token for ${tenantid}:${username} successfully refreshed and cached for ${expires_in} seconds";
-	fi
+        echo "Token for ${tenantid}:${username} successfully refreshed and cached for ${expires_in} seconds";
+    fi
 
-	if ((veryverbose)); then
-		echo "${1}"
-	elif [[ $verbose -eq 1 ]]; then
-		json_prettyify "${1}"
-	else
-		result=$(jsonquery "$1" "access_token")
-		echo "${result}"
-	fi
+    if ((veryverbose)); then
+        echo "${1}"
+        elif [[ $verbose -eq 1 ]]; then
+        json_prettyify "${1}"
+    else
+        result=$(jsonquery "$1" "access_token")
+        echo "${result}"
+    fi
 }
 
 ##################################################################
@@ -154,27 +154,27 @@ source "$DIR/options.sh"
 
 # Read the options and set stuff
 while [[ $1 = -?* ]]; do
-  case $1 in
-    -h|--help) usage >&2; safe_exit ;;
-    --version) version; copyright; disclaimer; safe_exit ;;
-    -u|--username) shift; username=$1 ;;
-  	-p|--password) shift; password=$1 ;;
-    -s|--apisecret) shift; apisecret=$1 ;;
-    -k|--apikey) shift; apikey=$1 ;;
-    -x|--tokenuser) shift; tokenuser=$1;;
-    -S|--storetoken) storetoken=1 ;;
-    -D|--displayonly) storetoken=0 ;;
-    -H|--hosturl) shift; hosturl=$1;;
-  	-d|--development) development=1 ;;
-    -v|--verbose) verbose=1 ;;
-    -V|--veryverbose) veryverbose=1; verbose=1 ;;
-    -q|--quiet) quiet=1 ;;
-    -i|--interactive) interactive=1 ;;
-    -f|--force) force=1 ;;
-    --endopts) shift; break ;;
-    *) die "invalid option: $1" ;;
-  esac
-  shift
+    case $1 in
+        -h|--help) usage >&2; safe_exit ;;
+        --version) version; copyright; disclaimer; safe_exit ;;
+        -u|--username) shift; username=$1 ;;
+        -p|--password) shift; password=$1 ;;
+        -s|--apisecret) shift; apisecret=$1 ;;
+        -k|--apikey) shift; apikey=$1 ;;
+        -x|--tokenuser) shift; tokenuser=$1;;
+        -S|--storetoken) storetoken=1 ;;
+        -D|--displayonly) storetoken=0 ;;
+        -H|--hosturl) shift; hosturl=$1;;
+        -d|--development) development=1 ;;
+        -v|--verbose) verbose=1 ;;
+        -V|--veryverbose) veryverbose=1; verbose=1 ;;
+        -q|--quiet) quiet=1 ;;
+        -i|--interactive) interactive=1 ;;
+        -f|--force) force=1 ;;
+        --endopts) shift; break ;;
+        *) die "invalid option: $1" ;;
+    esac
+    shift
 done
 
 # Store the remaining part as arguments.
@@ -186,8 +186,8 @@ args+=("$@")
 source "$DIR/runner.sh"
 
 
-#		print_options='-d "grant_type=admin_password" -d "username='$proxyuser'" -d "scope=PRODUCTION" -d "adminPassword=XXXXX"'
-#		post_options='--data-urlencode  "grant_type=admin_password" --data-urlencode  "username='$proxyuser'" --data-urlencode  "scope=PRODUCTION" --data-urlencode  "adminPassword='$password'"'
+#		print_options='-d "grant_type=admin_password" -d "username='$proxyuser'" -d "scope=PRODUCTION" -d "adminPassword (optional).XXXXX"'
+#		post_options='--data-urlencode  "grant_type=admin_password" --data-urlencode  "username='$proxyuser'" --data-urlencode  "scope=PRODUCTION" --data-urlencode  "adminPassword (optional).'$password'"'
 #		cmd="curl -sku \"$apikey:XXXXX\" -X POST --data-binary '$print_options' '$hosturl'"
 #	else
 #		print_options='{ "password": "admin_password", "username": "'$username'", "scope": "PRODUCTION", "password": "XXXXX"}'

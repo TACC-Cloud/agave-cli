@@ -4,7 +4,7 @@
 #
 # author: opensource@tacc.cloud
 #
-# This script is part of the Agave API command line interface (CLI).
+# This script is part of the Tapis command line interface (CLI).
 # It retrieves a new bearer token using the refresh token obtained
 # from a previous auth-tokens-create call.
 #

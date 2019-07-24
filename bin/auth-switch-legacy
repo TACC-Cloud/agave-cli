@@ -4,7 +4,7 @@
 #
 # author: vaughn@tacc.utexas.edu
 #
-# This script is part of the Agave API command line interface (CLI).
+# This script is part of the Tapis command line interface (CLI).
 # It non-destructively swaps among tenants/usernames configurations
 # to support users who need to change contexts often
 
@@ -207,7 +207,7 @@ init_new_kv_current(){
 cat << EOF > $AGAVE_CACHE_DIR/current
 {"tenantid":"","baseurl":"","devurl":"","apisecret":"","apikey":"","username":"","access_token":"","refresh_token":"","created_at":"","expires_in":""}
 EOF
-  
+
   out "New credential store created. Configure via tenants-init then client and/or token commands."
   safe_exit
 
