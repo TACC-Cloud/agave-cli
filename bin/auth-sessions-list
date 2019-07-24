@@ -26,17 +26,21 @@ if __name__ == "__main__":
     args = parser.parse_args()
     cache_dir = args.cachedir
 
-    # Pick up existing client_name in context if it is configured
-    context = utils.bootstrap_context(
-        cache_dir, tenantid=None, username=None, client_name=None)
-
-    config_file = utils.sessions_cache_path(cache_dir)
     try:
+        # Pick up existing client_name in context if it is configured
+        context = utils.bootstrap_context(
+            cache_dir, tenantid=None, username=None, client_name=None)
+        config_file = utils.sessions_cache_path(cache_dir)
         config = json.load(open(config_file, 'rb'))
-    except (FileNotFoundError, IOError, OSError):
-        raise
+    except (FileNotFoundError):
+        print('A session cache file was not found in {}. You may be running in an environment that does not support multiple sessions, or you may simply need to run "auth-session-init" to create additional sessions.'.format(utils.credentials_cache_dir(cache_dir)))
+        sys.exit(1)
+    except (IOError, OSError):
+        print('It was not possible to read the session cache file.')
+        sys.exit(1)
     except json.decoder.JSONDecodeError:
-        raise
+        print('The session cache was corrupted or misformatted.')
+        sys.exit(1)
 
     sessions = list()
     current_session = config.get('current', {})
