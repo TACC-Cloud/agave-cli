@@ -4,23 +4,23 @@ Work through this page to configure Git and a repository you'll use throughout
 the Contributor Guide.
 The work you do further in the guide, depends on the work you do here.
 
-## Task 1. Fork and clone the Agave-CLI repository
+## Task 1. Fork and clone the Tapis-CLI repository
 
-Before contributing, you must first fork the Agave-CLI code repository.
+Before contributing, you must first fork the Tapis-CLI code repository.
 A fork makes a copy of a repository at a particular point in time.
 Github tracks for you where a fork originates.
 
 As you make contributions, you change the code in your fork.
-When you are ready, you make a pull request back to the original Agave-CLI
+When you are ready, you make a pull request back to the original Tapis-CLI
 repository.
 
-To fork and clone Agave-CLI:
-1. Go to the [Agave-CLI repository](https://github.com/TACC-Cloud/agave-cli).
+To fork and clone Tapis-CLI:
+1. Go to the [Tapis-CLI repository](https://github.com/TACC-Cloud/Tapis-CLI).
 
 2. Click the "Fork" button in the upper right corner of the Github interface.
 
-3. Copy your fork's clone URL from Github (t will look something like 
-`https://github.com/<your-username>/agave-cli`).
+3. Copy your fork's clone URL from Github (t will look something like
+`https://github.com/<your-username>/Tapis-CLI`).
 
 4. Open a terminal on your local host and change to your home directory.
    ```
@@ -39,12 +39,12 @@ To fork and clone Agave-CLI:
 
 7. Clone your fork into your local host.
    ```
-   $ git clone https://github.com/<your-username>/agave-cli
+   $ git clone https://github.com/<your-username>/Tapis-CLI
    ```
 
-8. Change directory into your new `agave-cli` directory.
+8. Change directory into your new `Tapis-CLI` directory.
    ```
-   $ cd agave-cli
+   $ cd Tapis-CLI
    ```
 
 Take a moment to familiarize yourself with the repository's contents.
@@ -52,7 +52,7 @@ Take a moment to familiarize yourself with the repository's contents.
 
 ## Task 2. Set your signature and an upstream remote
 
-When you contribute to Agave-CLI, you must certify you agree with the [Developer
+When you contribute to Tapis-CLI, you must certify you agree with the [Developer
 Certificate of Origin](https://developercertificate.org/).
 You indicate your agreement by signing your `git` commits like this:
 ```
@@ -60,22 +60,22 @@ Signed-off-by: Gopher Smith <gopher@email.com>
 ```
 
 To create a signature, you configure your username and email address in Git.
-You can set these globally or locally on just your agave-cli repository.
+You can set these globally or locally on just your Tapis-CLI repository.
 You must sign with your real name.
-You can sign your `git` commit automatically with `git commit -s`. 
-Agave-CLI does not accept anonymous contributions or contributions through
+You can sign your `git` commit automatically with `git commit -s`.
+Tapis-CLI does not accept anonymous contributions or contributions through
 pseudonyms.
 
 As you change code in your fork, you'll want to keep it in sync with the
-changes others make in the original Agave-CLI repository.
+changes others make in the original Tapis-CLI repository.
 To make syncing easier, you'll also add a _remote_ called `upstream` that
-points to the original repository. 
+points to the original repository.
 A remote is just another project version hosted on the internet or network.
 
 To configure your username, email, and add a remote:
-1. Change to the root of your `agave-CLI` repository.
+1. Change to the root of your `Tapis-CLI` repository.
    ```
-   $ cd ~/repos/agave-cli
+   $ cd ~/repos/Tapis-CLI
    ```
 
 2. Set you `user.name` for the repository.
@@ -92,10 +92,10 @@ To configure your username, email, and add a remote:
    Use the `--global` flag instead, if you want to do this for all your `git`
    projects.
 
-4. Set your local repo to track changes upstream, on the original `agave-cli`
+4. Set your local repo to track changes upstream, on the original `Tapis-CLI`
    repository.
    ```
-   $ git remote add upstream https://github.com/TACC-Cloud/agave-cli
+   $ git remote add upstream https://github.com/TACC-Cloud/Tapis-CLI
    ```
 
 5. Check the results of your `git` configuration.
@@ -107,19 +107,19 @@ To configure your username, email, and add a remote:
    core.logallrefupdates=true
    user.name=Gopher Smith
    user.email=gopher@email.com
-   remote.origin.url=https://github.com/alejandrox1/agave-cli
+   remote.origin.url=https://github.com/alejandrox1/Tapis-CLI
    remote.origin.fetch=+refs/heads/*:refs/remotes/origin/*
-   remote.upstream.url=https://github.com/TACC-Cloud/agave-cli
+   remote.upstream.url=https://github.com/TACC-Cloud/Tapis-CLI
    remote.upstream.fetch=+refs/heads/*:refs/remotes/upstream/*
    ```
 
    To list just the remotes use:
    ```
    $ git remote -v
-   origin	https://github.com/alejandrox1/agave-cli (fetch)
-   origin	https://github.com/alejandrox1/agave-cli (push)
-   upstream https://github.com/TACC-Cloud/agave-cli (fetch)
-   upstream https://github.com/TACC-Cloud/agave-cli (push)
+   origin	https://github.com/alejandrox1/Tapis-CLI (fetch)
+   origin	https://github.com/alejandrox1/Tapis-CLI (push)
+   upstream https://github.com/TACC-Cloud/Tapis-CLI (fetch)
+   upstream https://github.com/TACC-Cloud/Tapis-CLI (push)
    ```
 
 ## Task 3. Create and push a branch
@@ -132,9 +132,9 @@ This branch is just for testing your config for this guide.
 The changes are part of a dry run, so the branch name will be dry-run-test.
 To create and push the branch to your fork on GitHub:
 
-1. Open a terminal and go to the root of your `agave-cli`.
+1. Open a terminal and go to the root of your `Tapis-CLI`.
    ```
-   $ cd ~/repos/agave-cli
+   $ cd ~/repos/Tapis-CLI
    ```
 
 2. Create a `dry-run-test` branch.
@@ -206,7 +206,7 @@ To create and push the branch to your fork on GitHub:
    ```
    $ git push --set-upstream origin dry-run-test
    Username for 'https://github.com': gopher
-   Password for 'https://gopher@github.com':
+   Password (optional).for 'https://gopher@github.com':
    ```
    Git prompts you for your GitHub username and password.
    Then, the command returns as a result.
@@ -215,14 +215,14 @@ To create and push the branch to your fork on GitHub:
    Compressing objects: 100% (2/2), done.
    Writing objects: 100% (3/3), 320 bytes | 0 bytes/s, done.
    Total 3 (delta 1), reused 0 (delta 0)
-   To https://github.com/gopher/agave-cli
+   To https://github.com/gopher/Tapis-CLI
     * [new branch]      dry-run-test -> dry-run-test
    Branch dry-run-test set up to track remote branch dry-run-test from origin.
    ```
 
 11. Open your brwoser to GitHub.
 
-12. Navigate to your agave-cli fork.
+12. Navigate to your Tapis-CLI fork.
 
 13. Make sure the `dry-run-test` branch exists, that it has yourcommit, and
     that the commit is signed.
@@ -230,4 +230,4 @@ To create and push the branch to your fork on GitHub:
 ## Where to go next
 Congratulations, you have finished configurating both your local host
 environment and Git for contributing.
-In the next section you'll [learn how to set up and work in an Agave-CLI development container](set-up-dev-end.md)
+In the next section you'll [learn how to set up and work in an Tapis-CLI development container](set-up-dev-end.md)

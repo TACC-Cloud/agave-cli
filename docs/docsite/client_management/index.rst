@@ -3,7 +3,7 @@ Managing Oauth Clients
 
 TACC offers a variety of APIs for clients to consume and interact with.
 In this section we cover how to manage API subscriptions using
-``TACC-Cloud/agave-cli``.
+``TACC-Cloud/Tapis-CLI``.
 
 .. toctree::
     :maxdepth: 2

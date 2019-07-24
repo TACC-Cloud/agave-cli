@@ -14,8 +14,8 @@ Reporting bugs and asking for features
 
 If you come accross a problem, the package advertises a thing and it does
 another, it fails without clear reason of what happened, or there is some
-functionality you believe should be implemented please file an 
-`issue on our repository <https://github.com/TACC-Cloud/agave-cli/issues>`_.
+functionality you believe should be implemented please file an
+`issue on our repository <https://github.com/TACC-Cloud/Tapis-CLI/issues>`_.
 
 
 .. _getting_involved:
@@ -23,5 +23,5 @@ functionality you believe should be implemented please file an
 Getting involved
 ````````````````
 
-If you are interested in joining the ``Agave-CLI`` development team you can find
-more information in our `contributing guide <https://github.com/TACC-Cloud/agave-cli/blob/develop/CONTRIBUTING.md>`_.
+If you are interested in joining the ``Tapis-CLI`` development team you can find
+more information in our `contributing guide <https://github.com/TACC-Cloud/Tapis-CLI/blob/develop/CONTRIBUTING.md>`_.
