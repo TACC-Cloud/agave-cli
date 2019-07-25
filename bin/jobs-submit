@@ -8,7 +8,7 @@
 # It submits a job for execution by the API.
 #
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 source "$DIR/common.sh"
 
@@ -52,8 +52,8 @@ Submit a new job request.
 source "$DIR/jobs-common.sh"
 
 main() {
-	#echo -n
-	#set -x
+  #echo -n
+  #set -x
 
   if [[ -z "$filetoupload" ]]; then
 
@@ -73,7 +73,7 @@ main() {
   else
 
     # reading from stdin
-    if [[ "$filetoupload" == "-"  ]]; then
+    if [[ "$filetoupload" == "-" ]]; then
 
       cmd="curl -sk -H \"${authheader}\" -H \"Content-Type: application/json\" -X POST --data-binary @- '$hosturl?pretty=true'"
 
@@ -82,7 +82,7 @@ main() {
       fi
 
       # make sure we specify content type as application/json
-      response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary @- "$hosturl?pretty=true"`
+      response=$(curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST --data-binary @- "$hosturl?pretty=true")
 
     # standard file upload
     else
@@ -93,11 +93,11 @@ main() {
         [ "$piped" -eq 0 ] && log "Calling $cmd"
       fi
 
-      response=`curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST -d "@$filetoupload" "$hosturl?pretty=true"`
+      response=$(curl -sk -H "${authheader}" -H "Content-Type: application/json" -X POST -d "@$filetoupload" "$hosturl?pretty=true")
 
     fi
 
-  	if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+    if [[ $(jsonquery "$response" "status") == 'success' ]]; then
 
       if ((watch)); then
 
@@ -119,36 +119,36 @@ main() {
           jhparams="$jhparams -v "
         fi
 
-        jobs-history $jhparams -W $jobwatchid
+        ${DIR}/jobs-history $jhparams -W $jobwatchid
 
       else
 
         result=$(format_api_json "$response")
-  		  success "$result"
+        success "$result"
 
       fi
 
     else
 
       errorresponse=$(jsonquery "$response" "message")
-  		err "$errorresponse"
+      err "$errorresponse"
 
-  	fi
+    fi
 
   fi
 }
 
 format_api_json() {
 
-	if ((veryverbose)); then
-		echo "$1"
-	elif [[ $verbose -eq 1 ]]; then
-		result=$(jsonquery "$1" "result" 1)
-		json_prettyify "${result}"
-	else
-		jobid=$(jsonquery "$1" "result.id")
-		echo "Successfully submitted job $jobid"
-	fi
+  if ((veryverbose)); then
+    echo "$1"
+  elif [[ $verbose -eq 1 ]]; then
+    result=$(jsonquery "$1" "result" 1)
+    json_prettyify "${result}"
+  else
+    jobid=$(jsonquery "$1" "result.id")
+    echo "Successfully submitted job $jobid"
+  fi
 }
 
 ##################################################################
@@ -162,30 +162,55 @@ format_api_json() {
 # Parse command line options
 source "$DIR/options.sh"
 
-
 # Main loop {{{
 
 # Print help if no arguments were passed.
 [[ $# -eq 0 ]] && set -- "-i"
 
 # Read the options and set stuff
-while [[ $1 = -?* ]]; do
+while [[ $1 == -?* ]]; do
   case $1 in
-    -h|--help) usage >&2; safe_exit ;;
-    --version) version; copyright; disclaimer; safe_exit ;;
-    -z|--access_token) shift; access_token=$1 ;;
-    -F|--filetoupload) shift; filetoupload=$1 ;;
-    -W| --watch) watch=1;;
-    --filter) shift; responsefilter=$1 ;;
-    -H|--hosturl) shift; hosturl=$1;;
-  	-d|--development) development=1 ;;
-    -v|--verbose) verbose=1 ;;
-    -V|--veryverbose) veryverbose=1; verbose=1 ;;
-    -q|--quiet) quiet=1 ;;
-    -i|--interactive) interactive=1 ;;
-    -f|--force) force=1 ;;
-    --endopts) shift; break ;;
-    *) die "invalid option: $1" ;;
+  -h | --help)
+    usage >&2
+    safe_exit
+    ;;
+  --version)
+    version
+    copyright
+    disclaimer
+    safe_exit
+    ;;
+  -z | --access_token)
+    shift
+    access_token=$1
+    ;;
+  -F | --filetoupload)
+    shift
+    filetoupload=$1
+    ;;
+  -W | --watch) watch=1 ;;
+  --filter)
+    shift
+    responsefilter=$1
+    ;;
+  -H | --hosturl)
+    shift
+    hosturl=$1
+    ;;
+  -d | --development) development=1 ;;
+  -v | --verbose) verbose=1 ;;
+  -V | --veryverbose)
+    veryverbose=1
+    verbose=1
+    ;;
+  -q | --quiet) quiet=1 ;;
+  -i | --interactive) interactive=1 ;;
+  -f | --force) force=1 ;;
+  --endopts)
+    shift
+    break
+    ;;
+  *) die "invalid option: $1" ;;
   esac
   shift
 done
