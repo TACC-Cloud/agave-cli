@@ -125,11 +125,12 @@ main() {
             fgrparams="$fgrparams -v "
           fi
 
-          read -a names <<<$(jsonquery "$response" "result.[].name")
-          read -a types <<<$(jsonquery "$response" "result.[].type")
-          read -a formats <<<$(jsonquery "$response" "result.[].format")
-          read -a paths <<<$(jsonquery "$response" "result.[].path")
-          read -a lengths <<<$(jsonquery "$response" "result.[].length")
+          read -d "\n" -a names <<<$(echo "$response" | jq -r .result[].name)
+          read -d "\n" -a types <<<$(echo "$response" | jq -r .result[].type)
+          read -d "\n" -a formats <<<$(echo "$response" | jq -r .result[].format)
+          read -d "\n" -a paths <<<$(echo "$response" | jq -r .result[].path)
+          read -d "\n" -a lengths <<<$(echo "$response" | jq -r .result[].length)
+
           #set -x
           # current api has a bug where it does not return the . entry
           # in the directory listing. We workaround by adding the file name explicitly here
@@ -162,6 +163,7 @@ main() {
 
               if [ -z "$filename" ]; then
                 filename=$(basename $path)
+                echo "filename: $filename"
               fi
 
             else
@@ -173,6 +175,11 @@ main() {
           targetpath="$filename"
 
           for i in $(echo "${!names[@]}"); do
+
+            # echo "iterating item $i"
+            # echo "${type[i]}"
+            # echo "${names[i]}"
+            # echo "$(echo "${paths[i]}" | sed 's/^\///')"
 
             if [ "${type[i]}" == "dir" ] && [ "${names[i]}" == "." -o "$path" == $(echo "${paths[i]}" | sed 's/^\///') ]; then
 
@@ -249,6 +256,7 @@ main() {
         fi
 
         curl -# -k -H "${authheader}" ${filerange} ${outputarg} "${filesurl}"
+
         #touch $filename
 
         if [ "$?" -eq 0 ] && [ ! -f "$filename" ]; then
