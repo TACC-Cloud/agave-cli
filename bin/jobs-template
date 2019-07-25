@@ -199,7 +199,7 @@ main() {
           if ((verbose)); then
             [ "$piped" -eq 0 ] && log "Fetching default storage system description..."
           fi
-          default_system=$(systems-list $debug_flag -D -S -v)
+          default_system=$(${DIR}/systems-list $debug_flag -D -S -v)
           kvset jtstorage "$default_system"
         else
           default_system=$(kvget jtstorage)
@@ -208,7 +208,7 @@ main() {
               [ "$piped" -eq 0 ] && log "Cached storage system description was stale. Fetching fresh default storage system description..."
             fi
             kvdel jtstorage
-            default_system=$(systems-list $debug_flag -D -S -v)
+            default_system=$(${DIR}/systems-list $debug_flag -D -S -v)
             kvset jtstorage "$default_system"
           else
             if ((verbose)); then
@@ -220,7 +220,7 @@ main() {
         if ((verbose)); then
           [ "$piped" -eq 0 ] && log "Fetching default storage system description..."
         fi
-        default_system=$(systems-list $debug_flag -D -S -v)
+        default_system=$(${DIR}/systems-list $debug_flag -D -S -v)
       fi
 
       archivePath="null"
@@ -460,7 +460,7 @@ main() {
       if ((verbose)); then
         [ "$piped" -eq 0 ] && log "Creating a new webhook url for your job..."
       fi
-      equestbin=$(requestbin-create -v)
+      equestbin=$(${DIR}/requestbin-create -v)
       requestbin_id=$(jsonquery "$requestbin" "name")
       webhookurl="https://requestbin.agaveapi.co/${requestbin_id}?job_id=\${JOB_ID}&status=\${JOB_STATUS}"
 
