@@ -476,10 +476,14 @@ main() {
     fi
 
     # Allow the user to pass in a job name by default. Otherwise, generate one
-    # derived from the job id
-    if [[ -z "$name" ]]; then
-      timestamp=$(date +%s)
-      job_name="$(jsonquery "$app_description" "name") test-$timestamp"
+    # derived from the app ID and current time
+    if [[ -z "$name" ]] || [[ "$name" == "" ]]; then
+      # timestamp=$(date +%s)
+      # Universal (Linux/BSD) UTC time w ISO-8601 formatting
+      timestamp=$(date -u +%Y%m%dt%H%M%Sz)
+      job_name="$(jsonquery "$app_description" "name")-job-$timestamp"
+    else
+      job_name="${name}"
     fi
 
     if ((verbose)); then
@@ -487,7 +491,7 @@ main() {
     fi
 
     if ((allfields)); then
-      printf "{\n  \"name\":\"%s\",\n  \"appId\": \"%s\",\n  \"batchQueue\": \"%s\",\n  \"executionSystem\": \"%s\",\n  \"maxRunTime\": \"%s\",\n  \"memoryPerNode\": \"%sGB\",\n  \"nodeCount\": %s,\n  \"processorsPerNode\": %s,\n  \"archive\": %s,\n  \"archiveSystem\": \"%s\",\n  \"archivePath\": %s,\n  \"inputs\": {%s\n  },\n  \"parameters\": {%s\n  },\n  \"notifications\": [\n%s\n  ]\n}\n" "$job_name" "$args" "$queue" "$execution_system_id" "$maxRunTime" "$memoryPerNode" "$nodeCount" "$processorsPerNode" "$archive" "$archiveSystem" "$archivePath" "$inputs" "$parameters" "$notifications"
+      printf "{\n  \"name\":\"%s\",\n  \"appId\": \"%s\",\n  \"batchQueue\": \"%s\",\n  \"maxRunTime\": \"%s\",\n  \"memoryPerNode\": \"%sGB\",\n  \"nodeCount\": %s,\n  \"processorsPerNode\": %s,\n  \"archive\": %s,\n  \"archiveSystem\": \"%s\",\n  \"inputs\": {%s\n  },\n  \"parameters\": {%s\n  },\n  \"notifications\": [\n%s\n  ]\n}\n" "$job_name" "$args" "$queue" "$maxRunTime" "$memoryPerNode" "$nodeCount" "$processorsPerNode" "$archive" "$archiveSystem" "$inputs" "$parameters" "$notifications"
     else
       printf "{\n  \"name\": \"%s\",\n  \"appId\": \"%s\",\n  \"archive\": %s,\n  \"inputs\": {%s\n  },\n  \"parameters\": {%s\n  }\n}\n" "$job_name" "$args" "$archive" "$inputs" "$parameters"
     fi
