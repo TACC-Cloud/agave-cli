@@ -11,7 +11,7 @@
 # way, the data will be available from this script.
 #
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 source "$DIR/common.sh"
 
@@ -57,13 +57,13 @@ available from this script.
 source "$DIR/jobs-common.sh"
 
 main() {
-	#echo -n
-	# set -x
+  #echo -n
+  # set -x
 
-	if [ -z "$args" ]; then
-		err "Please specify a job id for which to view the output"
-	else
-		jobid=${args[0]}
+  if [ -z "$args" ]; then
+    err "Please specify a job id for which to view the output"
+  else
+    jobid=${args[0]}
     #echo $jobid
     path=$(echo "${args[1]}" | sed 's/^\///')
 
@@ -108,10 +108,9 @@ main() {
 
         fileslistingurl="$hosturl${jobid}/outputs/listings/${path}"
 
+        response=$(curl -sk -H "${authheader}" "${fileslistingurl}")
 
-        response=`curl -sk -H "${authheader}" "${fileslistingurl}"`
-
-        if [[ $(jsonquery "$response" "status") = 'success' ]]; then
+        if [[ $(jsonquery "$response" "status") == 'success' ]]; then
 
           if ((development)); then
             fgrparams=" -d "
@@ -126,17 +125,17 @@ main() {
             fgrparams="$fgrparams -v "
           fi
 
-          read -a names <<< $(jsonquery "$response" "result.[].name")
-          read -a types <<< $(jsonquery "$response" "result.[].type")
-          read -a formats <<< $(jsonquery "$response" "result.[].format")
-          read -a paths <<< $(jsonquery "$response" "result.[].path")
-          read -a lengths <<< $(jsonquery "$response" "result.[].length")
+          read -a names <<<$(jsonquery "$response" "result.[].name")
+          read -a types <<<$(jsonquery "$response" "result.[].type")
+          read -a formats <<<$(jsonquery "$response" "result.[].format")
+          read -a paths <<<$(jsonquery "$response" "result.[].path")
+          read -a lengths <<<$(jsonquery "$response" "result.[].length")
           #set -x
           # current api has a bug where it does not return the . entry
           # in the directory listing. We workaround by adding the file name explicitly here
           if [ -z "$filename" ]; then
             if [ -n "$path" ]; then
-              for i in `echo "${!names[@]}"`; do
+              for i in $(echo "${!names[@]}"); do
                 if [ "${types[i]}" == "dir" ] && [ "${names[i]}" == "." -o "$path" == $(echo "${paths[i]}" | sed 's/^\///') ]; then
 
                   if [ -z "$filename" ]; then
@@ -154,10 +153,10 @@ main() {
                   fi
 
                   mkdir -p "$filename"
-                  break;
+                  break
                 elif [ "${types[i]}" == "file" ] && [ "${names[i]}" == "." -o "$path" == $(echo "${paths[i]}" | sed 's/^\///') ]; then
                   filename=$(basename "${paths[i]}")
-                  break;
+                  break
                 fi
               done
 
@@ -173,7 +172,7 @@ main() {
 
           targetpath="$filename"
 
-          for i in `echo "${!names[@]}"`; do
+          for i in $(echo "${!names[@]}"); do
 
             if [ "${type[i]}" == "dir" ] && [ "${names[i]}" == "." -o "$path" == $(echo "${paths[i]}" | sed 's/^\///') ]; then
 
@@ -200,9 +199,9 @@ main() {
 
               # the target was a file, not a folder
               if [ -n "$filename" ]; then
-                jobs-output-get -${fgrparams} -N $filename $jobid $path
+                ${DIR}/jobs-output-get -${fgrparams} -N $filename $jobid $path
               else
-                jobs-output-get ${fgrparams} -N $targetpath $jobid $path
+                ${DIR}/jobs-output-get ${fgrparams} -N $targetpath $jobid $path
               fi
 
             else
@@ -216,9 +215,9 @@ main() {
 
               if [ "${types[i]}" == "dir" ]; then
                 mkdir -p $localchildpath
-                jobs-output-get -r ${fgrparams} -N $localchildpath $jobid $remotechildpath
+                ${DIR}/jobs-output-get -r ${fgrparams} -N $localchildpath $jobid $remotechildpath
               elif [ "${lengths[i]}" -gt "0" ]; then
-                jobs-output-get -v ${fgrparams} -N $localchildpath $jobid $remotechildpath
+                ${DIR}/jobs-output-get -v ${fgrparams} -N $localchildpath $jobid $remotechildpath
               else
                 echo "Downloading empty file $remotechildpath..."
                 echo "######################################################################## 100.0%"
@@ -238,7 +237,7 @@ main() {
         cmd="curl -k -H \"${authheader}\" ${filerange} ${outputarg} '${filesurl}'"
 
         if ((veryverbose)); then
-         [ "$piped" -eq 0 ] && log "Calling $cmd"
+          [ "$piped" -eq 0 ] && log "Calling $cmd"
         fi
 
         if [ -z "$filename" ]; then
@@ -287,32 +286,60 @@ format_api_json() {
 # Parse command line options
 source "$DIR/options.sh"
 
-
 # Main loop {{{
 
 # Print help if no arguments were passed.
 #[[ $# -eq 0 ]] && set -- "--help"
 
 # Read the options and set stuff
-while [[ $1 = -?* ]]; do
+while [[ $1 == -?* ]]; do
   case $1 in
-    -h|--help) usage >&2; safe_exit ;;
-    --version) version; copyright; disclaimer; safe_exit ;;
-    -z|--access_token) shift; access_token=$1 ;;
-    -R|--range) shift; range=$1 ;;
-    -S|--systemId) shift; systemId=$1 ;;
-    -N|--filename) shift; filename=$1 ;;
-    -r|--recursive) recursive=1 ;;
-    -P|--print) print=1 ;;
-    -H|--hosturl) shift; hosturl=$1;;
-  	-d|--development) development=1 ;;
-    -v|--verbose) verbose=1 ;;
-    -V|--veryverbose) veryverbose=1; verbose=1 ;;
-    -q|--quiet) quiet=1 ;;
-    -i|--interactive) interactive=1 ;;
-    -f|--force) force=1 ;;
-    --endopts) shift; break ;;
-    *) die "invalid option: $1" ;;
+  -h | --help)
+    usage >&2
+    safe_exit
+    ;;
+  --version)
+    version
+    copyright
+    disclaimer
+    safe_exit
+    ;;
+  -z | --access_token)
+    shift
+    access_token=$1
+    ;;
+  -R | --range)
+    shift
+    range=$1
+    ;;
+  -S | --systemId)
+    shift
+    systemId=$1
+    ;;
+  -N | --filename)
+    shift
+    filename=$1
+    ;;
+  -r | --recursive) recursive=1 ;;
+  -P | --print) print=1 ;;
+  -H | --hosturl)
+    shift
+    hosturl=$1
+    ;;
+  -d | --development) development=1 ;;
+  -v | --verbose) verbose=1 ;;
+  -V | --veryverbose)
+    veryverbose=1
+    verbose=1
+    ;;
+  -q | --quiet) quiet=1 ;;
+  -i | --interactive) interactive=1 ;;
+  -f | --force) force=1 ;;
+  --endopts)
+    shift
+    break
+    ;;
+  *) die "invalid option: $1" ;;
   esac
   shift
 done
