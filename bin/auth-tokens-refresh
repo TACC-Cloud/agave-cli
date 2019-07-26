@@ -10,6 +10,7 @@ Exchanges a Tapis Oauth client refresh token for a new access and refresh token.
     -k, --apikey         Oauth client key.
     -s, --apisecret      Oauth client secret.
     -D, --displayonly    Display but do not store the access token.
+    -q, --quiet          Quiet (no output save for errors)
     -c, --cachedir       Session cache directory.
 """
 from __future__ import print_function
@@ -51,6 +52,9 @@ parser.add_argument("-D", "--displayonly", dest="displayonly",
 parser.add_argument("-S", "--storetoken", dest="storetoken",
                     action="store_true",
                     help="Store tokens for later use (default).")
+parser.add_argument("-q", "--quiet", dest="quiet",
+                    action="store_true",
+                    help="Quiet (no output).")
 parser.add_argument(
     "-c",
     "--cachedir",
@@ -76,6 +80,7 @@ if __name__ == "__main__":
     display_only = args.displayonly
     force = args.force
     new_token = None
+    quiet = args.quiet
 
     try:
         context = dict()
@@ -133,7 +138,8 @@ if __name__ == "__main__":
                     and api_key is not None and api_secret is not None and refresh_token is not None:
                 display_only = True
 
-            utils.print_stderr(REFRESHING_TOKEN_MSG)
+            if not quiet:
+                utils.print_stderr(REFRESHING_TOKEN_MSG)
             agave.refresh_tokens(force=force)
 
             # tok = tokens.refresh_token(
@@ -158,20 +164,23 @@ if __name__ == "__main__":
                 except KeyError:
                     raise
 
-            utils.print_stderr(REFRESHING_TOKEN_MSG)
+            if not quiet:
+                utils.print_stderr(REFRESHING_TOKEN_MSG)
 
             agave.refresh_tokens(force=force)
             new_token = agave.token
             token_expires = agave.expires_at
 
-        print(new_token)
-        utils.print_stderr('New token expires: {}'.format(token_expires))
+        if not quiet:
+            print(new_token)
+            utils.print_stderr('New token expires: {}'.format(token_expires))
 
         # Save session.
         if not display_only:
             agave.save_configs(cache_dir)
         else:
-            utils.print_stderr(TOKEN_NOT_STORED_MSG)
+            if not quiet:
+                utils.print_stderr(TOKEN_NOT_STORED_MSG)
 
         sys.exit(0)
 
