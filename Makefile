@@ -6,7 +6,7 @@ GIT_BRANCH_CLEAN := $(shell echo $(GIT_BRANCH) | sed -e "s/[^[:alnum:]]/-/g")
 IMAGE_BASENAME := tapis-cli
 DOCKER_ORG ?= tacc
 CLI_BRANCH ?= $(GIT_BRANCH)
-CLI_VERSION ?= "3.0"
+CLI_VERSION ?= "3.1.0"
 AGAVEPY_BRANCH ?= master
 
 BASE_DOCKERFILE ?= Dockerfile.cosmic
