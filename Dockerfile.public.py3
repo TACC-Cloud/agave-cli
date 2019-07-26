@@ -1,4 +1,4 @@
-FROM cli-base:py2
+FROM cli-base:py3
 
 ARG CLI_BRANCH=master
 ARG CLI_VERSION=3.x.y
@@ -9,8 +9,6 @@ LABEL org.label-schema.vcs-url = "https://github.com/TACC-Cloud/tapis-cli"
 LABEL org.label-schema.vcs-ref = "${CLI_BRANCH}"
 LABEL org.label-schema.version = "${CLI_VERSION}"
 
-WORKDIR /install
-
 # AgavePy (from source/branch)
 # Clone and install repo
 RUN git clone https://github.com/TACC/agavepy \
@@ -20,6 +18,13 @@ RUN git clone https://github.com/TACC/agavepy \
     pip install --quiet --upgrade .
 
 WORKDIR /home
+
+# RUN git clone https://github.com/TACC-Cloud/agave-cli \
+#     && cd agave-cli \
+#     && git fetch --all && \
+#     git checkout ${CLI_BRANCH}
+
+# WORKDIR /home/agave-cli
 
 COPY bin /home/bin
 COPY completion/agave-cli /etc/bash_completion.d/agave-cli
