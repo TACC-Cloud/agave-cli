@@ -22,9 +22,11 @@ interactive_opts=(apisecret apikey)
 # Print usage
 usage() {
   echo -n "$(basename $0) [OPTION]... [PATH]
+
 List files on a remote system. If no system is specified, your default storage
 system will be used. By specifying a system, the path given will be resolved
 on that remote system. Note that the system id, not hostname must be given.
+
  Options:
   -z, --access_token    Access token
   -S, --systemId        Specify the system id
