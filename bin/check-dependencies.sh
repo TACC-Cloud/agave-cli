@@ -128,7 +128,7 @@ if [ -z "$CHECKED_DEPS" ]; then
     fi
     # Docker (optional)
     command -v docker >/dev/null 2>&1 && DOCKER_VERSION="$(docker --version | awk '{print $3}' | tr -d ,)" || { dep_warning "Docker"; }
-    if egrep -v -q "^(17\.|18\.|19\.)" <<< ${DOCKER_VERSION}; then
+    if egrep -v -q "^(17\.|18\.|19\.|20\.)" <<< ${DOCKER_VERSION}; then
         dep_warning "Docker ${DOCKER_MIN_VERSION}"
     else
         hasdocker=1
