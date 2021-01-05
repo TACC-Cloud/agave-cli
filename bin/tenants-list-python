@@ -1,0 +1,26 @@
+#!/usr/bin/env python
+"""
+    tenants-list [OPTION]
+
+Lists the available tenants on an instance of Tapis.
+
+ Options:
+    --tenants       The /tenants URL for a Tapis instance
+"""
+from __future__ import print_function
+import argparse
+from agavepy import utils
+from agavepy.agave import Agave
+
+parser = argparse.ArgumentParser(
+    description="Lists the available tenants on an instance of Tapis.")
+
+parser.add_argument(
+    "--tenants",
+    default=utils.tenants_url(),
+    help="The /tenants URL for a Tapis instance")
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    ag = Agave()
+    ag.list_tenants(args.tenants)

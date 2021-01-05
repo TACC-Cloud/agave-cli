@@ -1,1 +1,300 @@
-auth-sessions-switch
+#!/bin/bash
+#
+# auth-switch
+#
+# author: vaughn@tacc.utexas.edu
+#
+# This script is part of the Tapis command line interface (CLI).
+# It non-destructively swaps among tenants/usernames configurations
+# to support users who need to change contexts often
+
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+THIS=$(basename $0)
+source "$DIR/common.sh"
+
+# Script logic -- TOUCH THIS {{{
+
+# A list of all variables to prompt in interactive mode. These variables HAVE
+# to be named exactly as the longname option definition in usage().
+interactive_opts=()
+
+# Print usage
+usage() {
+  echo -n "${THIS} [OPTIONS]...
+
+Switch between preconfigured API clients by username/tenant. For ease of
+use, one can try to automatically refresh or create new tokens with the
+newly activated client by passing the appropriate flags. Running $THIS
+without options will display a table of known client configurations.
+
+ Options:
+  -u, --username        Tenant-specific username to switch to
+  -t, --tenantid        Tenant to switch to (e.g. iplantc.org)
+  -r, --refresh         Attempt to refresh access token after switching
+  -c, --create          Attempt to create a new token after switching
+  -p, --password        Specify password for creating a new token
+  -i, --init            Set up a new, empty credential store
+  -q, --quiet           Quiet (no output)
+  -v, --verbose         Verbose output
+  -V, --veryverbose     Very verbose output
+  -h, --help            Display this help and exit
+      --version         Output version information and exit
+"
+}
+
+##################################################################
+##################################################################
+#						Begin Script Logic						 #
+##################################################################
+##################################################################
+
+source "$DIR/auth-common.sh"
+
+pyjsonquery(){
+  # Python: Get a subfield value from a credential store
+  local cred_store=$1
+  local key=$2
+  value=
+
+  if [ -z "${cred_store}" ]
+  then
+    cred_store="current"
+  fi
+
+  cred_store_file="${AGAVE_CACHE_DIR}/$(basename $cred_store)"
+  if [ -f ${cred_store_file} ]
+  then
+    value=$(python $DIR/libs/python/pydotjson.py -s -q ${key} ${cred_store_file})
+    echo $value
+  else
+    die "Unable to read ${cred_store_file}"
+  fi
+
+}
+
+pyjsonsetfield() {
+  # Python: Set a subfield in Agave credential store to a value
+  local cred_store=$1
+  local key=$2
+  local value=$3
+}
+
+get_tenantid(){
+
+  local cred_store=$1
+  if [ -z "${cred_store}" ]
+  then
+    cred_store="current"
+  fi
+  local current_tenantid=$(pyjsonquery "$cred_store" "tenantid")
+  if [ -z "${current_tenantid}" ] || [ "${current_tenantid}" == "null" ]
+  then
+    current_tenantid=$(AGAVE_CACHE_DIR=${AGAVE_CACHE_DIR} ; python $DIR/libs/python/gettenantid.py ${cred_store})
+    if [ "$?" == 0 ];
+    then
+      echo ${current_tenantid}
+    else
+      echo "unknown"
+    fi
+  else
+    echo ${current_tenantid}
+  fi
+}
+
+list_kv_stores(){
+
+  local current_user=$(pyjsonquery current "username")
+  local current_tenantid=$(get_tenantid current)
+
+  stores=$(cd $AGAVE_CACHE_DIR && find * -type f -name "*current${delim}*" | uniq | sort -k1)
+  rec="| tenant | username | active | | ------ | -------- | ------ | "
+
+  clients=0
+  for S in $stores
+  do
+    local active=
+    tenant=$(get_tenantid $S)
+    username=$(awk -F ${delim} '{print $3}' <<< $S)
+    if [ "$username" == "$current_user" ] && [ "$tenant" == "$current_tenantid" ]
+    then
+      active="true"
+    else
+      active="false"
+    fi
+    rec="${rec}| $tenant | $username | $active | "
+    let clients=$clients+1
+  done
+  # initialize current into if there were not multiple identities cached
+  if (($clients == 0))
+  then
+    rec="${rec}| $current_tenantid | $current_user | true | "
+    cp -f "$AGAVE_CACHE_DIR/current" "$AGAVE_CACHE_DIR/current#${current_tenantid}#${current_user}"
+  fi
+  columnize "${rec}"
+  safe_exit
+
+}
+
+switch_kv_current(){
+
+  local switch_user=$1
+  local switch_tenantid=$2
+
+  local current_user=$(pyjsonquery current "username")
+  local current_tenantid=$(get_tenantid current)
+
+  local kv_store_cachename="${current_tenantid}${delim}${current_user}"
+  local kv_store_switchname="${switch_tenantid}${delim}${switch_user}"
+
+  # Only try to switch if username or tenant is different from current
+  # - Mitigates risk of borking the existing 'current' credentials
+  if [ "${current_tenantid}#${current_user}" != "${switch_tenantid}#${switch_user}" ]
+  then
+
+    if [ "$current_tenantid" != "unknown" ]
+    then
+      cp -f "$AGAVE_CACHE_DIR/current" "$AGAVE_CACHE_DIR/current${delim}${kv_store_cachename}"
+    fi
+
+    if [ -f "$AGAVE_CACHE_DIR/current${delim}${kv_store_switchname}" ]
+    then
+      cp -f "$AGAVE_CACHE_DIR/current${delim}${kv_store_switchname}" "$AGAVE_CACHE_DIR/current"
+      out "Active config now ${switch_tenantid}/${switch_user}"
+    else
+      err "No config found for ${switch_tenantid}/${switch_user}"
+      exit 1
+    fi
+  else
+    out "Client config remains ${switch_tenantid}/${switch_user}"
+  fi
+
+  # Pass -q, -V, -v, -p flags transparently in
+  # Assume user knows what she's doing
+  PASSOPTS=
+  if ((verbose)); then
+    PASSOPTS="$PASSOPTS -v"
+  fi
+  if ((veryverbose)); then
+    PASSOPTS="$PASSOPTS -V"
+  fi
+  if ((quiet)); then
+    PASSOPTS="$PASSOPTS -q"
+  fi
+  if [ ! -z "${password}" ]
+  then
+    PASSOPTS="$PASSOPTS -p ${password}"
+  fi
+
+  # No need to reinvent the wheel
+  # Just call our own tooling to kick off refresh/create
+  if ((refresh)); then
+    $DIR/auth-tokens-refresh -S ${PASSOPTS}
+  elif ((create)); then
+    $DIR/auth-tokens-create -S ${PASSOPTS}
+  fi
+
+}
+
+init_new_kv_current(){
+
+  local user=$1
+  local tenantid=$2
+  local kv_store_cachename="${tenantid}${delim}${user}"
+
+  mv -f "$AGAVE_CACHE_DIR/current" "$AGAVE_CACHE_DIR/current${delim}${kv_store_cachename}"
+
+cat << EOF > $AGAVE_CACHE_DIR/current
+{"tenantid":"","baseurl":"","devurl":"","apisecret":"","apikey":"","username":"","access_token":"","refresh_token":"","created_at":"","expires_in":""}
+EOF
+
+  out "New credential store created. Configure via tenants-init then client and/or token commands."
+  safe_exit
+
+}
+
+main() {
+
+  delim='#'
+  if ((dolist)); then
+    list_kv_stores
+  fi
+
+  local current_user=$(pyjsonquery "current" "username")
+  local current_tenantid=$(get_tenantid "current")
+
+  if ((init)); then
+    init_new_kv_current $current_user $current_tenantid
+  fi
+
+  if [ -z "$user" ]
+  then
+    user=$current_user
+  fi
+
+  if [ -z "$tenant" ]
+  then
+    tenant=$current_tenantid
+  fi
+
+  switch_kv_current $user $tenant
+
+}
+
+format_api_json() {
+
+	if ((savechanges)); then
+
+		kvset current "$1"
+
+		echo "Cache successfully updated and saved to $AGAVE_CACHE_DIR/current";
+	fi
+
+  json_prettyify "${1}"
+}
+
+##################################################################
+##################################################################
+#						End Script Logic						 #
+##################################################################
+##################################################################
+
+# }}}
+
+# Parse command line options
+source "$DIR/options.sh"
+
+
+# Main loop {{{
+
+# Print help if no arguments were passed.
+[[ $# -eq 0 ]] && set -- "-l"
+
+# Read the options and set stuff
+while [[ $1 = -?* ]]; do
+  case $1 in
+    -h|--help) usage >&2; safe_exit ;;
+    --version) version; copyright; disclaimer; safe_exit ;;
+    -u|--user) shift; user=$1 ;;
+    -t|--tenant) shift; tenant=$1 ;;
+    -r|--refresh) refresh=1 ;;
+    -c|--create) create=1 ;;
+    -p|--password) shift; password=$1 ;;
+    -i|--init) shift; init=1 ;;
+    -v|--verbose) verbose=1 ;;
+    -V|--veryverbose) veryverbose=1; verbose=1 ;;
+    -q|--quiet) quiet=1 ;;
+    -l|--list) dolist=1 ;;
+    --endopts) shift; break ;;
+    *) die "invalid option: $1" ;;
+  esac
+  shift
+done
+
+# Store the remaining part as arguments.
+args+=("$@")
+
+# }}}
+
+# Run the script logic
+source "$DIR/runner.sh"

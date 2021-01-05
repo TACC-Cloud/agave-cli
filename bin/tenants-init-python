@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# tenants-init
+#
+# author: opensource@tacc.cloud
+#
+# This script used to allow a user to configure just the Tapis tenant they
+# intended to interact with. As this was found to be unnecessarily complex
+# this functionality has been rolled up into the auth-session-init command.
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "$DIR/common.sh"
+
+err "The $(basename $0) command has been replaced. Please see auth-session-init -h for assistance."
